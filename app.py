@@ -4,21 +4,21 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
-# Define the absolute path to your project's directory
+# Define o caminho base do projeto
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# Configure Flask to use absolute paths for both templates and static files.
-# This ensures that no matter where the app is run from, Flask will find the files.
+# Configuração do Flask: Usa o caminho absoluto para encontrar a pasta 'static'
+# Isso resolve o problema de carregamento de arquivos de forma definitiva.
 app = Flask(__name__,
             template_folder=os.path.join(basedir, 'static'),
             static_folder=os.path.join(basedir, 'static'))
 
-# Database configuration (SQLite)
+# Configuração do banco de dados (SQLite)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'entregas.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Table models
+# Tabela de Itens de Entrega
 class ItemEntrega(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     codigo_sap = db.Column(db.String(20), unique=True, nullable=False)
@@ -30,6 +30,7 @@ class ItemEntrega(db.Model):
     a_receber = db.Column(db.Integer, default=0)
     recebido = db.Column(db.Integer, default=0)
 
+# Tabela de Notas Fiscais
 class NotaFiscal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     numero_nota = db.Column(db.String(50), unique=True, nullable=False)
@@ -37,11 +38,11 @@ class NotaFiscal(db.Model):
     data_importacao = db.Column(db.String(20), nullable=False)
     valor_total = db.Column(db.String(20), nullable=False)
 
-# Create database tables if they don't exist
+# Cria as tabelas do banco de dados se elas não existirem
 with app.app_context():
     db.create_all()
 
-# Routes to serve HTML pages from the 'static' folder
+# Rotas para servir as páginas HTML
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -54,10 +55,11 @@ def historico():
 def dashboard():
     return render_template('dashboard.html')
 
-# API routes for data
+# Rota para obter os dados do banco de dados para a página principal
 @app.route('/get_data')
 def get_data():
     items = ItemEntrega.query.all()
+    
     items_list = [
         {
             'codigo_sap': item.codigo_sap,
@@ -67,11 +69,13 @@ def get_data():
             'pedido_vd': item.pedido_vd,
             'total_caixa': item.total_caixa,
             'a_receber': item.a_receber,
-            'recebido': item.recebido
+            'recebido': item.recebido,
+            'id': item.id
         } for item in items
     ]
     return jsonify(items_list)
 
+# Rota para obter os dados das notas fiscais para a página de histórico
 @app.route('/get_notas')
 def get_notas():
     notas = NotaFiscal.query.all()
@@ -85,6 +89,7 @@ def get_notas():
     ]
     return jsonify(notas_list)
 
+# Rota para obter os dados necessários para os gráficos do dashboard
 @app.route('/get_dashboard_data')
 def get_dashboard_data():
     items = ItemEntrega.query.all()
@@ -134,19 +139,25 @@ def get_dashboard_data():
         "grupos": grupos
     })
 
+# Rota para receber e processar o arquivo XML
 @app.route('/upload_xml', methods=['POST'])
 def upload_xml():
     if 'file' not in request.files:
         return jsonify({"success": False, "message": "Nenhum arquivo enviado."}), 400
+
     file = request.files['file']
+
     if file.filename == '' or not file.filename.endswith('.xml'):
         return jsonify({"success": False, "message": "Arquivo inválido. Por favor, envie um arquivo XML."}), 400
+
     if file:
         try:
             tree = ET.parse(file)
             root = tree.getroot()
+
             nfe_tag = root.find('.//{http://www.portalfiscal.inf.br/nfe}NFe')
             inf_nfe_tag = nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}infNFe')
+            
             n_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}nNF').text
             
             nota_existente = NotaFiscal.query.filter_by(numero_nota=n_nf).first()
@@ -186,6 +197,47 @@ def upload_xml():
             return jsonify({"success": False, "message": f"Erro ao analisar o XML: {e}"}), 400
         except Exception as e:
             return jsonify({"success": False, "message": f"Ocorreu um erro no servidor: {e}"}), 500
+
+# Rota para excluir um item
+@app.route('/delete_item/<int:item_id>', methods=['DELETE'])
+def delete_item(item_id):
+    try:
+        item = ItemEntrega.query.get(item_id)
+        if item:
+            db.session.delete(item)
+            db.session.commit()
+            return jsonify({"success": True, "message": "Item excluído com sucesso!"})
+        else:
+            return jsonify({"success": False, "message": "Item não encontrado."}), 404
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": f"Ocorreu um erro ao excluir o item: {e}"}), 500
+
+# Rota para editar um item
+@app.route('/update_item/<int:item_id>', methods=['POST'])
+def update_item(item_id):
+    try:
+        item = ItemEntrega.query.get(item_id)
+        if not item:
+            return jsonify({"success": False, "message": "Item não encontrado."}), 404
+
+        data = request.get_json()
+        
+        # Garante que apenas os campos permitidos sejam editados
+        for field, value in data.items():
+            if field in ['pedido_loja', 'pedido_vd']:
+                setattr(item, field, value) # Atualiza o valor do campo
+            
+        # Recalcula o total de caixas e o que falta receber
+        item.total_caixa = item.pedido_loja + item.pedido_vd
+        item.a_receber = item.total_caixa - item.recebido
+
+        db.session.commit()
+        return jsonify({"success": True, "message": "Item atualizado com sucesso!"})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": f"Ocorreu um erro ao atualizar o item: {e}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

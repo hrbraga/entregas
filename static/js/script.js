@@ -1,17 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     /**
-     * Esta função preenche a tabela principal com os dados dos itens.
+     * Esta função preenche a tabela principal com os dados dos itens e botões de ação.
      * @param {Array} data - Os dados para a tabela.
      */
     function renderTable(data) {
         const tbody = document.getElementById('table-body');
-        tbody.innerHTML = ''; // Limpa a tabela antes de preencher
+        tbody.innerHTML = '';
 
         data.forEach(item => {
             const row = document.createElement('tr');
             
-            // Lógica para adicionar a classe de cor com base no status
             if (item.recebido === item.total_caixa) {
                 row.classList.add('fully-received');
             } else if (item.recebido > item.total_caixa) {
@@ -22,13 +21,117 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${item.codigo_sap}</td>
                 <td>${item.item}</td>
                 <td>${item.grupo}</td>
-                <td>${item.pedido_loja}</td>
-                <td>${item.pedido_vd}</td>
+                <td class="editable-cell" data-id="${item.id}" data-field="pedido_loja" data-old-value="${item.pedido_loja}">${item.pedido_loja}</td>
+                <td class="editable-cell" data-id="${item.id}" data-field="pedido_vd" data-old-value="${item.pedido_vd}">${item.pedido_vd}</td>
                 <td>${item.total_caixa}</td>
                 <td>${item.a_receber}</td>
                 <td>${item.recebido}</td>
+                <td>
+                    <button class="action-btn edit-btn" data-id="${item.id}" title="Editar">✏️</button>
+                    <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
+                </td>
             `;
             tbody.appendChild(row);
+        });
+
+        // Event listeners para os botões de edição
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const row = e.target.closest('tr');
+                const editableCells = row.querySelectorAll('.editable-cell');
+                const editBtn = e.target;
+                
+                editBtn.style.display = 'none';
+                row.querySelector('.delete-btn').style.display = 'none';
+                
+                const saveBtn = document.createElement('button');
+                const cancelBtn = document.createElement('button');
+                
+                // Novo código para os botões de Salvar e Cancelar
+                saveBtn.innerHTML = '✔️';
+                saveBtn.className = 'action-btn save-btn';
+                saveBtn.title = 'Confirmar';
+
+                cancelBtn.innerHTML = '❌';
+                cancelBtn.className = 'action-btn cancel-btn';
+                cancelBtn.title = 'Cancelar';
+                
+                editBtn.parentNode.appendChild(saveBtn);
+                editBtn.parentNode.appendChild(cancelBtn);
+
+                editableCells.forEach(cell => {
+                    const oldValue = cell.dataset.oldValue;
+                    cell.innerHTML = `<input type="number" value="${oldValue}" min="0">`;
+                });
+                
+                // Lógica do botão 'Salvar'
+                saveBtn.addEventListener('click', async () => {
+                    const id = row.querySelector('.editable-cell').dataset.id;
+                    const updatedData = {};
+                    let hasChanged = false;
+
+                    row.querySelectorAll('input').forEach(input => {
+                        const cell = input.closest('td');
+                        const field = cell.dataset.field;
+                        const oldValue = cell.dataset.oldValue;
+                        const newValue = input.value;
+                        
+                        updatedData[field] = parseInt(newValue);
+                        if (oldValue !== newValue) {
+                            hasChanged = true;
+                        }
+                    });
+
+                    if (hasChanged) {
+                        try {
+                            const response = await fetch(`/update_item/${id}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(updatedData)
+                            });
+                            const result = await response.json();
+                            if (result.success) {
+                                showFeedback(result.message, 'success');
+                                loadDataAndRenderTables();
+                            } else {
+                                showFeedback('Erro: ' + result.message, 'error');
+                            }
+                        } catch (error) {
+                            showFeedback('Ocorreu um erro ao editar o item.', 'error');
+                        }
+                    } else {
+                        loadDataAndRenderTables(); // Recarrega se não houver mudanças
+                    }
+                });
+
+                // Lógica do botão 'Cancelar'
+                cancelBtn.addEventListener('click', () => {
+                    loadDataAndRenderTables(); // Recarrega a tabela para descartar alterações
+                });
+            });
+        });
+
+        // Event listeners para os botões de exclusão
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const id = e.target.dataset.id;
+                const confirmDelete = confirm("Tem certeza que deseja excluir este item?");
+
+                if (confirmDelete) {
+                    try {
+                        const response = await fetch(`/delete_item/${id}`, { method: 'DELETE' });
+                        const result = await response.json();
+                        if (result.success) {
+                            showFeedback(result.message, 'success');
+                            loadDataAndRenderTables();
+                        } else {
+                            showFeedback('Erro: ' + result.message, 'error');
+                        }
+                    } catch (error) {
+                        showFeedback('Ocorreu um erro ao excluir o item.', 'error');
+                    }
+                }
+            });
         });
     }
 
@@ -39,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function calculateGroupSummary(data) {
         const summary = {};
-
         data.forEach(item => {
             if (!summary[item.grupo]) {
                 summary[item.grupo] = { pedido: 0, a_receber: 0, entregue: 0 };
@@ -48,10 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
             summary[item.grupo].a_receber += item.a_receber;
             summary[item.grupo].entregue += item.recebido;
         });
-
         return summary;
     }
-
 
     /**
      * Esta função preenche a tabela de resumo por grupo.
@@ -60,7 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderGroupSummary(data) {
         const tbody = document.getElementById('group-summary-body');
         tbody.innerHTML = '';
-
         for (const grupo in data) {
             const item = data[grupo];
             const row = document.createElement('tr');
@@ -74,27 +173,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
     /**
      * Função assíncrona para buscar os dados do servidor e renderizar as tabelas.
      */
     async function loadDataAndRenderTables() {
         try {
             const response = await fetch('/get_data');
-            if (!response.ok) {
-                throw new Error('Erro ao buscar os dados do servidor.');
-            }
             const data = await response.json();
-            
-            // Renderiza a tabela principal com os dados do banco de dados
             renderTable(data);
-            
-            // Calcula e renderiza o resumo por grupo
             const groupSummary = calculateGroupSummary(data);
             renderGroupSummary(groupSummary);
-
         } catch (error) {
-            console.error("Erro:", error);
             showFeedback("Erro ao carregar os dados. Por favor, tente novamente.", "error");
         }
     }
@@ -107,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         feedbackDiv.style.display = 'block';
         setTimeout(() => {
             feedbackDiv.style.display = 'none';
-        }, 5000); // Esconde a mensagem após 5 segundos
+        }, 5000);
     }
 
     function showLoading() {
@@ -118,58 +207,43 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('loading-spinner').style.display = 'none';
     }
 
-    // Chama a função para carregar os dados quando a página é carregada
     loadDataAndRenderTables();
-
 
     // Lógica para o botão de upload do XML
     const importBtn = document.getElementById('import-xml-btn');
     const fileInput = document.getElementById('xml-file-input');
 
-    // Ao clicar no botão, "clica" no input de arquivo escondido
-    importBtn.addEventListener('click', () => {
-        fileInput.click();
-    });
+    importBtn.addEventListener('click', () => fileInput.click());
 
-    // Quando o usuário selecionar um arquivo, esta função será executada
     fileInput.addEventListener('change', async (event) => {
         const file = event.target.files[0];
         if (file) {
-            // VERIFICAÇÃO DE TIPO DE ARQUIVO
             if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
                 showFeedback('Por favor, selecione um arquivo no formato XML.', 'error');
-                fileInput.value = '';
                 return;
             }
 
             const formData = new FormData();
             formData.append('file', file);
-            
-            showLoading(); // Mostra o spinner de carregamento
+            showLoading();
 
             try {
                 const response = await fetch('/upload_xml', {
                     method: 'POST',
                     body: formData
                 });
-
                 const result = await response.json();
-
                 if (result.success) {
                     showFeedback(result.message, 'success');
-                    // Chama a função para recarregar os dados do banco e atualizar a tabela
                     loadDataAndRenderTables();
                 } else {
                     showFeedback('Erro: ' + result.message, 'error');
                 }
             } catch (error) {
-                console.error('Erro ao enviar o arquivo:', error);
                 showFeedback('Ocorreu um erro ao enviar o arquivo.', 'error');
             } finally {
-                hideLoading(); // Esconde o spinner no final da operação
+                hideLoading();
             }
-            
-            fileInput.value = '';
         }
     });
 });

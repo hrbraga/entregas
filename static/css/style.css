@@ -48,12 +48,18 @@ h2 {
     overflow: hidden;    /* Esconde o texto que ultrapassar a div */
     text-overflow: ellipsis; /* Adiciona '...' para indicar que há mais texto */
 }
-
-/* Estilos para as tabelas */
-.table-container {
+/* Torna a tabela responsiva, adicionando uma barra de rolagem horizontal em telas pequenas */
+.responsive-table {
+    width: 100%;
     overflow-x: auto;
 }
 
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    min-width: 900px; /* Adicionamos uma largura mínima para a tabela */
+}
 table {
     width: 100%;
     border-collapse: collapse;
@@ -64,6 +70,21 @@ th, td {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid #ddd;
+}
+
+/* Estilos para a nova coluna de botões de ação */
+td:last-child {
+    white-space: nowrap; /* Garante que os botões fiquem na mesma linha */
+}
+
+/* Estilos para os botões de ação */
+.action-btn {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em; /* Deixa o emoji em um tamanho visível */
+    margin-right: 5px;
+    padding: 0;
 }
 
 th {
@@ -225,4 +246,63 @@ footer {
 
 .delivery-table-section table tr.over-received {
     background-color: #ffebee; /* Um vermelho claro para excesso de entrega */
+}
+
+/* Estilos para os botões de ação */
+.edit-btn, .delete-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 5px;
+}
+
+.edit-btn {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Estilo para os inputs que aparecem na tabela */
+.editable-cell input {
+    width: 60px; /* Define uma largura fixa para o campo de input */
+    padding: 4px;
+    box-sizing: border-box; /* Garante que o padding não aumente o tamanho total */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Estilos para os botões Salvar e Cancelar na edição */
+.save-btn, .cancel-btn {
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+
+.save-btn {
+    background-color: #4CAF50; /* Verde */
+    color: white;
+}
+
+.cancel-btn {
+    background-color: #F44336; /* Vermelho */
+    color: white;
+}
+
+/* Impede que o texto dentro das células da tabela quebre a linha */
+.delivery-table-section table td,
+.delivery-table-section table th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
