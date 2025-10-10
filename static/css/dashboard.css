@@ -1,11 +1,5 @@
 /* Estilos para o novo layout de totalizadores */
-.totalizer-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    padding: 20px;
-    grid-column: 1 / span 1;
-}
+
 
 .totalizer-item {
     text-align: left;
