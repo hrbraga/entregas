@@ -4,16 +4,11 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
-# Define o caminho base do projeto
-basedir = os.path.abspath(os.path.dirname(__file__))
-
-# Configuração do Flask: Usa o caminho absoluto para encontrar a pasta 'static'
-# Isso resolve o problema de carregamento de arquivos de forma definitiva.
-app = Flask(__name__,
-            template_folder=os.path.join(basedir, 'static'),
-            static_folder=os.path.join(basedir, 'static'))
+# Define a pasta 'static' como o diretório raiz para arquivos e templates
+app = Flask(__name__, template_folder='static', static_folder='static', static_url_path='/static')
 
 # Configuração do banco de dados (SQLite)
+basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'entregas.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -166,6 +161,7 @@ def upload_xml():
 
             v_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}total/{http://www.portalfiscal.inf.br/nfe}ICMSTot/{http://www.portalfiscal.inf.br/nfe}vNF').text
             data_emi = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}dhEmi').text
+            
             data_formatada = data_emi.split('T')[0]
             data_dd_mm_aaaa = '-'.join(reversed(data_formatada.split('-')))
 
@@ -223,12 +219,10 @@ def update_item(item_id):
 
         data = request.get_json()
         
-        # Garante que apenas os campos permitidos sejam editados
         for field, value in data.items():
             if field in ['pedido_loja', 'pedido_vd']:
-                setattr(item, field, value) # Atualiza o valor do campo
+                setattr(item, field, value)
             
-        # Recalcula o total de caixas e o que falta receber
         item.total_caixa = item.pedido_loja + item.pedido_vd
         item.a_receber = item.total_caixa - item.recebido
 
