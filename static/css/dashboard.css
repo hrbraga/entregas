@@ -1,5 +1,12 @@
 /* Estilos para o novo layout de totalizadores */
 
+.dashboard-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 colunas de largura igual */
+    gap: 20px;
+}
 
 .totalizer-item {
     text-align: left;

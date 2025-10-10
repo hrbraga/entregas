@@ -4,13 +4,15 @@
 
 {% block head %}
     {{ super() }}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/style.css">
 {% endblock %}
 
 {% block content %}
     <div class="dashboard-container">
         <div class="card totalizer-card">
             <div class="totalizer-item">
+                <h2>Totalizador entregas</h2>
                 <p class="label">TOTAL PEDIDO</p>
                 <span class="value" id="total-pedido-val">0</span>
             </div>
