@@ -4,16 +4,21 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
-# Define a pasta 'static' como o diretório raiz para arquivos e templates
-app = Flask(__name__, template_folder='static', static_folder='static', static_url_path='/static')
-
-# Configuração do banco de dados (SQLite)
+# Define the absolute path to your project's directory
 basedir = os.path.abspath(os.path.dirname(__file__))
+
+# Configure Flask to use absolute paths for both templates and static files.
+# This ensures that no matter where the app is run from, Flask will find the files.
+app = Flask(__name__,
+            template_folder=os.path.join(basedir, 'static'),
+            static_folder=os.path.join(basedir, 'static'))
+
+# Database configuration (SQLite)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'entregas.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Tabela de Itens de Entrega
+# Table models
 class ItemEntrega(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     codigo_sap = db.Column(db.String(20), unique=True, nullable=False)
@@ -25,7 +30,6 @@ class ItemEntrega(db.Model):
     a_receber = db.Column(db.Integer, default=0)
     recebido = db.Column(db.Integer, default=0)
 
-# Tabela de Notas Fiscais
 class NotaFiscal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     numero_nota = db.Column(db.String(50), unique=True, nullable=False)
@@ -33,11 +37,11 @@ class NotaFiscal(db.Model):
     data_importacao = db.Column(db.String(20), nullable=False)
     valor_total = db.Column(db.String(20), nullable=False)
 
-# Cria as tabelas do banco de dados se elas não existirem
+# Create database tables if they don't exist
 with app.app_context():
     db.create_all()
 
-# Rotas para servir as páginas HTML
+# Routes to serve HTML pages from the 'static' folder
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -50,11 +54,10 @@ def historico():
 def dashboard():
     return render_template('dashboard.html')
 
-# Rota para obter os dados do banco de dados para a página principal
+# API routes for data
 @app.route('/get_data')
 def get_data():
     items = ItemEntrega.query.all()
-    
     items_list = [
         {
             'codigo_sap': item.codigo_sap,
@@ -69,7 +72,6 @@ def get_data():
     ]
     return jsonify(items_list)
 
-# Rota para obter os dados das notas fiscais para a página de histórico
 @app.route('/get_notas')
 def get_notas():
     notas = NotaFiscal.query.all()
@@ -83,7 +85,6 @@ def get_notas():
     ]
     return jsonify(notas_list)
 
-# Rota para obter os dados necessários para os gráficos do dashboard
 @app.route('/get_dashboard_data')
 def get_dashboard_data():
     items = ItemEntrega.query.all()
@@ -133,29 +134,27 @@ def get_dashboard_data():
         "grupos": grupos
     })
 
-# Rota para receber e processar o arquivo XML
 @app.route('/upload_xml', methods=['POST'])
 def upload_xml():
     if 'file' not in request.files:
         return jsonify({"success": False, "message": "Nenhum arquivo enviado."}), 400
-
     file = request.files['file']
-
     if file.filename == '' or not file.filename.endswith('.xml'):
         return jsonify({"success": False, "message": "Arquivo inválido. Por favor, envie um arquivo XML."}), 400
-
     if file:
         try:
             tree = ET.parse(file)
             root = tree.getroot()
-
             nfe_tag = root.find('.//{http://www.portalfiscal.inf.br/nfe}NFe')
             inf_nfe_tag = nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}infNFe')
-            
             n_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}nNF').text
+            
+            nota_existente = NotaFiscal.query.filter_by(numero_nota=n_nf).first()
+            if nota_existente:
+                return jsonify({"success": False, "message": f"A nota fiscal {n_nf} já foi importada."}), 409
+
             v_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}total/{http://www.portalfiscal.inf.br/nfe}ICMSTot/{http://www.portalfiscal.inf.br/nfe}vNF').text
             data_emi = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}dhEmi').text
-            
             data_formatada = data_emi.split('T')[0]
             data_dd_mm_aaaa = '-'.join(reversed(data_formatada.split('-')))
 
@@ -166,7 +165,7 @@ def upload_xml():
                 valor_total=v_nf
             )
             db.session.add(nova_nota)
-
+            
             for det_tag in inf_nfe_tag.findall('{http://www.portalfiscal.inf.br/nfe}det'):
                 prod_tag = det_tag.find('{http://www.portalfiscal.inf.br/nfe}prod')
                 c_prod = prod_tag.find('{http://www.portalfiscal.inf.br/nfe}cProd').text
@@ -176,13 +175,11 @@ def upload_xml():
                 quantidade_entregue = float(q_com)
 
                 item_db = ItemEntrega.query.filter_by(codigo_sap=codigo_sap).first()
-
                 if item_db:
                     item_db.recebido += quantidade_entregue
                     item_db.a_receber -= quantidade_entregue
-                
+            
             db.session.commit()
-                
             return jsonify({"success": True, "message": "Arquivo processado e dados atualizados com sucesso!"}), 200
 
         except ET.ParseError as e:

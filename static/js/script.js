@@ -1,5 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+// Funções para gerenciar o feedback na tela
+function showFeedback(message, type) {
+    const feedbackDiv = document.getElementById('feedback-message');
+    feedbackDiv.textContent = message;
+    feedbackDiv.className = `feedback-message ${type}`;
+    feedbackDiv.style.display = 'block';
+    setTimeout(() => {
+        feedbackDiv.style.display = 'none';
+    }, 5000); // Esconde a mensagem após 5 segundos
+}
+
+function showLoading() {
+    document.getElementById('loading-spinner').style.display = 'block';
+}
+
+function hideLoading() {
+    document.getElementById('loading-spinner').style.display = 'none';
+}
+
     /**
      * Esta função preenche a tabela principal com os dados dos itens.
      * @param {Array} data - Os dados para a tabela.
@@ -106,40 +125,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Quando o usuário selecionar um arquivo, esta função será executada
     fileInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            // VERIFICAÇÃO DE TIPO DE ARQUIVO
-            if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
-                alert('Por favor, selecione um arquivo no formato XML.');
-                fileInput.value = '';
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('file', file);
-
-            try {
-                const response = await fetch('/upload_xml', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert(result.message);
-                    // AQUI, a função para recarregar as tabelas é chamada
-                    loadDataAndRenderTables();
-                } else {
-                    alert('Erro: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Erro ao enviar o arquivo:', error);
-                alert('Ocorreu um erro ao enviar o arquivo.');
-            }
-
-            // Limpa o input após o envio
+    const file = event.target.files[0];
+    if (file) {
+        // VERIFICAÇÃO DE TIPO DE ARQUIVO
+        if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
+            showFeedback('Por favor, selecione um arquivo no formato XML.', 'error');
             fileInput.value = '';
+            return;
         }
-    });
+
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Mostra o spinner de carregamento antes de enviar o arquivo
+        showLoading();
+
+        try {
+            const response = await fetch('/upload_xml', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showFeedback(result.message, 'success');
+                // Chama a função para recarregar os dados do banco e atualizar a tabela
+                loadDataAndRenderTables();
+            } else {
+                showFeedback('Erro: ' + result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao enviar o arquivo:', error);
+            showFeedback('Ocorreu um erro ao enviar o arquivo.', 'error');
+        } finally {
+            // Esconde o spinner no final da operação, independente do resultado
+            hideLoading();
+        }
+        
+        // Limpa o input após o envio
+        fileInput.value = '';
+    }
+});
 });
