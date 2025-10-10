@@ -1,24 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-// Funções para gerenciar o feedback na tela
-function showFeedback(message, type) {
-    const feedbackDiv = document.getElementById('feedback-message');
-    feedbackDiv.textContent = message;
-    feedbackDiv.className = `feedback-message ${type}`;
-    feedbackDiv.style.display = 'block';
-    setTimeout(() => {
-        feedbackDiv.style.display = 'none';
-    }, 5000); // Esconde a mensagem após 5 segundos
-}
-
-function showLoading() {
-    document.getElementById('loading-spinner').style.display = 'block';
-}
-
-function hideLoading() {
-    document.getElementById('loading-spinner').style.display = 'none';
-}
-
     /**
      * Esta função preenche a tabela principal com os dados dos itens.
      * @param {Array} data - Os dados para a tabela.
@@ -29,6 +10,14 @@ function hideLoading() {
 
         data.forEach(item => {
             const row = document.createElement('tr');
+            
+            // Lógica para adicionar a classe de cor com base no status
+            if (item.recebido === item.total_caixa) {
+                row.classList.add('fully-received');
+            } else if (item.recebido > item.total_caixa) {
+                row.classList.add('over-received');
+            }
+
             row.innerHTML = `
                 <td>${item.codigo_sap}</td>
                 <td>${item.item}</td>
@@ -106,8 +95,27 @@ function hideLoading() {
 
         } catch (error) {
             console.error("Erro:", error);
-            alert("Erro ao carregar os dados. Por favor, tente novamente.");
+            showFeedback("Erro ao carregar os dados. Por favor, tente novamente.", "error");
         }
+    }
+
+    // Funções para gerenciar o feedback na tela
+    function showFeedback(message, type) {
+        const feedbackDiv = document.getElementById('feedback-message');
+        feedbackDiv.textContent = message;
+        feedbackDiv.className = `feedback-message ${type}`;
+        feedbackDiv.style.display = 'block';
+        setTimeout(() => {
+            feedbackDiv.style.display = 'none';
+        }, 5000); // Esconde a mensagem após 5 segundos
+    }
+
+    function showLoading() {
+        document.getElementById('loading-spinner').style.display = 'block';
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-spinner').style.display = 'none';
     }
 
     // Chama a função para carregar os dados quando a página é carregada
@@ -125,46 +133,43 @@ function hideLoading() {
 
     // Quando o usuário selecionar um arquivo, esta função será executada
     fileInput.addEventListener('change', async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        // VERIFICAÇÃO DE TIPO DE ARQUIVO
-        if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
-            showFeedback('Por favor, selecione um arquivo no formato XML.', 'error');
-            fileInput.value = '';
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        // Mostra o spinner de carregamento antes de enviar o arquivo
-        showLoading();
-
-        try {
-            const response = await fetch('/upload_xml', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                showFeedback(result.message, 'success');
-                // Chama a função para recarregar os dados do banco e atualizar a tabela
-                loadDataAndRenderTables();
-            } else {
-                showFeedback('Erro: ' + result.message, 'error');
+        const file = event.target.files[0];
+        if (file) {
+            // VERIFICAÇÃO DE TIPO DE ARQUIVO
+            if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
+                showFeedback('Por favor, selecione um arquivo no formato XML.', 'error');
+                fileInput.value = '';
+                return;
             }
-        } catch (error) {
-            console.error('Erro ao enviar o arquivo:', error);
-            showFeedback('Ocorreu um erro ao enviar o arquivo.', 'error');
-        } finally {
-            // Esconde o spinner no final da operação, independente do resultado
-            hideLoading();
+
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            showLoading(); // Mostra o spinner de carregamento
+
+            try {
+                const response = await fetch('/upload_xml', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showFeedback(result.message, 'success');
+                    // Chama a função para recarregar os dados do banco e atualizar a tabela
+                    loadDataAndRenderTables();
+                } else {
+                    showFeedback('Erro: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao enviar o arquivo:', error);
+                showFeedback('Ocorreu um erro ao enviar o arquivo.', 'error');
+            } finally {
+                hideLoading(); // Esconde o spinner no final da operação
+            }
+            
+            fileInput.value = '';
         }
-        
-        // Limpa o input após o envio
-        fileInput.value = '';
-    }
-});
+    });
 });
