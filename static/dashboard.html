@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard de Entregas{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard-container">
+        <div class="card totalizer-card">
+            <div class="totalizer-item">
+                <p class="label">TOTAL PEDIDO</p>
+                <span class="value" id="total-pedido-val">0</span>
+            </div>
+            <div class="totalizer-item">
+                <p class="label">RECEBIDO</p>
+                <span class="value received" id="recebido-val">0</span>
+            </div>
+            <div class="totalizer-item">
+                <p class="label">A RECEBER</p>
+                <span class="value to-receive" id="a-receber-val">0</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Progresso Geral de Entregas</h2>
+            <canvas id="progress-chart"></canvas>
+        </div>
+
+        <div class="card">
+            <h2>Status de Entrega por SKU</h2>
+            <canvas id="sku-status-chart"></canvas>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1;">
+            <h2>Status de Entrega por Grupo</h2>
+            <canvas id="group-status-chart"></canvas>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Histórico de Notas Fiscais{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h2>Histórico de Notas Fiscais</h2>
+        <table class="historical-table">
+            <thead>
+                <tr>
+                    <th>Número da Nota Fiscal</th>
+                    <th>Valor Total</th>
+                    <th>Data de Emissão</th>
+                    <th>Data de Importação</th>
+                </tr>
+            </thead>
+            <tbody id="notas-fiscais-body">
+                </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/historico.js') }}"></script>
+{% endblock %}

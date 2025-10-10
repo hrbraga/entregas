@@ -1,0 +1,38 @@
+/* Estilos para o novo layout de totalizadores */
+.totalizer-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 20px;
+    grid-column: 1 / span 1;
+}
+
+.totalizer-item {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.totalizer-item:last-child {
+    margin-bottom: 0;
+}
+
+.totalizer-item .label {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.totalizer-item .value {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Cores para os valores */
+.totalizer-item .value.received {
+    color: #4CAF50; /* Verde */
+}
+
+.totalizer-item .value.to-receive {
+    color: #F44336; /* Vermelho */
+}
