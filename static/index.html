@@ -3,29 +3,30 @@
 {% block title %}Controle de Entregas{% endblock %}
 
 {% block content %}
-    <div id="feedback-message" class="feedback-message" style="display: none;"></div>
-    <div id="loading-spinner" class="loading-spinner" style="display: none;"></div>
-    
-    <section class="instructions">
-        <h2>Instruções</h2>
-        <p>1. Clique no botão "Importar XML" para selecionar e importar o arquivo XML da nota fiscal.</p>
-        <p>2. Após a importação, os dados serão exibidos na tabela abaixo.</p>
-        <p>3. Utilize o histórico para revisar notas fiscais importadas anteriormente.</p>
-    </section>
+<div id="feedback-message" class="feedback-message" style="display: none;"></div>
+<div id="loading-spinner" class="loading-spinner" style="display: none;"></div>
 
-    <div class="upload-area">
-        <button id="import-xml-btn">Importar XML</button>
-        <input type="file" id="xml-file-input" accept=".xml" style="display: none;">
-    </div>
-    
-    <section class="delivery-table-section">
-        <h2>Itens de Entrega</h2>
-           <div class="responsive-table">
-            <table>
-                <thead>
+<section class="instructions">
+    <h2>Instruções</h2>
+    <p>1. Clique no botão "Importar XML" para selecionar e importar o arquivo XML da nota fiscal.</p>
+    <p>2. Após a importação, os dados serão exibidos na tabela abaixo.</p>
+    <p>3. Utilize o histórico para revisar notas fiscais importadas anteriormente.</p>
+</section>
+
+
+<div class="upload-area">
+    <button id="import-xml-btn">Importar XML</button>
+    <input type="file" id="xml-file-input" accept=".xml" style="display: none;">
+    <button id="print-list-btn" class="print-btn">Imprimir Listagem</button>
+</div>
+<section class="delivery-table-section">
+    <h2>Itens de Entrega</h2>
+    <div class="responsive-table">
+        <table>
+            <thead>
                 <tr>
                     <th>CÓDIGO SAP</th>
-                    <th>ITEM PÁSCOA 2025</th>
+                    <th>PRODUTO</th>
                     <th>GRUPO</th>
                     <th>PEDIDO LOJA</th>
                     <th>PEDIDO VD</th>
@@ -35,31 +36,31 @@
                     <th>Ações</th>
                 </tr>
             </thead>
-                <tbody id="table-body">
-                    </tbody>
-            </table>
-        </div>
-    </section>
+            <tbody id="table-body">
+            </tbody>
+        </table>
+    </div>
+</section>
 
-    <section class="group-summary-section">
-        <h2>Resumo por Grupo</h2>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>GRUPO</th>
-                        <th>PEDIDO</th>
-                        <th>À RECEBER</th>
-                        <th>ENTREGUE</th>
-                    </tr>
-                </thead>
-                <tbody id="group-summary-body">
-                    </tbody>
-            </table>
-        </div>
-    </section>
+<section class="group-summary-section">
+    <h2>Resumo por Grupo</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>GRUPO</th>
+                    <th>PEDIDO</th>
+                    <th>À RECEBER</th>
+                    <th>ENTREGUE</th>
+                </tr>
+            </thead>
+            <tbody id="group-summary-body">
+            </tbody>
+        </table>
+    </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
 {% endblock %}
