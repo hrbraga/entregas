@@ -4,15 +4,14 @@
 
 {% block head %}
     {{ super() }}
-    <link rel="stylesheet" href="/static/css/dashboard.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 {% endblock %}
 
 {% block content %}
     <div class="dashboard-container">
         <div class="card totalizer-card">
+            <h2>Totalizador de Entregas</h2>
             <div class="totalizer-item">
-                <h2>Totalizador entregas</h2>
                 <p class="label">TOTAL PEDIDO</p>
                 <span class="value" id="total-pedido-val">0</span>
             </div>
@@ -41,14 +40,15 @@
             <canvas id="group-status-chart"></canvas>
         </div>
     </div>
+    
     <div class="print-area">
-    <button id="print-dashboard-btn" class="print-btn">Imprimir Dashboard</button>
-</div>
+        <button id="print-dashboard-btn" class="print-btn">Imprimir Dashboard</button>
+    </div>
 {% endblock %}
 
 {% block scripts %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
     <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

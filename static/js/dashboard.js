@@ -166,14 +166,22 @@ script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.j
 document.head.appendChild(script);
 
 document.getElementById('print-dashboard-btn').addEventListener('click', () => {
-    const dashboard = document.querySelector('.dashboard-container');
-    html2canvas(dashboard).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('l', 'mm', 'a4'); // 'l' para paisagem
-        const imgProps= pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save('dashboard-entregas.pdf');
-    });
+      const printDashboardBtn = document.getElementById('print-dashboard-btn');
+    if (printDashboardBtn) {
+        printDashboardBtn.addEventListener('click', () => {
+            const dashboard = document.querySelector('.dashboard-container');
+            if (dashboard) {
+                html2canvas(dashboard).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('l', 'mm', 'a4'); // 'l' para paisagem
+                    const imgProps= pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.save('dashboard-entregas.pdf');
+                });
+            }
+        });
+    }
 });

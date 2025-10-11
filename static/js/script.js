@@ -47,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const saveBtn = document.createElement('button');
                 const cancelBtn = document.createElement('button');
                 
-                // Novo código para os botões de Salvar e Cancelar
                 saveBtn.innerHTML = '✔️';
                 saveBtn.className = 'action-btn save-btn';
                 saveBtn.title = 'Confirmar';
@@ -64,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     cell.innerHTML = `<input type="number" value="${oldValue}" min="0">`;
                 });
                 
-                // Lógica do botão 'Salvar'
                 saveBtn.addEventListener('click', async () => {
                     const id = row.querySelector('.editable-cell').dataset.id;
                     const updatedData = {};
@@ -100,13 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             showFeedback('Ocorreu um erro ao editar o item.', 'error');
                         }
                     } else {
-                        loadDataAndRenderTables(); // Recarrega se não houver mudanças
+                        loadDataAndRenderTables();
                     }
                 });
 
-                // Lógica do botão 'Cancelar'
                 cancelBtn.addEventListener('click', () => {
-                    loadDataAndRenderTables(); // Recarrega a tabela para descartar alterações
+                    loadDataAndRenderTables();
                 });
             });
         });
