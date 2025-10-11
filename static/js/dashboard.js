@@ -169,19 +169,22 @@ document.getElementById('print-dashboard-btn').addEventListener('click', () => {
       const printDashboardBtn = document.getElementById('print-dashboard-btn');
     if (printDashboardBtn) {
         printDashboardBtn.addEventListener('click', () => {
-            const dashboard = document.querySelector('.dashboard-container');
-            if (dashboard) {
-                html2canvas(dashboard).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('l', 'mm', 'a4'); // 'l' para paisagem
-                    const imgProps= pdf.getImageProperties(imgData);
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                    pdf.save('dashboard-entregas.pdf');
-                });
-            }
+            // Adiciona um pequeno atraso para garantir que os gráficos sejam renderizados
+            setTimeout(() => {
+                const dashboard = document.querySelector('.dashboard-container');
+                if (dashboard) {
+                    html2canvas(dashboard, { scale: 2 }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/png');
+                        const { jsPDF } = window.jspdf;
+                        const pdf = new jsPDF('l', 'mm', 'a4'); // 'l' para paisagem
+                        const imgProps= pdf.getImageProperties(imgData);
+                        const pdfWidth = pdf.internal.pageSize.getWidth();
+                        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                        pdf.save('dashboard-entregas.pdf');
+                    });
+                }
+            }, 500); // Atraso de 500ms (meio segundo)
         });
     }
 });
