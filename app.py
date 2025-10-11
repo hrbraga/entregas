@@ -101,7 +101,7 @@ def get_dashboard_data():
     for item in items:
         if item.recebido == 0:
             skus_nao_entregues += 1
-        elif item.recebido < item.total_caixa:
+        elif item.recebido > 0 and item.recebido < item.total_caixa:
             skus_parcialmente_entregues += 1
         elif item.recebido >= item.total_caixa:
             skus_totalmente_entregues += 1
@@ -116,11 +116,12 @@ def get_dashboard_data():
             }
 
         if item.recebido == 0:
-            grupos[item.grupo]['nao_entregues'] += 1
-        elif item.recebido < item.total_caixa:
-            grupos[item.grupo]['parcialmente_entregues'] += 1
+            grupos[item.grupo]['nao_entregues'] += item.total_caixa
+        elif item.recebido > 0 and item.recebido < item.total_caixa:
+            grupos[item.grupo]['parcialmente_entregues'] += item.recebido
+            grupos[item.grupo]['nao_entregues'] += (item.total_caixa - item.recebido)
         elif item.recebido >= item.total_caixa:
-            grupos[item.grupo]['totalmente_entregues'] += 1
+            grupos[item.grupo]['totalmente_entregues'] += item.total_caixa
 
     return jsonify({
         "progresso_geral": round(progresso_geral, 2),

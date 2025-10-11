@@ -143,8 +143,8 @@ tr:hover { background-color: #e9ecef; }
 .cancel-btn { background-color: #F44336; color: white; }
 
 /* Feedback visual da tabela */
-.delivery-table-section table tr.fully-received { background-color: #e8f5e9; }
-.delivery-table-section table tr.over-received { background-color: #ffebee; }
+.delivery-table-section table tr.fully-received { background-color: #439b4b; font-weight: bold; }
+.delivery-table-section table tr.over-received { background-color: #ff536d; }
 
 /* Área de upload */
 .upload-area {

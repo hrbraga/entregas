@@ -4,35 +4,35 @@ document.addEventListener('DOMContentLoaded', () => {
      * Esta função preenche a tabela principal com os dados dos itens e botões de ação.
      * @param {Array} data - Os dados para a tabela.
      */
-    function renderTable(data) {
-        const tbody = document.getElementById('table-body');
-        tbody.innerHTML = '';
+   function renderTable(data) {
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
 
-        data.forEach(item => {
-            const row = document.createElement('tr');
-            
-            if (item.recebido === item.total_caixa) {
-                row.classList.add('fully-received');
-            } else if (item.total_caixa > item.recebido) {
-                row.classList.add('over-received');
-            }
+    data.forEach(item => {
+        const row = document.createElement('tr');
+        
+        if (item.recebido === item.total_caixa) {
+            row.classList.add('fully-received');
+        } else if (item.recebido > item.total_caixa) {
+            row.classList.add('over-received');
+        }
 
-            row.innerHTML = `
-                <td>${item.codigo_sap}</td>
-                <td>${item.item}</td>
-                <td>${item.grupo}</td>
-                <td class="editable-cell" data-id="${item.id}" data-field="pedido_loja" data-old-value="${item.pedido_loja}">${item.pedido_loja}</td>
-                <td class="editable-cell" data-id="${item.id}" data-field="pedido_vd" data-old-value="${item.pedido_vd}">${item.pedido_vd}</td>
-                <td>${item.total_caixa}</td>
-                <td>${item.a_receber}</td>
-                <td>${item.recebido}</td>
-                <td>
-                    <button class="action-btn edit-btn" data-id="${item.id}" title="Editar">✏️</button>
-                    <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
+        row.innerHTML = `
+            <td>${item.codigo_sap}</td>
+            <td>${item.item}</td>
+            <td>${item.grupo}</td>
+            <td class="editable-cell" data-id="${item.id}" data-field="pedido_loja" data-old-value="${item.pedido_loja}">${item.pedido_loja}</td>
+            <td class="editable-cell" data-id="${item.id}" data-field="pedido_vd" data-old-value="${item.pedido_vd}">${item.pedido_vd}</td>
+            <td>${item.total_caixa}</td>
+            <td>${item.a_receber}</td>
+            <td>${item.recebido}</td>
+            <td>
+                <button class="action-btn edit-btn" data-id="${item.id}" title="Editar">✏️</button>
+                <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
 
         // Event listeners para os botões de edição
         document.querySelectorAll('.edit-btn').forEach(button => {

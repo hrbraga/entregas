@@ -105,50 +105,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     /**
      * Função para renderizar o gráfico de barras de status por grupo.
      */
-    function renderGroupStatusChart(data) {
-        const ctx = document.getElementById('group-status-chart').getContext('2d');
-        const grupos = data.grupos;
+    /**
+ * Função para renderizar o gráfico de barras de status por grupo.
+ */
+function renderGroupStatusChart(data) {
+    const ctx = document.getElementById('group-status-chart').getContext('2d');
+    const grupos = data.grupos;
 
-        const labels = Object.keys(grupos);
-        const naoEntregues = labels.map(label => grupos[label].nao_entregues);
-        const parcialmenteEntregues = labels.map(label => grupos[label].parcialmente_entregues);
-        const totalmenteEntregues = labels.map(label => grupos[label].totalmente_entregues);
+    const labels = Object.keys(grupos);
+    const naoEntregues = labels.map(label => grupos[label].nao_entregues);
+    const parcialmenteEntregues = labels.map(label => grupos[label].parcialmente_entregues);
+    const totalmenteEntregues = labels.map(label => grupos[label].totalmente_entregues);
 
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Não Entregues',
-                        data: naoEntregues,
-                        backgroundColor: '#dc3545',
-                    },
-                    {
-                        label: 'Parcialmente Entregues',
-                        data: parcialmenteEntregues,
-                        backgroundColor: '#ffc107',
-                    },
-                    {
-                        label: 'Totalmente Entregues',
-                        data: totalmenteEntregues,
-                        backgroundColor: '#28a745',
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        stacked: true,
-                    },
-                    y: {
-                        stacked: true,
-                    }
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Não Entregues',
+                    data: naoEntregues,
+                    backgroundColor: '#dc3545',
+                },
+                {
+                    label: 'Parcialmente Entregues',
+                    data: parcialmenteEntregues,
+                    backgroundColor: '#ffc107',
+                },
+                {
+                    label: 'Totalmente Entregues',
+                    data: totalmenteEntregues,
+                    backgroundColor: '#28a745',
                 }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    stacked: true,
+                },
+                y: {
+                    stacked: true,
+               }
             }
-        });
-    }
+        }
+    });
+}
 
     // Carrega e renderiza os gráficos e totalizadores quando a página é carregada
     const dashboardData = await getDashboardData();
