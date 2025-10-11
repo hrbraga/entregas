@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (item.recebido === item.total_caixa) {
                 row.classList.add('fully-received');
-            } else if (item.recebido > item.total_caixa) {
+            } else if (item.total_caixa > item.recebido) {
                 row.classList.add('over-received');
             }
 
