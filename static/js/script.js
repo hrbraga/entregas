@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const saveBtn = document.createElement('button');
                 const cancelBtn = document.createElement('button');
                 
+                // Novo código para os botões de Salvar e Cancelar
                 saveBtn.innerHTML = '✔️';
                 saveBtn.className = 'action-btn save-btn';
                 saveBtn.title = 'Confirmar';
@@ -63,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     cell.innerHTML = `<input type="number" value="${oldValue}" min="0">`;
                 });
                 
+                // Lógica do botão 'Salvar'
                 saveBtn.addEventListener('click', async () => {
                     const id = row.querySelector('.editable-cell').dataset.id;
                     const updatedData = {};
@@ -98,12 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             showFeedback('Ocorreu um erro ao editar o item.', 'error');
                         }
                     } else {
-                        loadDataAndRenderTables();
+                        loadDataAndRenderTables(); // Recarrega se não houver mudanças
                     }
                 });
 
+                // Lógica do botão 'Cancelar'
                 cancelBtn.addEventListener('click', () => {
-                    loadDataAndRenderTables();
+                    loadDataAndRenderTables(); // Recarrega a tabela para descartar alterações
                 });
             });
         });
@@ -242,23 +245,5 @@ document.addEventListener('DOMContentLoaded', () => {
                 hideLoading();
             }
         }
-    });
-});
-
-// Incluir as bibliotecas para PDF
-const script = document.createElement('script');
-script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-document.head.appendChild(script);
-
-document.getElementById('print-list-btn').addEventListener('click', () => {
-    const table = document.querySelector('.delivery-table-section table');
-    html2canvas(table).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgProps= pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save('listagem-entregas.pdf');
     });
 });
