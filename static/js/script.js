@@ -246,4 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // Lógica para o botão de impressão da listagem (novo código)
+    
 });
