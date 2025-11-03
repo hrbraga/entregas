@@ -1,14 +1,19 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import xml.etree.ElementTree as ET
 import os
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from sqlalchemy import or_
 
-# Define a pasta 'static' como o diretório raiz para arquivos e templates
-app = Flask(__name__, template_folder='static', static_folder='static', static_url_path='/static')
+# Define o caminho base do projeto
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+# Configuração do Flask
+app = Flask(__name__,
+            template_folder=os.path.join(basedir, 'templates'), # Aponta para a pasta templates
+            static_folder=os.path.join(basedir, 'static'))     # Aponta para a pasta static
 
 # Configuração do banco de dados (SQLite)
-basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'entregas.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -37,11 +42,20 @@ class NotaFiscal(db.Model):
 with app.app_context():
     db.create_all()
 
-# Rotas para servir as páginas HTML
+# --- ROTAS ATUALIZADAS ---
+
+# Rota principal (/) agora serve o projeto de Custos
 @app.route('/')
+def inicio():
+    # Aponta para static/custos/inicio.html
+    return send_from_directory(os.path.join(app.static_folder, 'custos'), 'inicio.html')
+
+# Rota /entregas agora serve o app de Controle de Entregas
+@app.route('/entregas')
 def index():
     return render_template('index.html')
 
+# Rotas do app de Entregas
 @app.route('/historico')
 def historico():
     return render_template('historico.html')
@@ -49,6 +63,16 @@ def historico():
 @app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
+
+# --- ROTAS PARA O PROJETO CUSTOS PRODUTOS (Arquivos internos) ---
+
+# Rota "catch-all" para servir os arquivos internos (css, js, html, imagens) do projeto 'Custos'
+@app.route('/custos/<path:filename>')
+def custos_static_files(filename):
+    # Procura o arquivo dentro de static/custos/
+    return send_from_directory(os.path.join(app.static_folder, 'custos'), filename)
+
+# --- ROTAS DE API (DADOS) ---
 
 # Rota para obter os dados do banco de dados para a página principal
 @app.route('/get_data')
@@ -69,6 +93,34 @@ def get_data():
         } for item in items
     ]
     return jsonify(items_list)
+
+# --- ROTA DE PESQUISA ---
+@app.route('/search_items')
+def search_items():
+    query = request.args.get('q', '').strip()
+    
+    if len(query) < 3:
+        return jsonify([])
+
+    codigo_query = query.lstrip('0')
+    
+    items = ItemEntrega.query.filter(or_(
+        ItemEntrega.codigo_sap.ilike(f'%{codigo_query}%'),
+        ItemEntrega.item.ilike(f'%{query}%')
+    )).limit(10).all()
+
+    results = [
+        {
+            'codigo_sap': item.codigo_sap,
+            'item': item.item,
+            'pedido_total': item.total_caixa,
+            'recebido': item.recebido,
+            'a_receber': item.a_receber,
+            'id': item.id
+        } for item in items
+    ]
+    
+    return jsonify(results)
 
 # Rota para obter os dados das notas fiscais para a página de histórico
 @app.route('/get_notas')
@@ -101,7 +153,7 @@ def get_dashboard_data():
     for item in items:
         if item.recebido == 0:
             skus_nao_entregues += 1
-        elif item.recebido > 0 and item.recebido < item.total_caixa:
+        elif item.recebido < item.total_caixa:
             skus_parcialmente_entregues += 1
         elif item.recebido >= item.total_caixa:
             skus_totalmente_entregues += 1
@@ -116,12 +168,11 @@ def get_dashboard_data():
             }
 
         if item.recebido == 0:
-            grupos[item.grupo]['nao_entregues'] += item.total_caixa
-        elif item.recebido > 0 and item.recebido < item.total_caixa:
-            grupos[item.grupo]['parcialmente_entregues'] += item.recebido
-            grupos[item.grupo]['nao_entregues'] += (item.total_caixa - item.recebido)
+            grupos[item.grupo]['nao_entregues'] += 1
+        elif item.recebido < item.total_caixa:
+            grupos[item.grupo]['parcialmente_entregues'] += 1
         elif item.recebido >= item.total_caixa:
-            grupos[item.grupo]['totalmente_entregues'] += item.total_caixa
+            grupos[item.grupo]['totalmente_entregues'] += 1
 
     return jsonify({
         "progresso_geral": round(progresso_geral, 2),
@@ -162,7 +213,6 @@ def upload_xml():
 
             v_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}total/{http://www.portalfiscal.inf.br/nfe}ICMSTot/{http://www.portalfiscal.inf.br/nfe}vNF').text
             data_emi = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}dhEmi').text
-            
             data_formatada = data_emi.split('T')[0]
             data_dd_mm_aaaa = '-'.join(reversed(data_formatada.split('-')))
 
@@ -173,7 +223,7 @@ def upload_xml():
                 valor_total=v_nf
             )
             db.session.add(nova_nota)
-            
+
             for det_tag in inf_nfe_tag.findall('{http://www.portalfiscal.inf.br/nfe}det'):
                 prod_tag = det_tag.find('{http://www.portalfiscal.inf.br/nfe}prod')
                 c_prod = prod_tag.find('{http://www.portalfiscal.inf.br/nfe}cProd').text

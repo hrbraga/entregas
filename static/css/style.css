@@ -1,4 +1,7 @@
-/* Estilos básicos para o corpo da página */
+/* =================================== */
+/* 1. ESTILOS BASE E NAVEGAÇÃO */
+/* =================================== */
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f7f6;
@@ -7,23 +10,50 @@ body {
     color: #333;
 }
 
-/* Cabeçalho */
-header {
-    background-color: #007bff;
-    color: white;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Conteúdo principal */
 main {
     max-width: 1200px;
     margin: 20px auto;
     padding: 0 20px;
 }
 
-/* Seções */
+/* Estilos para a barra de navegação */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #0056b3;
+    color: white;
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.nav-brand h1 {
+    font-size: 1.5em;
+    margin: 0;
+}
+
+.nav-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 1em;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-links a:hover {
+    background-color: #007bff;
+}
+
+/* Estilos de títulos e seções */
 section {
     background-color: white;
     padding: 20px;
@@ -32,124 +62,140 @@ section {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-h2 {
+h2{
     color: #0056b3;
     border-bottom: 2px solid #0056b3;
     padding-bottom: 10px;
     margin-bottom: 20px;
+    white-space: nowrap; /* Mantém títulos do dashboard em uma linha */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* Área responsiva da tabela */
-.responsive-table {
-    width: 100%;
+/* Estilos para o rodapé */
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 20px;
+    border-top: 1px solid #ccc;
+    font-size: 14px;
+    color: #666;
+}
+
+
+/* =================================== */
+/* 2. TABELAS E RESPONSIVIDADE */
+/* =================================== */
+
+/* Torna o contêiner das tabelas rolavel horizontalmente em telas pequenas */
+.table-container {
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    width: 100%; /* Garante que o contêiner ocupe a largura total disponível */
 }
 
-.responsive-table::-webkit-scrollbar {
-    height: 8px;
-}
-.responsive-table::-webkit-scrollbar-thumb {
-    background-color: #007bff;
-    border-radius: 4px;
+/* Layout para as duas tabelas de entrega (uma abaixo da outra) */
+.delivery-tables-container {
+    display: block;
+    width: 100%;
+    margin-top: 30px;
 }
 
-/* Tabela */
-.responsive-table table {
+.table-section {
+    margin-bottom: 30px;
+}
+
+table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
-    table-layout: fixed; /* mantém o layout alinhado */
-    font-size: clamp(10px, 1vw, 14px); /* fonte fluida */
+    margin-top: 10px;
+    min-width: 800px; /* Garante largura mínima para a barra de rolagem aparecer */
 }
 
-/* Células */
 th, td {
-    padding: 10px;
+    padding: 12px;
     text-align: left;
     border-bottom: 1px solid #ddd;
-    white-space: normal;         /* 🔹 permite quebra de linha natural */
-    word-break: break-word;      /* 🔹 quebra palavras longas dentro da célula */
-    overflow-wrap: anywhere;     /* 🔹 impede estouro do texto */
 }
 
-/* Cabeçalho */
 th {
     background-color: #007bff;
     color: white;
     font-weight: bold;
-}
-
-/* Linhas */
-tr:nth-child(even) { background-color: #f2f2f2; }
-tr:hover { background-color: #e9ecef; }
-
-/* Centraliza colunas numéricas */
-.delivery-table-section table td:nth-child(n+3):nth-child(-n+8),
-.delivery-table-section table th:nth-child(n+3):nth-child(-n+8) {
+    white-space: nowrap; /* Garante que cabeçalhos não quebrem linha */
     text-align: center;
 }
 
-/* Ajuste extra em telas pequenas */
-@media (max-width: 800px) {
-    .delivery-table-section table {
-        font-size: clamp(9px, 1.5vw, 12px);
+td {
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #e9ecef;
+}
+
+/* CORREÇÃO DA QUEBRA DE PALAVRA: Apenas a coluna ITEM PÁSCOA 2025 pode quebrar linha */
+.delivery-table-section table td:nth-child(2),
+.items-received table td:nth-child(2),
+.items-to-receive table td:nth-child(2) {
+    white-space: normal; /* Permite que o texto quebre a linha dentro da célula */
+    word-wrap: break-word; 
+    max-width: 150px; /* Largura máxima para evitar que nomes longos estiquem demais */
+    text-align: left;
+}
+
+/* Garante que TODAS as outras células (códigos, números, grupos, etc.) não quebrem */
+.delivery-table-section table td,
+.items-received table td,
+.items-to-receive table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Sobrescreve a regra acima APENAS para a célula do ITEM (2ª coluna) */
+.delivery-table-section table td:nth-child(2),
+.items-received table td:nth-child(2),
+.items-to-receive table td:nth-child(2) {
+    white-space: normal;
+    overflow: visible; /* Necessário para que a quebra de linha funcione visualmente */
+}
+
+
+/* --- Responsividade da Fonte da Tabela --- */
+.delivery-table-section table,
+.items-received table,
+.items-to-receive table,
+.group-summary-section table {
+    font-size: 14px;
+}
+
+@media (max-width: 600px) {
+    .delivery-table-section table,
+    .items-received table,
+    .items-to-receive table,
+    .group-summary-section table {
+        font-size: 12px;
+    }
+    th, td {
+        padding: 8px 4px; 
     }
 }
 
-/* Botões de ação */
-.action-btn {
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 1.2em;
-    margin-right: 5px;
-    padding: 0;
-}
 
-.edit-btn, .delete-btn {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    margin-right: 5px;
-}
+/* =================================== */
+/* 3. ESTILOS DE AÇÃO E FEEDBACK */
+/* =================================== */
 
-.edit-btn { background-color: #ffc107; color: #333; }
-.delete-btn { background-color: #dc3545; color: white; }
-
-/* Inputs dentro da tabela */
-.editable-cell input {
-    width: 60px;
-    padding: 4px;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 13px;
-    text-align: center;
-}
-
-/* Botões de salvar e cancelar */
-.save-btn, .cancel-btn {
-    border: none;
-    cursor: pointer;
-    font-size: 1.1em;
-    padding: 5px 10px;
-    border-radius: 4px;
-    margin-left: 5px;
-}
-.save-btn { background-color: #4CAF50; color: white; }
-.cancel-btn { background-color: #F44336; color: white; }
-
-/* Feedback visual da tabela */
-.delivery-table-section table tr.fully-received { background-color: #439b4b; font-weight: bold; }
-.delivery-table-section table tr.over-received { background-color: #ff536d; }
-
-/* Área de upload */
+/* Estilos para a área de upload e o botão */
 .upload-area {
-    margin-top: 20px;
-    text-align: center;
+    margin: 20px 0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
 #import-xml-btn {
@@ -160,50 +206,16 @@ tr:hover { background-color: #e9ecef; }
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
-    transition: background-color 0.3s ease;
-}
-
-#import-xml-btn:hover { background-color: #218838; }
-
-/* Rodapé */
-footer {
-    text-align: center;
-    padding: 20px;
-    margin-top: 20px;
-    border-top: 1px solid #ccc;
-    font-size: 14px;
-    color: #666;
-}
-
-/* Navbar */
-.navbar {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    background-color: #0056b3;
-    color: white;
-    padding: 10px 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-.nav-brand h1 { font-size: 1.5em; margin: 0; }
-.nav-links {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    gap: 20px;
-}
-.nav-links a {
-    color: white;
-    text-decoration: none;
-    font-size: 1em;
-    padding: 5px 10px;
-    border-radius: 5px;
+    text-align: center;
     transition: background-color 0.3s ease;
 }
-.nav-links a:hover { background-color: #007bff; }
 
-/* Feedback e mensagens */
+#import-xml-btn:hover {
+    background-color: #218838;
+}
+
+/* Estilos para mensagens de feedback */
 .feedback-message {
     padding: 15px;
     margin: 20px 0;
@@ -212,10 +224,16 @@ footer {
     text-align: center;
     color: white;
 }
-.feedback-message.success { background-color: #4CAF50; }
-.feedback-message.error { background-color: #f44336; }
 
-/* Spinner */
+.feedback-message.success {
+    background-color: #4CAF50;
+}
+
+.feedback-message.error {
+    background-color: #f44336;
+}
+
+/* Estilos para o spinner de carregamento */
 .loading-spinner {
     border: 5px solid #f3f3f3;
     border-top: 5px solid #3498db;
@@ -225,22 +243,192 @@ footer {
     animation: spin 1s linear infinite;
     margin: 20px auto;
 }
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-.print-btn {
-    background-color: #007bff;
-    color: white;
+
+/* Estilos para os botões de ação na tabela */
+.action-btn {
+    background-color: transparent;
     border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
-    margin-top: 10px;
+    font-size: 1.2em;
+    padding: 0;
+    margin-right: 5px;
 }
 
-.print-btn:hover {
-    background-color: #0056b3;
+/* Estilos para os botões Salvar e Cancelar na edição */
+.save-btn, .cancel-btn {
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+
+.save-btn {
+    background-color: #4CAF50; /* Verde */
+    color: white;
+}
+
+.cancel-btn {
+    background-color: #F44336; /* Vermelho */
+    color: white;
+}
+
+/* Estilos para coloração de linhas */
+.delivery-table-section table tr.fully-received,
+.items-received table tr.fully-received,
+.items-to-receive table tr.fully-received {
+    background-color: #e8f5e9; /* Verde claro */
+}
+
+.delivery-table-section table tr.over-received,
+.items-received table tr.over-received,
+.items-to-receive table tr.over-received {
+    background-color: #ffebee; /* Vermelho claro */
+}
+
+/* --- Correção de Estouro em Telas Menores que 1200px --- */
+
+@media (max-width: 1200px) {
+    /* Remove o padding lateral do main para dar mais espaço à rolagem */
+    main {
+        padding: 0 5px; /* Reduz o padding lateral para um valor mínimo */
+    }
+}
+
+/* Estilos para a área de pesquisa */
+.search-area {
+    display: flex; /* Permite alinhar o input e o botão lado a lado */
+    gap: 10px; /* Espaçamento entre o input e o botão */
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#product-search {
+    flex-grow: 1; /* Ocupa o máximo de espaço disponível */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+/* Estilo do novo botão de limpar */
+.clear-search-btn {
+    background-color: #f44336; /* Cor de destaque (vermelho) */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    white-space: nowrap; /* Evita que o texto quebre */
+    transition: background-color 0.3s;
+}
+
+.clear-search-btn:hover {
+    background-color: #d32f2f;
+}
+
+/* Estilos para a caixa de resultados (autocomplete) */
+.search-results {
+    position: absolute;
+    top: 100%; /* Coloca abaixo do input */
+    left: 0;
+    right: 0;
+    z-index: 10; /* Garante que fique acima de outros elementos */
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 4px 4px;
+}
+
+.search-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.search-item:last-child {
+    border-bottom: none;
+}
+
+.search-item:hover {
+    background-color: #f0f0f0;
+}
+
+.search-item .item-details {
+    display: flex;
+    gap: 20px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.search-item .item-name {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Estilos para a nova área de resultados de pesquisa */
+.search-area {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 20px 0;
+}
+
+#product-search {
+    flex-grow: 1; /* O input ocupa o máximo de espaço */
+}
+
+.search-results-list {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-results-list h2 {
+    color: #0056b3;
+    border-bottom: 2px solid #0056b3;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* Estilos para a área de resultados filtrados (Mini-Tabela) */
+.filtered-results-container {
+    background-color: #e3f2fd; /* Cor de fundo para destacar */
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filtered-results-container h2 {
+    color: #1565c0;
+    border-bottom: 2px solid #1565c0;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+#filtered-results-table {
+    min-width: 100%; /* Garante que a tabela se ajuste ao contêiner */
+    /* Remove a quebra forçada de linha no resultado */
+}
+
+/* Garante que o input de pesquisa ocupe a largura total */
+#product-search {
+    width: 100%;
 }

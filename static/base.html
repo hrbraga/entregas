@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Controle de Entregas{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    {% block extra_styles %}{% endblock %}
+    {% block head %}{% endblock %}
 </head>
 <body>
     <nav class="navbar">
@@ -16,9 +16,10 @@
             <li><a href="{{ url_for('index') }}">Entregas</a></li>
             <li><a href="{{ url_for('historico') }}">Histórico</a></li>
             <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('inicio') }}">Custos Produtos</a></li>
         </ul>
     </nav>
-
+    
     <main>
         {% block content %}{% endblock %}
     </main>

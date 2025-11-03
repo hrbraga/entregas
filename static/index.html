@@ -18,27 +18,81 @@
     <button id="import-xml-btn">Importar XML</button>
     <input type="file" id="xml-file-input" accept=".xml" style="display: none;">
 </div>
-<section class="delivery-table-section">
-    <h2>Itens de Entrega</h2>
-    <div class="responsive-table">
-        <table>
+
+<div class="pesquisar">
+    <h2>Pesquisar Produto:<h2>
+    <div class="search-area">
+        <input type="text" id="product-search" placeholder="Buscar produto por Código ou Nome (mín. 3 caracteres)">
+        <button id="clear-search-btn" class="clear-search-btn" style="display: none;">Limpar Pesquisa</button>
+    </div>
+</div>
+
+<div id="filtered-results-container" class="filtered-results-container" style="display: none;">
+    <h2>Resultado da Busca</h2>
+    <div class="table-container">
+        <table id="filtered-results-table">
             <thead>
                 <tr>
                     <th>CÓDIGO SAP</th>
-                    <th>PRODUTO</th>
-                    <th>GRUPO</th>
-                    <th>PEDIDO LOJA</th>
-                    <th>PEDIDO VD</th>
+                    <th>ITEM PÁSCOA 2025</th>
                     <th>TOTAL CAIXA</th>
-                    <th>A RECEBER</th>
                     <th>RECEBIDO</th>
-                    <th>Ações</th>
+                    <th>A RECEBER</th>
                 </tr>
             </thead>
-            <tbody id="table-body">
+            <tbody id="filtered-results-body">
             </tbody>
         </table>
     </div>
+</div>
+
+<section class="delivery-tables-container">
+
+    <section class="table-section items-to-receive">
+        <h2>Itens A RECEBER</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>CÓDIGO SAP</th>
+                        <th>ITEM PÁSCOA 2025</th>
+                        <th>GRUPO</th>
+                        <th>PEDIDO LOJA</th>
+                        <th>PEDIDO VD</th>
+                        <th>TOTAL CAIXA</th>
+                        <th>A RECEBER</th>
+                        <th>RECEBIDO</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body-to-receive">
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="table-section items-received">
+        <h2>Itens RECEBIDOS (Concluídos)</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>CÓDIGO SAP</th>
+                        <th>ITEM PÁSCOA 2025</th>
+                        <th>GRUPO</th>
+                        <th>PEDIDO LOJA</th>
+                        <th>PEDIDO VD</th>
+                        <th>TOTAL CAIXA</th>
+                        <th>A RECEBER</th>
+                        <th>RECEBIDO</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body-received">
+                </tbody>
+            </table>
+        </div>
+    </section>
 </section>
 
 <section class="group-summary-section">
@@ -62,8 +116,8 @@
 
 {% block scripts %}
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 {% endblock %}
