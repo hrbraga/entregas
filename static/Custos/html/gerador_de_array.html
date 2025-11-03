@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Array de Produtos</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        textarea { width: 100%; height: 200px; margin-top: 10px; padding: 10px; font-family: monospace; }
+        button { margin-top: 10px; padding: 10px 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gerador de Array de Produtos</h1>
+        <p>
+            1. Cole os dados da sua planilha na área abaixo. 
+            <br>
+            2. Os dados devem ser separados por tabulação ou espaços.
+            <br>
+            3. A primeira linha deve ser o cabeçalho.
+        </p>
+
+        <textarea id="inputData" placeholder="Cole aqui os dados da sua tabela..."></textarea>
+        <button onclick="gerarArray()">Gerar Array</button>
+
+        <h3>Array de Produtos Gerado:</h3>
+        <textarea id="outputData" readonly></textarea>
+    </div>
+
+    <script>
+        function gerarArray() {
+            const inputData = document.getElementById('inputData').value;
+            const outputData = document.getElementById('outputData');
+
+            if (!inputData) {
+                alert("Por favor, cole os dados da planilha na área de texto.");
+                return;
+            }
+
+            const linhas = inputData.trim().split('\n');
+            const headers = linhas[0].trim().split('\t').map(header => header.trim());
+            const dados = linhas.slice(1).map(linha => linha.trim().split('\t').map(coluna => coluna.trim()));
+
+            const produtos = dados.map(item => {
+                const obj = {};
+                obj.codigo = item[headers.indexOf('Código')] || '';
+                obj.descricao = item[headers.indexOf('Descrição do Material')] || '';
+                obj.qtCaixa = parseFloat(item[headers.indexOf('QT caixa')].replace(',', '.')) || 0;
+                obj.caixas = 0;
+                obj.unidades = 0;
+                obj.valorUn = parseFloat(item[headers.indexOf('Valor Un')].replace(',', '.')) || 0;
+                obj.royalties = parseFloat(item[headers.indexOf('Royalties')].replace(',', '.')) || 0;
+                obj.st = parseFloat(item[headers.indexOf('ST')].replace(',', '.')) || 0;
+                obj.ipi = parseFloat(item[headers.indexOf('IPI')].replace(',', '.')) || 0;
+                obj.txsAdicionais = parseFloat(item[headers.indexOf('Txs Adicionais')].replace(',', '.')) || 0;
+                obj.txMidia = parseFloat(item[headers.indexOf('Tx Mídia')].replace(',', '.')) || 0;
+                obj.custoCaixa = parseFloat(item[headers.indexOf('Custo Caixa')].replace(',', '.')) || 0;
+                obj.custoUn = parseFloat(item[headers.indexOf('Custo UN')].replace(',', '.')) || 0;
+                obj.total = 0;
+                
+                const precoIndex = headers.indexOf('PREÇO CL');
+                if (precoIndex !== -1) {
+                    obj.preco = parseFloat(item[precoIndex].replace(',', '.').replace('%', '')) || 0;
+                }
+                const mbLiquidaIndex = headers.indexOf('MB imp + txs');
+                if (mbLiquidaIndex !== -1) {
+                    obj.mbLiquida = parseFloat(item[mbLiquidaIndex].replace(',', '.').replace('%', '')) || 0;
+                }
+                const mbBrutaIndex = headers.indexOf('MB');
+                if (mbBrutaIndex !== -1) {
+                    obj.mbBruta = parseFloat(item[mbBrutaIndex].replace(',', '.').replace('%', '')) || 0;
+                }
+
+                return obj;
+            });
+            
+            // Lógica ajustada para criar a string do array no formato correto
+            let arrayString = 'const produtos_novos = [\n';
+            produtos.forEach(prod => {
+                arrayString += '  {\n';
+                arrayString += `    codigo: '${prod.codigo}',\n`;
+                arrayString += `    descricao: '${prod.descricao}',\n`;
+                
+                // Adiciona as propriedades numéricas sem aspas
+                for (const key in prod) {
+                    if (key !== 'codigo' && key !== 'descricao') {
+                        arrayString += `    ${key}: ${prod[key]},\n`;
+                    }
+                }
+                
+                // Remove a vírgula extra do último item e fecha o objeto
+                arrayString = arrayString.slice(0, -2) + '\n'; 
+                arrayString += '  },\n';
+            });
+            arrayString = arrayString.slice(0, -2) + '\n];';
+            
+            outputData.value = arrayString;
+        }
+    </script>
+</body>
+</html>

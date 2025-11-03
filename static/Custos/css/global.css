@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    font-size: 62.5%;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+header h1 {
+    padding: 15px;
+    font-size: 2.5rem;
+}
+
+header,
+footer {
+    background-image: url(../src/img/bg__header--desk.png);
+    background-color: rgb(100, 18, 18);
+    color: #ffffff;
+    text-align: center;
+}
+
+h2 {
+    font-size: 3rem;
+    text-align: center;
+    margin: 20px 0;
+}
+
+hr {
+    border: 0; /* Remove a borda padrão */
+    height: 1px; /* Define uma altura fina */
+    background-color: #b19898; /* Uma cor cinza clara */
+    margin: 0 auto; /* 30px de espaço vertical, 10% nas laterais (largura de 80%) */
+    width: 100%; /* Centraliza a linha */
+}

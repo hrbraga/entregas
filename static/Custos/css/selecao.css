@@ -1,0 +1,61 @@
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: burlywood;
+}
+
+.campanhas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Espaçamento entre as divs */
+    flex-wrap: wrap; /* Permite quebra de linha caso necessário */
+    margin: 30px auto;
+}
+
+
+.campanha {
+    position: relative;
+    text-align: center;
+    width: 400px; 
+}
+
+.campanha a {
+    text-decoration: none; 
+    display: block;
+    position: relative;
+}
+
+.campanha img {
+    width: 400px;
+    height: 250px;
+    object-fit: cover; 
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    filter: brightness(0.5);
+}
+
+
+.campanha p {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    color: white;
+    font-size: 2.5rem;
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.campanha a:hover img {
+    transform: scale(1.05);
+    filter: brightness(1);
+}
+
+.campanha a:hover p {
+   color: #c4c4c4; 
+}
