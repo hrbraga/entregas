@@ -2,6 +2,12 @@
 
 {% block title %}Controle de Entregas{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+{% endblock %}
+
 {% block content %}
 <div id="feedback-message" class="feedback-message" style="display: none;"></div>
 <div id="loading-spinner" class="loading-spinner" style="display: none;"></div>

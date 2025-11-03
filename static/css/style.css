@@ -432,3 +432,25 @@ tr:hover {
 #product-search {
     width: 100%;
 }
+
+/* Estilo para o botão de Importar CSV */
+.import-csv-btn {
+    background-color: #ffc107; /* Amarelo/Laranja */
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.import-csv-btn:hover {
+    background-color: #e6a100;
+}
+
+/* Garante que os botões de upload fiquem bem alinhados */
+.upload-area {
+    flex-wrap: wrap; 
+}
