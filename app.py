@@ -8,10 +8,16 @@ from sqlalchemy import or_
 # Define o caminho base do projeto
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# Configuração do Flask
-app = Flask(__name__,
-            template_folder=os.path.join(basedir, 'templates'), # Aponta para a pasta templates
-            static_folder=os.path.join(basedir, 'static'))     # Aponta para a pasta static
+# --- CORREÇÃO AQUI ---
+# Inicializa o app primeiro
+app = Flask(__name__)
+
+# E DEPOIS define as pastas de template e static
+# O PULO DO GATO: O 'template_folder' DEVE APONTAR PARA 'static'
+# pois é onde seus HTMLs estão, de acordo com o GitHub.
+app.template_folder = os.path.join(basedir, 'static') 
+app.static_folder = os.path.join(basedir, 'static')
+# --- FIM DA CORREÇÃO ---
 
 # Configuração do banco de dados (SQLite)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'entregas.db')
@@ -53,7 +59,7 @@ def inicio():
 # Rota /entregas agora serve o app de Controle de Entregas
 @app.route('/entregas')
 def index():
-    return render_template('index.html')
+    return render_template('index.html') # Agora o Flask encontrará o index.html em 'static'
 
 # Rotas do app de Entregas
 @app.route('/historico')
