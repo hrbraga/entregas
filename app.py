@@ -4,6 +4,7 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import or_
+# NOVAS IMPORTAÇÕES PARA AUTENTICAÇÃO
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 # NOVAS IMPORTAÇÕES PARA IMPORTAR CSV
@@ -19,26 +20,34 @@ app.template_folder = os.path.join(basedir, 'static')
 app.static_folder = os.path.join(basedir, 'static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'entregas.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Chave secreta necessária para o Flask-Login
 app.config['SECRET_KEY'] = 'uma-chave-secreta-muito-dificil-de-adivinhar' 
 db = SQLAlchemy(app)
 
 # --- CONFIGURAÇÃO DO FLASK-LOGIN ---
 login_manager = LoginManager()
 login_manager.init_app(app)
+# Se um usuário não logado tentar acessar uma página protegida, ele será redirecionado para a rota 'login'
 login_manager.login_view = 'login' 
 login_manager.login_message = "Por favor, faça login para acessar esta página."
-login_manager.login_message_category = "flash-error"
+login_manager.login_message_category = "flash-error" # Categoria para a mensagem flash
 
+# --- CORREÇÃO AQUI ---
+# Esta função é chamada para carregar um usuário da sessão
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    # Usamos db.session.get() que é o método correto e moderno
+    return db.session.get(User, int(user_id))
+# --- FIM DA CORREÇÃO ---
 
-# --- MODELOS DE BANCO DE DADOS ---
+# --- NOVOS MODELOS DE BANCO DE DADOS ---
 
+# NOVO MODELO: Tabela de Usuários
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
+    
     items = db.relationship('ItemEntrega', backref='owner', lazy=True)
     notas = db.relationship('NotaFiscal', backref='owner', lazy=True)
 
@@ -48,6 +57,7 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+# MODELO ATUALIZADO: Tabela de Itens de Entrega
 class ItemEntrega(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     codigo_sap = db.Column(db.String(20), nullable=False)
@@ -60,6 +70,7 @@ class ItemEntrega(db.Model):
     recebido = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+# MODELO ATUALIZADO: Tabela de Notas Fiscais
 class NotaFiscal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     numero_nota = db.Column(db.String(50), nullable=False)
@@ -68,11 +79,12 @@ class NotaFiscal(db.Model):
     valor_total = db.Column(db.String(20), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-# Cria as tabelas (se não existirem)
+
+# Cria as tabelas do banco de dados se elas não existirem
 with app.app_context():
     db.create_all()
 
-# --- ROTAS DE AUTENTICAÇÃO ---
+# --- NOVAS ROTAS DE AUTENTICAÇÃO ---
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -86,7 +98,7 @@ def login():
             login_user(user)
             return redirect(url_for('index'))
         else:
-            flash('Usuário ou senha inválidos.')
+            flash('Usuário ou senha inválidos.', 'flash-error')
             return redirect(url_for('login'))
     return render_template('login.html')
 
@@ -98,11 +110,11 @@ def register():
         username = request.form.get('username')
         password = request.form.get('password')
         if len(username) < 4 or len(password) < 6:
-            flash('Usuário ou senha não atendem aos requisitos mínimos.')
+            flash('Usuário ou senha não atendem aos requisitos mínimos.', 'flash-error')
             return redirect(url_for('register'))
         user = User.query.filter_by(username=username).first()
         if user:
-            flash('Este nome de usuário já existe.')
+            flash('Este nome de usuário já existe.', 'flash-error')
             return redirect(url_for('register'))
         new_user = User(username=username)
         new_user.set_password(password)
@@ -145,48 +157,33 @@ def custos_static_files(filename):
 
 # --- ROTAS DE API (DADOS) ---
 
-# **** NOVA ROTA PARA IMPORTAR O CSV DE PEDIDOS ****
 @app.route('/import_csv', methods=['POST'])
 @login_required
 def import_csv():
     if 'file' not in request.files:
         return jsonify({"success": False, "message": "Nenhum arquivo enviado."}), 400
-
     file = request.files['file']
     if not file.filename.endswith('.csv'):
         return jsonify({"success": False, "message": "Formato de arquivo inválido. Use CSV."}), 400
-
     try:
-        # 1. Apagar dados antigos DESTE usuário
         ItemEntrega.query.filter_by(user_id=current_user.id).delete()
-        
-        # 2. Ler o novo CSV
-        # Usamos 'latin-1' e 'delimiter' com base no seu 'entregas.csv' anterior
         data = io.StringIO(file.stream.read().decode("latin-1"))
-        df = pd.read_csv(data, delimiter=';') 
-
-        # 3. Renomear colunas para bater com o banco de dados
+        df = pd.read_csv(data, delimiter=';', skiprows=6) 
+        colunas_csv = df.columns
         df = df.rename(columns={
-            'COD SAP': 'codigo_sap',
-            'ITEM PÁSCOA 2025': 'item',
-            'Grupo': 'grupo',
-            'PEDIDO LOJA': 'pedido_loja',
-            'PEDIDO VD': 'pedido_vd'
+            colunas_csv[0]: 'codigo_sap',
+            colunas_csv[1]: 'item',
+            colunas_csv[2]: 'grupo',
+            colunas_csv[3]: 'pedido_loja',
+            colunas_csv[4]: 'pedido_vd'
         })
-        
-        # Lista para armazenar os novos itens
         novos_itens = []
-
-        # 4. Inserir novos dados
         for index, row in df.iterrows():
-            # Pula linhas malformadas
             if pd.isna(row.get('codigo_sap')) or pd.isna(row.get('item')):
                 continue
-
             pedido_loja = int(row.get('pedido_loja', 0) or 0)
             pedido_vd = int(row.get('pedido_vd', 0) or 0)
             total_caixa = pedido_loja + pedido_vd
-
             novo_item = ItemEntrega(
                 codigo_sap=str(row.get('codigo_sap', '')).lstrip('0'),
                 item=row.get('item', ''),
@@ -194,20 +191,18 @@ def import_csv():
                 pedido_loja=pedido_loja,
                 pedido_vd=pedido_vd,
                 total_caixa=total_caixa,
-                a_receber=total_caixa, # Valor inicial
-                recebido=0,           # Valor inicial
-                user_id=current_user.id # Vincula ao usuário
+                a_receber=total_caixa,
+                recebido=0,
+                user_id=current_user.id
             )
             novos_itens.append(novo_item)
-        
-        db.session.bulk_save_objects(novos_itens) # Salva todos de uma vez
+        db.session.bulk_save_objects(novos_itens)
         db.session.commit()
         return jsonify({"success": True, "message": "Pedidos importados com sucesso! Os dados anteriores foram substituídos."})
-
     except Exception as e:
         db.session.rollback()
-        print(f"Erro no import_csv: {e}") # Para debug no terminal
-        return jsonify({"success": False, "message": "Erro ao processar o arquivo. Verifique o formato."}), 500
+        print(f"Erro no import_csv: {e}")
+        return jsonify({"success": False, "message": "Erro ao processar o arquivo. Verifique o formato e as colunas."}), 500
 
 
 @app.route('/get_data')
@@ -273,16 +268,12 @@ def get_notas():
 @login_required
 def get_dashboard_data():
     items = ItemEntrega.query.filter_by(user_id=current_user.id).all()
-    
     total_pedido = sum(item.total_caixa for item in items)
     total_recebido = sum(item.recebido for item in items)
-    
     progresso_geral = (total_recebido / total_pedido) * 100 if total_pedido > 0 else 0
-    
     skus_nao_entregues = 0
     skus_parcialmente_entregues = 0
     skus_totalmente_entregues = 0
-
     for item in items:
         if item.recebido == 0:
             skus_nao_entregues += 1
@@ -290,32 +281,21 @@ def get_dashboard_data():
             skus_parcialmente_entregues += 1
         elif item.recebido >= item.total_caixa:
             skus_totalmente_entregues += 1
-    
     grupos = {}
     for item in items:
         if item.grupo not in grupos:
-            grupos[item.grupo] = {
-                'nao_entregues': 0,
-                'parcialmente_entregues': 0,
-                'totalmente_entregues': 0
-            }
-
+            grupos[item.grupo] = {'nao_entregues': 0, 'parcialmente_entregues': 0, 'totalmente_entregues': 0}
         if item.recebido == 0:
             grupos[item.grupo]['nao_entregues'] += 1
         elif item.recebido < item.total_caixa:
             grupos[item.grupo]['parcialmente_entregues'] += 1
         elif item.recebido >= item.total_caixa:
             grupos[item.grupo]['totalmente_entregues'] += 1
-
     return jsonify({
         "progresso_geral": round(progresso_geral, 2),
         "total_pedido": total_pedido,
         "total_recebido": total_recebido,
-        "sku_status": {
-            "nao_entregues": skus_nao_entregues,
-            "parcialmente_entregues": skus_parcialmente_entregues,
-            "totalmente_entregues": skus_totalmente_entregues
-        },
+        "sku_status": {"nao_entregues": skus_nao_entregues, "parcialmente_entregues": skus_parcialmente_entregues, "totalmente_entregues": skus_totalmente_entregues},
         "grupos": grupos
     })
 
@@ -327,7 +307,6 @@ def upload_xml():
     file = request.files['file']
     if file.filename == '' or not file.filename.endswith('.xml'):
         return jsonify({"success": False, "message": "Arquivo inválido. Por favor, envie um arquivo XML."}), 400
-
     if file:
         try:
             tree = ET.parse(file)
@@ -335,16 +314,13 @@ def upload_xml():
             nfe_tag = root.find('.//{http://www.portalfiscal.inf.br/nfe}NFe')
             inf_nfe_tag = nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}infNFe')
             n_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}nNF').text
-            
             nota_existente = NotaFiscal.query.filter_by(numero_nota=n_nf, user_id=current_user.id).first()
             if nota_existente:
                 return jsonify({"success": False, "message": f"A nota fiscal {n_nf} já foi importada."}), 409
-
             v_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}total/{http://www.portalfiscal.inf.br/nfe}ICMSTot/{http://www.portalfiscal.inf.br/nfe}vNF').text
             data_emi = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}dhEmi').text
             data_formatada = data_emi.split('T')[0]
             data_dd_mm_aaaa = '-'.join(reversed(data_formatada.split('-')))
-
             nova_nota = NotaFiscal(
                 numero_nota=n_nf,
                 data_emissao=data_dd_mm_aaaa,
@@ -353,7 +329,6 @@ def upload_xml():
                 user_id=current_user.id
             )
             db.session.add(nova_nota)
-
             for det_tag in inf_nfe_tag.findall('{http://www.portalfiscal.inf.br/nfe}det'):
                 prod_tag = det_tag.find('{http://www.portalfiscal.inf.br/nfe}prod')
                 c_prod = prod_tag.find('{http://www.portalfiscal.inf.br/nfe}cProd').text
@@ -364,10 +339,8 @@ def upload_xml():
                 if item_db:
                     item_db.recebido += quantidade_entregue
                     item_db.a_receber -= quantidade_entregue
-            
             db.session.commit()
             return jsonify({"success": True, "message": "Arquivo processado e dados atualizados com sucesso!"}), 200
-
         except ET.ParseError as e:
             db.session.rollback()
             return jsonify({"success": False, "message": f"Erro ao analisar o XML: {e}"}), 400
@@ -397,19 +370,14 @@ def update_item(item_id):
         item = ItemEntrega.query.filter_by(id=item_id, user_id=current_user.id).first()
         if not item:
             return jsonify({"success": False, "message": "Item não encontrado."}), 404
-
         data = request.get_json()
-        
         for field, value in data.items():
             if field in ['pedido_loja', 'pedido_vd']:
                 setattr(item, field, value)
-            
         item.total_caixa = item.pedido_loja + item.pedido_vd
         item.a_receber = item.total_caixa - item.recebido
-
         db.session.commit()
         return jsonify({"success": True, "message": "Item atualizado com sucesso!"})
-
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False, "message": f"Ocorreu um erro ao atualizar o item: {e}"}), 500

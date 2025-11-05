@@ -3,9 +3,9 @@
 {% block title %}Controle de Entregas{% endblock %}
 
 {% block head %}
-    {{ super() }}
-    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+{{ super() }}
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -14,23 +14,29 @@
 
 <section class="instructions">
     <h2>Instruções</h2>
-    <p>1. Clique no botão "Importar XML" para selecionar e importar o arquivo XML da nota fiscal.</p>
-    <p>2. Após a importação, os dados serão exibidos na tabela abaixo.</p>
-    <p>3. Utilize o histórico para revisar notas fiscais importadas anteriormente.</p>
+    <p>1. **Importe seus pedidos** (arquivo .csv) para carregar sua lista de produtos.</p>
+    <p>2. Importe os arquivos **XML (NF-e)** para registrar as entregas.</p>
+    <p>3. Edite ou exclua itens conforme necessário.</p>
 </section>
 
 
 <div class="upload-area">
-    <button id="import-xml-btn">Importar XML</button>
+    <button id="import-csv-btn" class="import-csv-btn">Importar Pedidos (CSV)</button>
+    <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+
+    <button id="import-xml-btn">Importar XML (NF-e)</button>
     <input type="file" id="xml-file-input" accept=".xml" style="display: none;">
+
+    <button id="print-list-btn" class="print-btn">Imprimir Listagem</button>
 </div>
 
 <div class="pesquisar">
     <h2>Pesquisar Produto:<h2>
-    <div class="search-area">
-        <input type="text" id="product-search" placeholder="Buscar produto por Código ou Nome (mín. 3 caracteres)">
-        <button id="clear-search-btn" class="clear-search-btn" style="display: none;">Limpar Pesquisa</button>
-    </div>
+            <div class="search-area">
+                <input type="text" id="product-search"
+                    placeholder="Buscar produto por Código ou Nome (mín. 3 caracteres)">
+                <button id="clear-search-btn" class="clear-search-btn" style="display: none;">Limpar Pesquisa</button>
+            </div>
 </div>
 
 <div id="filtered-results-container" class="filtered-results-container" style="display: none;">

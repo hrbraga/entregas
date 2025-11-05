@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbodyToReceive = document.getElementById('table-body-to-receive');
         const tbodyReceived = document.getElementById('table-body-received');
         
-        // Limpa ambas as tabelas
         tbodyToReceive.innerHTML = '';
         tbodyReceived.innerHTML = '';
 
@@ -27,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const row = document.createElement('tr');
             
-            // Lógica de cores
             if (item.recebido === item.total_caixa) {
                 row.classList.add('fully-received');
             } else if (item.recebido > item.total_caixa) {
@@ -181,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function renderGroupSummary(data) {
         const tbody = document.getElementById('group-summary-body');
+        if (!tbody) return; // Se a tabela de resumo não existir, não faz nada
         tbody.innerHTML = '';
         for (const grupo in data) {
             const item = data[grupo];
@@ -199,32 +198,37 @@ document.addEventListener('DOMContentLoaded', () => {
      * Função assíncrona para buscar os dados do servidor e renderizar as tabelas.
      */
     async function loadDataAndRenderTables() {
-        // Assegura que as tabelas principais e o resumo estejam visíveis
         const tableSections = document.querySelector('.delivery-tables-container');
         const summarySection = document.querySelector('.group-summary-section');
         
         if (tableSections) tableSections.style.display = 'grid';
         if (summarySection) summarySection.style.display = 'block';
         
-        // Esconde os resultados da busca e o botão limpar
         if (filteredResultsContainer) filteredResultsContainer.style.display = 'none';
         if (clearSearchButton) clearSearchButton.style.display = 'none';
-        if (searchInput) searchInput.value = ''; // Limpa o campo de busca
+        if (searchInput) searchInput.value = '';
 
         try {
             const response = await fetch('/get_data');
+            // Verifica se a resposta é um redirecionamento de login (o fetch não segue por padrão)
+            if (response.status === 401 || response.redirected) {
+                window.location.href = '/login'; // Redireciona o usuário para a página de login
+                return;
+            }
             const data = await response.json();
             renderTable(data);
             const groupSummary = calculateGroupSummary(data);
             renderGroupSummary(groupSummary);
         } catch (error) {
-            showFeedback("Erro ao carregar os dados. Por favor, tente novamente.", "error");
+            console.error("Erro ao carregar dados:", error);
+            // Evita mostrar erro se for um redirecionamento de login
         }
     }
 
     // Funções para gerenciar o feedback na tela
     function showFeedback(message, type) {
         const feedbackDiv = document.getElementById('feedback-message');
+        if (!feedbackDiv) return;
         feedbackDiv.textContent = message;
         feedbackDiv.className = `feedback-message ${type}`;
         feedbackDiv.style.display = 'block';
@@ -234,11 +238,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showLoading() {
-        document.getElementById('loading-spinner').style.display = 'block';
+        const spinner = document.getElementById('loading-spinner');
+        if (spinner) spinner.style.display = 'block';
     }
 
     function hideLoading() {
-        document.getElementById('loading-spinner').style.display = 'none';
+        const spinner = document.getElementById('loading-spinner');
+        if (spinner) spinner.style.display = 'none';
     }
 
     loadDataAndRenderTables();
@@ -253,13 +259,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const query = searchInput.value.trim();
 
             if (query.length < 3) {
-                // Se a busca for esvaziada ou curta, esconde tudo e o botão limpar
                 filteredResultsContainer.style.display = 'none';
                 clearSearchButton.style.display = 'none';
                 return;
             }
 
-            // Se a busca for válida, mostra o botão limpar
             clearSearchButton.style.display = 'inline-block';
 
             searchTimeout = setTimeout(async () => {
@@ -272,23 +276,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error("Erro na busca:", error);
                     filteredResultsContainer.style.display = 'none';
                 }
-            }, 300); // Atraso de 300ms
+            }, 300);
         });
         
-        // Listener para o botão de limpar pesquisa
         if (clearSearchButton) {
             clearSearchButton.addEventListener('click', () => {
-                searchInput.value = ''; // Limpa o input
-                filteredResultsContainer.style.display = 'none'; // Esconde a tabela de resultados
-                clearSearchButton.style.display = 'none'; // Esconde o próprio botão
-                searchInput.focus(); // Coloca o foco de volta no input
+                searchInput.value = '';
+                filteredResultsContainer.style.display = 'none';
+                clearSearchButton.style.display = 'none';
+                searchInput.focus();
             });
         }
     }
 
     /**
      * Renderiza os resultados da busca na mini-tabela.
-     * @param {Array} results - Lista de itens encontrados.
      */
     function renderFilteredResults(results) {
         filteredResultsBody.innerHTML = '';
@@ -301,10 +303,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         results.forEach(item => {
             const row = document.createElement('tr');
-            row.className = 'search-result-row'; // Adiciona uma classe para destaque
+            row.className = 'search-result-row';
             row.dataset.id = item.id;
             
-            // Adiciona a formatação pedida
             row.innerHTML = `
                 <td>${item.codigo_sap}</td>
                 <td>${item.item}</td>
@@ -313,9 +314,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="color: red;">${item.a_receber}</td>
             `;
             
-            // Adiciona a funcionalidade de clique para rolar e destacar
             row.addEventListener('click', () => {
-                const targetRow = document.querySelector(`tr[data-id="${item.id}"]`);
+                const targetRow = document.querySelector(`.delivery-tables-container [data-id="${item.id}"]`);
                 if (targetRow) {
                     targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     targetRow.classList.add('highlight-row');
@@ -333,13 +333,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const importBtn = document.getElementById('import-xml-btn');
     const fileInput = document.getElementById('xml-file-input');
 
-    importBtn.addEventListener('click', () => fileInput.click());
+    if (importBtn) {
+        importBtn.addEventListener('click', () => fileInput.click());
+    }
 
-    fileInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
-                showFeedback('Por favor, selecione um arquivo no formato XML.', 'error');
+    if (fileInput) {
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
+                    showFeedback('Por favor, selecione um arquivo no formato XML.', 'error');
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('file', file);
+                showLoading();
+                try {
+                    const response = await fetch('/upload_xml', { method: 'POST', body: formData });
+                    const result = await response.json();
+                    if (result.success) {
+                        showFeedback(result.message, 'success');
+                        loadDataAndRenderTables();
+                    } else {
+                        showFeedback('Erro: ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    showFeedback('Ocorreu um erro ao enviar o arquivo.', 'error');
+                } finally {
+                    hideLoading();
+                }
+            }
+        });
+    }
+    
+    // **** NOVO: LÓGICA PARA IMPORTAR PEDIDOS (CSV) ****
+    const importCsvBtn = document.getElementById('import-csv-btn');
+    const csvFileInput = document.getElementById('csv-file-input');
+
+    if (importCsvBtn) {
+        importCsvBtn.addEventListener('click', () => {
+            csvFileInput.click(); // Abre o seletor de arquivo
+        });
+    }
+
+    if (csvFileInput) {
+        csvFileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.endsWith('.csv')) {
+                showFeedback('Por favor, selecione um arquivo no formato CSV.', 'error');
+                csvFileInput.value = '';
                 return;
             }
 
@@ -348,40 +392,45 @@ document.addEventListener('DOMContentLoaded', () => {
             showLoading();
 
             try {
-                const response = await fetch('/upload_xml', {
+                const response = await fetch('/import_csv', {
                     method: 'POST',
                     body: formData
                 });
+                
                 const result = await response.json();
+                
                 if (result.success) {
                     showFeedback(result.message, 'success');
-                    loadDataAndRenderTables();
+                    loadDataAndRenderTables(); // Recarrega os dados do usuário
                 } else {
                     showFeedback('Erro: ' + result.message, 'error');
                 }
             } catch (error) {
-                showFeedback('Ocorreu um erro ao enviar o arquivo.', 'error');
+                showFeedback('Ocorreu um erro ao importar o CSV.', 'error');
             } finally {
                 hideLoading();
+                csvFileInput.value = ''; // Limpa o input
             }
-        }
-    });
-    
+        });
+    }
+
     // Lógica para o botão de imprimir listagem
     const printListBtn = document.getElementById('print-list-btn');
     if (printListBtn) {
         printListBtn.addEventListener('click', () => {
-            const table = document.querySelector('.delivery-tables-container table');
-            if (table) {
-                html2canvas(table).then(canvas => {
+            const tablesContainer = document.querySelector('.delivery-tables-container');
+            if (tablesContainer) {
+                showLoading();
+                html2canvas(tablesContainer, { scale: 2 }).then(canvas => {
                     const imgData = canvas.toDataURL('image/png');
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF('p', 'mm', 'a4');
                     const imgProps= pdf.getImageProperties(imgData);
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
                     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth, pdfHeight);
                     pdf.save('listagem-entregas.pdf');
+                    hideLoading();
                 });
             }
         });
