@@ -16,7 +16,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 # Configuração do Flask
 app = Flask(__name__)
-app.template_folder = os.path.join(basedir, 'static') 
+# Aponta para as pastas corretas (baseado no seu GitHub)
+app.template_folder = os.path.join(basedir, 'templates') 
 app.static_folder = os.path.join(basedir, 'static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'entregas.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -32,22 +33,17 @@ login_manager.login_view = 'login'
 login_manager.login_message = "Por favor, faça login para acessar esta página."
 login_manager.login_message_category = "flash-error" # Categoria para a mensagem flash
 
-# --- CORREÇÃO AQUI ---
-# Esta função é chamada para carregar um usuário da sessão
 @login_manager.user_loader
 def load_user(user_id):
-    # Usamos db.session.get() que é o método correto e moderno
+    # Usa db.session.get() que é o método correto e moderno
     return db.session.get(User, int(user_id))
-# --- FIM DA CORREÇÃO ---
 
 # --- NOVOS MODELOS DE BANCO DE DADOS ---
 
-# NOVO MODELO: Tabela de Usuários
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
-    
     items = db.relationship('ItemEntrega', backref='owner', lazy=True)
     notas = db.relationship('NotaFiscal', backref='owner', lazy=True)
 
@@ -57,7 +53,6 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-# MODELO ATUALIZADO: Tabela de Itens de Entrega
 class ItemEntrega(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     codigo_sap = db.Column(db.String(20), nullable=False)
@@ -70,7 +65,6 @@ class ItemEntrega(db.Model):
     recebido = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-# MODELO ATUALIZADO: Tabela de Notas Fiscais
 class NotaFiscal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     numero_nota = db.Column(db.String(50), nullable=False)
@@ -84,7 +78,7 @@ class NotaFiscal(db.Model):
 with app.app_context():
     db.create_all()
 
-# --- NOVAS ROTAS DE AUTENTICAÇÃO ---
+# --- ROTAS DE AUTENTICAÇÃO ---
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -130,32 +124,37 @@ def logout():
     logout_user()
     return redirect(url_for('inicio'))
 
+
 # --- ROTAS PRINCIPAIS (PROTEGIDAS E PÚBLICAS) ---
 
+# Rota principal (/) - PÚBLICA
 @app.route('/')
 def inicio():
     return send_from_directory(os.path.join(app.static_folder, 'custos'), 'inicio.html')
 
+# Rota /entregas - PROTEGIDA
 @app.route('/entregas')
-@login_required 
+@login_required # <-- Proteção adicionada
 def index():
     return render_template('index.html')
 
+# Rotas do app de Entregas - PROTEGIDAS
 @app.route('/historico')
-@login_required
+@login_required # <-- Proteção adicionada
 def historico():
     return render_template('historico.html')
 
 @app.route('/dashboard')
-@login_required
+@login_required # <-- Proteção adicionada
 def dashboard():
     return render_template('dashboard.html')
 
+# --- ROTAS PARA O PROJETO CUSTOS PRODUTOS (Arquivos internos) - PÚBLICA ---
 @app.route('/custos/<path:filename>')
 def custos_static_files(filename):
     return send_from_directory(os.path.join(app.static_folder, 'custos'), filename)
 
-# --- ROTAS DE API (DADOS) ---
+# --- ROTAS DE API (DADOS) - PROTEGIDAS E FILTRADAS ---
 
 @app.route('/import_csv', methods=['POST'])
 @login_required
