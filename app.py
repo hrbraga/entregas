@@ -16,22 +16,26 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 # Configuração do Flask
 app = Flask(__name__)
-# Aponta para as pastas corretas (baseado no seu GitHub)
-app.template_folder = os.path.join(basedir, 'templates') 
+
+# --- CORREÇÃO AQUI ---
+# Aponta o Flask para procurar templates (HTMLs) DENTRO da pasta 'static'
+# Esta era a linha que estava causando o erro 'TemplateNotFound'
+app.template_folder = os.path.join(basedir, 'static') 
 app.static_folder = os.path.join(basedir, 'static')
+# --- FIM DA CORREÇÃO ---
+
+# Configuração do banco de dados (SQLite)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'entregas.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# Chave secreta necessária para o Flask-Login
 app.config['SECRET_KEY'] = 'uma-chave-secreta-muito-dificil-de-adivinhar' 
 db = SQLAlchemy(app)
 
 # --- CONFIGURAÇÃO DO FLASK-LOGIN ---
 login_manager = LoginManager()
 login_manager.init_app(app)
-# Se um usuário não logado tentar acessar uma página protegida, ele será redirecionado para a rota 'login'
 login_manager.login_view = 'login' 
 login_manager.login_message = "Por favor, faça login para acessar esta página."
-login_manager.login_message_category = "flash-error" # Categoria para a mensagem flash
+login_manager.login_message_category = "flash-error"
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -44,6 +48,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
+    
     items = db.relationship('ItemEntrega', backref='owner', lazy=True)
     notas = db.relationship('NotaFiscal', backref='owner', lazy=True)
 
@@ -78,7 +83,7 @@ class NotaFiscal(db.Model):
 with app.app_context():
     db.create_all()
 
-# --- ROTAS DE AUTENTICAÇÃO ---
+# --- NOVAS ROTAS DE AUTENTICAÇÃO ---
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -94,7 +99,7 @@ def login():
         else:
             flash('Usuário ou senha inválidos.', 'flash-error')
             return redirect(url_for('login'))
-    return render_template('login.html')
+    return render_template('login.html') # Agora o Flask encontrará o login.html em 'static'
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -116,7 +121,7 @@ def register():
         db.session.commit()
         login_user(new_user)
         return redirect(url_for('index'))
-    return render_template('register.html')
+    return render_template('register.html') # Agora o Flask encontrará o register.html em 'static'
 
 @app.route('/logout')
 @login_required
@@ -134,18 +139,18 @@ def inicio():
 
 # Rota /entregas - PROTEGIDA
 @app.route('/entregas')
-@login_required # <-- Proteção adicionada
+@login_required 
 def index():
-    return render_template('index.html')
+    return render_template('index.html') # Agora o Flask encontrará o index.html em 'static'
 
 # Rotas do app de Entregas - PROTEGIDAS
 @app.route('/historico')
-@login_required # <-- Proteção adicionada
+@login_required
 def historico():
     return render_template('historico.html')
 
 @app.route('/dashboard')
-@login_required # <-- Proteção adicionada
+@login_required
 def dashboard():
     return render_template('dashboard.html')
 
