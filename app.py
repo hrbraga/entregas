@@ -4,8 +4,10 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import or_
+# NOVAS IMPORTAÇÕES PARA AUTENTICAÇÃO
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+# NOVAS IMPORTAÇÕES PARA IMPORTAR CSV
 import pandas as pd
 import io
 
@@ -15,8 +17,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # Configuração do Flask
 app = Flask(__name__)
 
-# --- CORREÇÃO DA ESTRUTURA AQUI ---
-# Aponta para as pastas corretas (a nova estrutura)
+# --- CORREÇÃO AQUI ---
+# Aponta para as pastas corretas (baseado no seu GitHub)
 app.template_folder = os.path.join(basedir, 'templates') 
 app.static_folder = os.path.join(basedir, 'static')
 # --- FIM DA CORREÇÃO ---
@@ -32,23 +34,26 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login' 
 login_manager.login_message = "Por favor, faça login para acessar esta página."
-login_manager.login_message_category = "flash-error"
+login_manager.login_message_category = "flash-error" 
 
 @login_manager.user_loader
 def load_user(user_id):
+    # Usa db.session.get() que é o método correto e moderno
     return db.session.get(User, int(user_id))
 
-# --- MODELOS DE BANCO DE DADOS ---
+# --- NOVOS MODELOS DE BANCO DE DADOS ---
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
+    
     items = db.relationship('ItemEntrega', backref='owner', lazy=True)
     notas = db.relationship('NotaFiscal', backref='owner', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
+
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
@@ -73,22 +78,23 @@ class NotaFiscal(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
+# Cria as tabelas do banco de dados se elas não existirem
 with app.app_context():
     db.create_all()
 
-# --- ROTAS DE AUTENTICAÇÃO ---
+# --- NOVAS ROTAS DE AUTENTICAÇÃO ---
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('recebimentos')) # MUDANÇA: Redireciona para 'recebimentos'
+        return redirect(url_for('recebimentos')) # Redireciona para 'recebimentos'
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('recebimentos')) # MUDANÇA: Redireciona para 'recebimentos'
+            return redirect(url_for('recebimentos')) # Redireciona para 'recebimentos'
         else:
             flash('Usuário ou senha inválidos.', 'flash-error')
             return redirect(url_for('login'))
@@ -97,7 +103,7 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('recebimentos')) # MUDANÇA: Redireciona para 'recebimentos'
+        return redirect(url_for('recebimentos'))
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -113,7 +119,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
-        return redirect(url_for('recebimentos')) # MUDANÇA: Redireciona para 'recebimentos'
+        return redirect(url_for('recebimentos'))
     return render_template('register.html')
 
 @app.route('/logout')
@@ -128,14 +134,13 @@ def logout():
 # Rota principal (/) - PÚBLICA (Custos)
 @app.route('/')
 def inicio():
-    # Esta rota continua servindo o arquivo estático do app Custos
     return send_from_directory(os.path.join(app.static_folder, 'custos'), 'inicio.html')
 
-# MUDANÇA: Rota /entregas - PROTEGIDA (Recebimentos)
+# Rota /entregas - PROTEGIDA (Recebimentos)
 @app.route('/entregas')
 @login_required 
-def recebimentos(): # MUDANÇA: Nome da função (antigo 'index')
-    return render_template('recebimentos.html') # MUDANÇA: Nome do arquivo
+def recebimentos(): # Antigo 'index'
+    return render_template('recebimentos.html') # Renderiza o arquivo renomeado
 
 # Rotas do app de Entregas - PROTEGIDAS
 @app.route('/historico')
@@ -154,7 +159,6 @@ def custos_static_files(filename):
     return send_from_directory(os.path.join(app.static_folder, 'custos'), filename)
 
 # --- ROTAS DE API (DADOS) - PROTEGIDAS E FILTRADAS ---
-# (Nenhuma alteração de lógica necessária aqui)
 
 @app.route('/import_csv', methods=['POST'])
 @login_required
