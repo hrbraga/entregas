@@ -2,26 +2,29 @@
 
 {% block title %}Dashboard de Entregas{% endblock %}
 
-{% block extra_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% block head %} <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 {% endblock %}
 
 {% block content %}
 <div class="dashboard-container">
     <div class="card totalizer-card">
         <h2>Totalizador de Entregas</h2>
-        <div class="totalizer-item">
-            <p class="label">TOTAL PEDIDO</p>
-            <span class="value" id="total-pedido-val">0</span>
+        
+        <div class="totalizer-items-container">
+            <div class="totalizer-item">
+                <p class="label">TOTAL PEDIDO</p>
+                <span class="value" id="total-pedido-val">0</span>
+            </div>
+            <div class="totalizer-item">
+                <p class="label">RECEBIDO</p>
+                <span class="value received" id="recebido-val">0</span>
+            </div>
+            <div class="totalizer-item">
+                <p class="label">A RECEBER</p>
+                <span class="value to-receive" id="a-receber-val">0</span>
+            </div>
         </div>
-        <div class="totalizer-item">
-            <p class="label">RECEBIDO</p>
-            <span class="value received" id="recebido-val">0</span>
-        </div>
-        <div class="totalizer-item">
-            <p class="label">A RECEBER</p>
-            <span class="value to-receive" id="a-receber-val">0</span>
-        </div>
+        
     </div>
 
     <div class="card">

@@ -2,7 +2,8 @@
     max-width: 1200px;
     margin: 20px auto;
     display: grid;
-    grid-template-columns: 1fr;
+    /* FIX 3: Define 3 colunas para o grid */
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
 }
 
@@ -36,7 +37,7 @@
     color: #F44336; /* Vermelho */
 }
 
-/* Novo container para alinhar os totalizadores */
+/* Container para alinhar os totalizadores */
 .totalizer-items-container {
     display: flex;
     justify-content: space-around; /* Isso os espaçará uniformemente */
@@ -45,3 +46,13 @@
     margin-top: 15px; /* Adiciona um espaço abaixo do título */
 }
 
+/* Adiciona responsividade */
+@media (max-width: 900px) {
+    .dashboard-container {
+        grid-template-columns: 1fr; /* Volta a ter 1 coluna */
+    }
+    .totalizer-items-container {
+        flex-direction: column; /* Empilha os totalizadores */
+        gap: 15px;
+    }
+}
