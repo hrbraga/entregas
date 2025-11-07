@@ -134,7 +134,8 @@ def logout():
 # Rota principal (/) - PÚBLICA (Custos)
 @app.route('/')
 def inicio():
-    return send_from_directory(os.path.join(app.static_folder, 'custos'), 'inicio.html')
+    return send_from_directory(os.path.join(app.static_folder, 'custos/html'), 'inicio.html')
+
 
 # Rota /entregas - PROTEGIDA (Recebimentos)
 @app.route('/entregas')
@@ -302,54 +303,87 @@ def get_dashboard_data():
         "grupos": grupos
     })
 
+# ==================================================================
+# FUNÇÃO DE UPLOAD DE XML MODIFICADA PARA MÚLTIPLOS ARQUIVOS
+# ==================================================================
 @app.route('/upload_xml', methods=['POST'])
 @login_required
 def upload_xml():
     if 'file' not in request.files:
         return jsonify({"success": False, "message": "Nenhum arquivo enviado."}), 400
-    file = request.files['file']
-    if file.filename == '' or not file.filename.endswith('.xml'):
-        return jsonify({"success": False, "message": "Arquivo inválido. Por favor, envie um arquivo XML."}), 400
-    if file:
-        try:
-            tree = ET.parse(file)
-            root = tree.getroot()
-            nfe_tag = root.find('.//{http://www.portalfiscal.inf.br/nfe}NFe')
-            inf_nfe_tag = nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}infNFe')
-            n_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}nNF').text
-            nota_existente = NotaFiscal.query.filter_by(numero_nota=n_nf, user_id=current_user.id).first()
-            if nota_existente:
-                return jsonify({"success": False, "message": f"A nota fiscal {n_nf} já foi importada."}), 409
-            v_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}total/{http://www.portalfiscal.inf.br/nfe}ICMSTot/{http://www.portalfiscal.inf.br/nfe}vNF').text
-            data_emi = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}dhEmi').text
-            data_formatada = data_emi.split('T')[0]
-            data_dd_mm_aaaa = '-'.join(reversed(data_formatada.split('-')))
-            nova_nota = NotaFiscal(
-                numero_nota=n_nf,
-                data_emissao=data_dd_mm_aaaa,
-                data_importacao=datetime.now().strftime('%d-%m-%Y'),
-                valor_total=v_nf,
-                user_id=current_user.id
-            )
-            db.session.add(nova_nota)
-            for det_tag in inf_nfe_tag.findall('{http://www.portalfiscal.inf.br/nfe}det'):
-                prod_tag = det_tag.find('{http://www.portalfiscal.inf.br/nfe}prod')
-                c_prod = prod_tag.find('{http://www.portalfiscal.inf.br/nfe}cProd').text
-                q_com = prod_tag.find('{http://www.portalfiscal.inf.br/nfe}qCom').text
-                codigo_sap = c_prod.lstrip('0')
-                quantidade_entregue = float(q_com)
-                item_db = ItemEntrega.query.filter_by(codigo_sap=codigo_sap, user_id=current_user.id).first()
-                if item_db:
-                    item_db.recebido += quantidade_entregue
-                    item_db.a_receber -= quantidade_entregue
-            db.session.commit()
-            return jsonify({"success": True, "message": "Arquivo processado e dados atualizados com sucesso!"}), 200
-        except ET.ParseError as e:
-            db.session.rollback()
-            return jsonify({"success": False, "message": f"Erro ao analisar o XML: {e}"}), 400
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"success": False, "message": f"Ocorreu um erro no servidor: {e}"}), 500
+
+    files = request.files.getlist('file') # Alterado para getlist('file')
+    
+    if not files or all(f.filename == '' for f in files):
+        return jsonify({"success": False, "message": "Nenhum arquivo selecionado."}), 400
+
+    success_files = []
+    failed_files = []
+
+    for file in files:
+        if file and file.filename.endswith('.xml'):
+            try:
+                # É importante "rebobinar" o stream do arquivo antes de processar
+                file.stream.seek(0) 
+                tree = ET.parse(file)
+                root = tree.getroot()
+                nfe_tag = root.find('.//{http://www.portalfiscal.inf.br/nfe}NFe')
+                inf_nfe_tag = nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}infNFe')
+                n_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}nNF').text
+                
+                nota_existente = NotaFiscal.query.filter_by(numero_nota=n_nf, user_id=current_user.id).first()
+                if nota_existente:
+                    failed_files.append(f"{file.filename} (NF {n_nf} já importada)")
+                    continue # Pula para o próximo arquivo
+
+                v_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}total/{http://www.portalfiscal.inf.br/nfe}ICMSTot/{http://www.portalfiscal.inf.br/nfe}vNF').text
+                data_emi = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}dhEmi').text
+                data_formatada = data_emi.split('T')[0]
+                data_dd_mm_aaaa = '-'.join(reversed(data_formatada.split('-')))
+                
+                nova_nota = NotaFiscal(
+                    numero_nota=n_nf,
+                    data_emissao=data_dd_mm_aaaa,
+                    data_importacao=datetime.now().strftime('%d-%m-%Y'),
+                    valor_total=v_nf,
+                    user_id=current_user.id
+                )
+                db.session.add(nova_nota)
+                
+                for det_tag in inf_nfe_tag.findall('{http://www.portalfiscal.inf.br/nfe}det'):
+                    prod_tag = det_tag.find('{http://www.portalfiscal.inf.br/nfe}prod')
+                    c_prod = prod_tag.find('{http://www.portalfiscal.inf.br/nfe}cProd').text
+                    q_com = prod_tag.find('{http://www.portalfiscal.inf.br/nfe}qCom').text
+                    codigo_sap = c_prod.lstrip('0')
+                    quantidade_entregue = float(q_com)
+                    
+                    item_db = ItemEntrega.query.filter_by(codigo_sap=codigo_sap, user_id=current_user.id).first()
+                    if item_db:
+                        item_db.recebido += quantidade_entregue
+                        item_db.a_receber -= quantidade_entregue
+                
+                db.session.commit()
+                success_files.append(file.filename)
+
+            except Exception as e:
+                db.session.rollback()
+                failed_files.append(f"{file.filename} (Erro: {e})")
+        
+        elif file and not file.filename.endswith('.xml'):
+             failed_files.append(f"{file.filename} (Formato inválido)")
+
+    # Cria uma mensagem de resumo
+    message = f"Processamento concluído. Sucessos: {len(success_files)}. Falhas: {len(failed_files)}."
+    if failed_files:
+        message += " Detalhes das falhas: " + "; ".join(failed_files)
+
+    if not success_files and failed_files:
+         return jsonify({"success": False, "message": message}), 400
+    
+    return jsonify({"success": True, "message": message}), 200
+# ==================================================================
+# FIM DA FUNÇÃO MODIFICADA
+# ==================================================================
 
 @app.route('/delete_item/<int:item_id>', methods=['DELETE'])
 @login_required

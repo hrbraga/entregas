@@ -337,20 +337,36 @@ document.addEventListener('DOMContentLoaded', () => {
         importBtn.addEventListener('click', () => fileInput.click());
     }
 
-    if (fileInput) {
+if (fileInput) {
         fileInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
-                    showFeedback('Por favor, selecione um arquivo no formato XML.', 'error');
-                    return;
-                }
+            const files = event.target.files; // Alterado de file para files
+            if (files.length > 0) {
+                
                 const formData = new FormData();
-                formData.append('file', file);
+                let hasInvalidFile = false;
+
+                // Itera sobre todos os arquivos selecionados
+                for (const file of files) {
+                    if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
+                        showFeedback(`Arquivo inválido ignorado: ${file.name}. Por favor, envie apenas arquivos XML.`, 'error');
+                        hasInvalidFile = true;
+                        continue; // Pula este arquivo e vai para o próximo
+                    }
+                    // Adiciona cada arquivo ao FormData com a mesma chave 'file'
+                    formData.append('file', file); 
+                }
+
+                // Se houver apenas arquivos inválidos e nenhum arquivo válido, para aqui.
+                if (!formData.has('file') && hasInvalidFile) {
+                    return; 
+                }
+
                 showLoading();
                 try {
                     const response = await fetch('/upload_xml', { method: 'POST', body: formData });
                     const result = await response.json();
+                    
+                    // O backend (Python) agora retornará uma mensagem detalhada
                     if (result.success) {
                         showFeedback(result.message, 'success');
                         loadDataAndRenderTables();
@@ -358,9 +374,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         showFeedback('Erro: ' + result.message, 'error');
                     }
                 } catch (error) {
-                    showFeedback('Ocorreu um erro ao enviar o arquivo.', 'error');
+                    showFeedback('Ocorreu um erro ao enviar os arquivos.', 'error');
                 } finally {
                     hideLoading();
+                    fileInput.value = ''; // Limpa a seleção
                 }
             }
         });
