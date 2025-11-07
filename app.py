@@ -134,8 +134,7 @@ def logout():
 # Rota principal (/) - PÚBLICA (Custos)
 @app.route('/')
 def inicio():
-    return send_from_directory(os.path.join(app.static_folder, 'custos/html'), 'inicio.html')
-
+    return send_from_directory(os.path.join(app.static_folder, 'custos'), 'inicio.html')
 
 # Rota /entregas - PROTEGIDA (Recebimentos)
 @app.route('/entregas')
