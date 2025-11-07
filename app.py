@@ -4,10 +4,8 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import or_
-# NOVAS IMPORTAÇÕES PARA AUTENTICAÇÃO
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-# NOVAS IMPORTAÇÕES PARA IMPORTAR CSV
 import pandas as pd
 import io
 
@@ -17,10 +15,9 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # Configuração do Flask
 app = Flask(__name__)
 
-# --- CORREÇÃO AQUI ---
-# Aponta o Flask para procurar templates (HTMLs) DENTRO da pasta 'static'
-# Esta era a linha que estava causando o erro 'TemplateNotFound'
-app.template_folder = os.path.join(basedir, 'static') 
+# --- CORREÇÃO DA ESTRUTURA AQUI ---
+# Aponta para as pastas corretas (a nova estrutura)
+app.template_folder = os.path.join(basedir, 'templates') 
 app.static_folder = os.path.join(basedir, 'static')
 # --- FIM DA CORREÇÃO ---
 
@@ -39,22 +36,19 @@ login_manager.login_message_category = "flash-error"
 
 @login_manager.user_loader
 def load_user(user_id):
-    # Usa db.session.get() que é o método correto e moderno
     return db.session.get(User, int(user_id))
 
-# --- NOVOS MODELOS DE BANCO DE DADOS ---
+# --- MODELOS DE BANCO DE DADOS ---
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
-    
     items = db.relationship('ItemEntrega', backref='owner', lazy=True)
     notas = db.relationship('NotaFiscal', backref='owner', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
@@ -79,32 +73,31 @@ class NotaFiscal(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
-# Cria as tabelas do banco de dados se elas não existirem
 with app.app_context():
     db.create_all()
 
-# --- NOVAS ROTAS DE AUTENTICAÇÃO ---
+# --- ROTAS DE AUTENTICAÇÃO ---
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('recebimentos')) # MUDANÇA: Redireciona para 'recebimentos'
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('index'))
+            return redirect(url_for('recebimentos')) # MUDANÇA: Redireciona para 'recebimentos'
         else:
             flash('Usuário ou senha inválidos.', 'flash-error')
             return redirect(url_for('login'))
-    return render_template('login.html') # Agora o Flask encontrará o login.html em 'static'
+    return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('recebimentos')) # MUDANÇA: Redireciona para 'recebimentos'
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -120,8 +113,8 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
-        return redirect(url_for('index'))
-    return render_template('register.html') # Agora o Flask encontrará o register.html em 'static'
+        return redirect(url_for('recebimentos')) # MUDANÇA: Redireciona para 'recebimentos'
+    return render_template('register.html')
 
 @app.route('/logout')
 @login_required
@@ -132,16 +125,17 @@ def logout():
 
 # --- ROTAS PRINCIPAIS (PROTEGIDAS E PÚBLICAS) ---
 
-# Rota principal (/) - PÚBLICA
+# Rota principal (/) - PÚBLICA (Custos)
 @app.route('/')
 def inicio():
+    # Esta rota continua servindo o arquivo estático do app Custos
     return send_from_directory(os.path.join(app.static_folder, 'custos'), 'inicio.html')
 
-# Rota /entregas - PROTEGIDA
+# MUDANÇA: Rota /entregas - PROTEGIDA (Recebimentos)
 @app.route('/entregas')
 @login_required 
-def index():
-    return render_template('index.html') # Agora o Flask encontrará o index.html em 'static'
+def recebimentos(): # MUDANÇA: Nome da função (antigo 'index')
+    return render_template('recebimentos.html') # MUDANÇA: Nome do arquivo
 
 # Rotas do app de Entregas - PROTEGIDAS
 @app.route('/historico')
@@ -154,12 +148,13 @@ def historico():
 def dashboard():
     return render_template('dashboard.html')
 
-# --- ROTAS PARA O PROJETO CUSTOS PRODUTOS (Arquivos internos) - PÚBLICA ---
+# Rota para arquivos internos do app Custos - PÚBLICA
 @app.route('/custos/<path:filename>')
 def custos_static_files(filename):
     return send_from_directory(os.path.join(app.static_folder, 'custos'), filename)
 
 # --- ROTAS DE API (DADOS) - PROTEGIDAS E FILTRADAS ---
+# (Nenhuma alteração de lógica necessária aqui)
 
 @app.route('/import_csv', methods=['POST'])
 @login_required
