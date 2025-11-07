@@ -1,16 +1,14 @@
-/* Estilos para o novo layout de totalizadores */
-
 .dashboard-container {
     max-width: 1200px;
     margin: 20px auto;
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 colunas de largura igual */
+    grid-template-columns: 1fr;
     gap: 20px;
 }
 
 .totalizer-item {
-    text-align: left;
-    margin-bottom: 20px;
+    text-align: center;
+    margin-bottom: 0px;
 }
 
 .totalizer-item:last-child {
@@ -38,12 +36,11 @@
     color: #F44336; /* Vermelho */
 }
 
-card.card2 {
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    background-color: #f9f9f9;
+/* Novo container para alinhar os totalizadores */
+.totalizer-items-container {
     display: flex;
+    justify-content: space-around; /* Isso os espaçará uniformemente */
     align-items: center;
-    text-align: center;
+    width: 100%;
+    margin-top: 15px; /* Adiciona um espaço abaixo do título */
 }
