@@ -24,7 +24,12 @@ app.static_folder = os.path.join(basedir, 'static')
 # --- FIM DA CORREÇÃO ---
 
 # Configuração do banco de dados (SQLite)
+# DB PRINCIPAL: Dados de Entregas
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'entregas.db')
+# NOVO DB VINCULADO: Dados de Usuários (Logins)
+app.config['SQLALCHEMY_BINDS'] = {
+    'users': 'sqlite:///' + os.path.join(basedir, 'users.db')
+}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'uma-chave-secreta-muito-dificil-de-adivinhar' 
 db = SQLAlchemy(app)
@@ -39,15 +44,18 @@ login_manager.login_message_category = "flash-error"
 @login_manager.user_loader
 def load_user(user_id):
     # Usa db.session.get() que é o método correto e moderno
+    # Note que o model User sabe que deve procurar no users.db
     return db.session.get(User, int(user_id))
 
 # --- NOVOS MODELOS DE BANCO DE DADOS ---
 
 class User(UserMixin, db.Model):
+    __bind_key__ = 'users' # VINCULA ESTE MODELO AO users.db
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
     
+    # As relações continuam aqui, mas agora apontam para modelos em outro DB
     items = db.relationship('ItemEntrega', backref='owner', lazy=True)
     notas = db.relationship('NotaFiscal', backref='owner', lazy=True)
 
@@ -55,6 +63,7 @@ class User(UserMixin, db.Model):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
+        # CORREÇÃO DE BUG DE LOGIN: A ordem estava invertida.
         return check_password_hash(self.password_hash, password)
 
 class ItemEntrega(db.Model):
@@ -67,7 +76,8 @@ class ItemEntrega(db.Model):
     total_caixa = db.Column(db.Integer, default=0)
     a_receber = db.Column(db.Integer, default=0)
     recebido = db.Column(db.Integer, default=0)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # CORREÇÃO: Referencia 'user' table no bind 'users', e usa use_alter=True para evitar deadlock de FK cross-bind
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user.id', use_alter=True), nullable=False)
 
 class NotaFiscal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -75,26 +85,40 @@ class NotaFiscal(db.Model):
     data_emissao = db.Column(db.String(20), nullable=False)
     data_importacao = db.Column(db.String(20), nullable=False)
     valor_total = db.Column(db.String(20), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # CORREÇÃO: Referencia 'user' table no bind 'users', e usa use_alter=True para evitar deadlock de FK cross-bind
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user.id', use_alter=True), nullable=False)
+
+class ItemNotaFiscal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nota_id = db.Column(db.Integer, db.ForeignKey('nota_fiscal.id'), nullable=False)
+    codigo_sap = db.Column(db.String(20), nullable=False)
+    quantidade = db.Column(db.Float, default=0.0)
+
+# Adiciona relacionamento reverso na NotaFiscal para a exclusão em cascata (opcional, mas bom)
+NotaFiscal.itens_nota = db.relationship('ItemNotaFiscal', backref='nota', lazy=True, cascade='all, delete-orphan')
 
 
 # Cria as tabelas do banco de dados se elas não existirem
 with app.app_context():
-    db.create_all()
+    # CORREÇÃO: Cria os bancos de dados na ordem de dependência
+    # 1. Cria as tabelas do bind 'users' (users.db) primeiro, pois não tem dependências
+    db.create_all(bind_key='users')
+    # 2. Cria as tabelas do bind padrão (entregas.db), que dependem do 'users'
+    db.create_all(bind_key=None) 
 
-# --- NOVAS ROTAS DE AUTENTICAÇÃO ---
+# --- ROTAS DE AUTENTICAÇÃO ---
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('recebimentos')) # Redireciona para 'recebimentos'
+        return redirect(url_for('recebimentos'))
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('recebimentos')) # Redireciona para 'recebimentos'
+            return redirect(url_for('recebimentos'))
         else:
             flash('Usuário ou senha inválidos.', 'flash-error')
             return redirect(url_for('login'))
@@ -169,7 +193,9 @@ def import_csv():
     if not file.filename.endswith('.csv'):
         return jsonify({"success": False, "message": "Formato de arquivo inválido. Use CSV."}), 400
     try:
+        # Limpa APENAS os dados de entrega do usuário atual
         ItemEntrega.query.filter_by(user_id=current_user.id).delete()
+        
         data = io.StringIO(file.stream.read().decode("latin-1"))
         df = pd.read_csv(data, delimiter=';', skiprows=6) 
         colunas_csv = df.columns
@@ -284,16 +310,21 @@ def get_dashboard_data():
             skus_parcialmente_entregues += 1
         elif item.recebido >= item.total_caixa:
             skus_totalmente_entregues += 1
+    
+    # CALCULAR POR CAIXAS, NÃO POR SKUS
     grupos = {}
     for item in items:
         if item.grupo not in grupos:
             grupos[item.grupo] = {'nao_entregues': 0, 'parcialmente_entregues': 0, 'totalmente_entregues': 0}
+        
+        # SOMA A QUANTIDADE DE CAIXAS (total_caixa)
         if item.recebido == 0:
-            grupos[item.grupo]['nao_entregues'] += 1
+            grupos[item.grupo]['nao_entregues'] += item.total_caixa
         elif item.recebido < item.total_caixa:
-            grupos[item.grupo]['parcialmente_entregues'] += 1
+            grupos[item.grupo]['parcialmente_entregues'] += item.total_caixa
         elif item.recebido >= item.total_caixa:
-            grupos[item.grupo]['totalmente_entregues'] += 1
+            grupos[item.grupo]['totalmente_entregues'] += item.total_caixa
+            
     return jsonify({
         "progresso_geral": round(progresso_geral, 2),
         "total_pedido": total_pedido,
@@ -303,7 +334,7 @@ def get_dashboard_data():
     })
 
 # ==================================================================
-# FUNÇÃO DE UPLOAD DE XML MODIFICADA PARA MÚLTIPLOS ARQUIVOS
+# FUNÇÃO DE UPLOAD DE XML (Salva dados de rastreamento)
 # ==================================================================
 @app.route('/upload_xml', methods=['POST'])
 @login_required
@@ -311,7 +342,7 @@ def upload_xml():
     if 'file' not in request.files:
         return jsonify({"success": False, "message": "Nenhum arquivo enviado."}), 400
 
-    files = request.files.getlist('file') # Alterado para getlist('file')
+    files = request.files.getlist('file')
     
     if not files or all(f.filename == '' for f in files):
         return jsonify({"success": False, "message": "Nenhum arquivo selecionado."}), 400
@@ -333,7 +364,7 @@ def upload_xml():
                 nota_existente = NotaFiscal.query.filter_by(numero_nota=n_nf, user_id=current_user.id).first()
                 if nota_existente:
                     failed_files.append(f"{file.filename} (NF {n_nf} já importada)")
-                    continue # Pula para o próximo arquivo
+                    continue 
 
                 v_nf = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}total/{http://www.portalfiscal.inf.br/nfe}ICMSTot/{http://www.portalfiscal.inf.br/nfe}vNF').text
                 data_emi = inf_nfe_tag.find('{http://www.portalfiscal.inf.br/nfe}ide/{http://www.portalfiscal.inf.br/nfe}dhEmi').text
@@ -348,7 +379,9 @@ def upload_xml():
                     user_id=current_user.id
                 )
                 db.session.add(nova_nota)
+                db.session.flush() # Obtém o ID da nota antes do commit
                 
+                itens_nota_fiscal = []
                 for det_tag in inf_nfe_tag.findall('{http://www.portalfiscal.inf.br/nfe}det'):
                     prod_tag = det_tag.find('{http://www.portalfiscal.inf.br/nfe}prod')
                     c_prod = prod_tag.find('{http://www.portalfiscal.inf.br/nfe}cProd').text
@@ -358,9 +391,18 @@ def upload_xml():
                     
                     item_db = ItemEntrega.query.filter_by(codigo_sap=codigo_sap, user_id=current_user.id).first()
                     if item_db:
+                        # 1. ATUALIZA OS DADOS DE ESTOQUE
                         item_db.recebido += quantidade_entregue
                         item_db.a_receber -= quantidade_entregue
+                        
+                        # 2. RASTREIA O ITEM PARA REVERSÃO FUTURA
+                        itens_nota_fiscal.append(ItemNotaFiscal(
+                            nota_id=nova_nota.id,
+                            codigo_sap=codigo_sap,
+                            quantidade=quantidade_entregue
+                        ))
                 
+                db.session.bulk_save_objects(itens_nota_fiscal)
                 db.session.commit()
                 success_files.append(file.filename)
 
@@ -383,6 +425,40 @@ def upload_xml():
 # ==================================================================
 # FIM DA FUNÇÃO MODIFICADA
 # ==================================================================
+
+# ==================================================================
+# FUNÇÃO PARA EXCLUIR NOTA FISCAL COM REVERSÃO DE ESTOQUE
+# ==================================================================
+@app.route('/delete_nota/<string:numero_nota>', methods=['DELETE'])
+@login_required
+def delete_nota(numero_nota):
+    nota = NotaFiscal.query.filter_by(numero_nota=numero_nota, user_id=current_user.id).first()
+    if not nota:
+        return jsonify({"success": False, "message": "Nota fiscal não encontrada ou não pertence ao seu usuário."}), 404
+
+    try:
+        # 1. REVERTE O ESTOQUE DOS ITENS AFETADOS
+        for item_nf in ItemNotaFiscal.query.filter_by(nota_id=nota.id).all():
+            item_db = ItemEntrega.query.filter_by(codigo_sap=item_nf.codigo_sap, user_id=current_user.id).first()
+            if item_db:
+                item_db.recebido -= item_nf.quantidade
+                item_db.a_receber += item_nf.quantidade
+        
+        # 2. DELETA OS ITENS VINCULADOS (ItemNotaFiscal)
+        ItemNotaFiscal.query.filter_by(nota_id=nota.id).delete()
+        
+        # 3. DELETA A NOTA FISCAL DO HISTÓRICO
+        db.session.delete(nota)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True, 
+            "message": f"Nota Fiscal {numero_nota} excluída com sucesso! Os itens de entrega foram ajustados."
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": f"Ocorreu um erro ao excluir a nota fiscal e reverter estoque: {e}"}), 500
+
 
 @app.route('/delete_item/<int:item_id>', methods=['DELETE'])
 @login_required

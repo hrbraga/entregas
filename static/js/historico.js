@@ -1,5 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // Função para mostrar feedback na tela (similar à de script.js)
+    function showFeedback(message, type) {
+        const feedbackDiv = document.getElementById('feedback-message');
+        if (!feedbackDiv) return;
+        feedbackDiv.textContent = message;
+        feedbackDiv.className = `feedback-message ${type}`;
+        feedbackDiv.style.display = 'block';
+        setTimeout(() => {
+            feedbackDiv.style.display = 'none';
+        }, 5000);
+    }
+
     /**
      * Função assíncrona para buscar os dados de notas fiscais do servidor
      * e renderizar a tabela.
@@ -13,10 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const notas = await response.json();
             
             renderNotasTable(notas);
+            attachDeleteListeners();
             
         } catch (error) {
             console.error("Erro:", error);
-            alert("Erro ao carregar os dados de notas fiscais. Por favor, tente novamente.");
+            showFeedback("Erro ao carregar os dados de notas fiscais. Por favor, tente novamente.", "error");
         }
     }
 
@@ -29,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.innerHTML = ''; // Limpa a tabela antes de preencher
 
         if (notas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4">Nenhuma nota fiscal importada ainda.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5">Nenhuma nota fiscal importada ainda.</td></tr>';
             return;
         }
 
@@ -40,8 +53,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>R$ ${parseFloat(nota.valor_total).toFixed(2).replace('.', ',')}</td>
                 <td>${nota.data_emissao}</td>
                 <td>${nota.data_importacao}</td>
+                <td><button class=\"delete-nota-btn action-btn\" data-numero-nota=\"${nota.numero_nota}\" title=\"Excluir Nota Fiscal\">🗑️</button></td>
             `;
             tbody.appendChild(row);
+        });
+    }
+
+    /**
+     * Função para anexar os event listeners aos botões de exclusão de notas fiscais.
+     */
+    function attachDeleteListeners() {
+        document.querySelectorAll('.delete-nota-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const numeroNota = e.target.dataset.numeroNota;
+                
+                // Mensagem de confirmação que reflete a nova funcionalidade de reversão
+                const confirmMessage = `Tem certeza que deseja excluir a Nota Fiscal ${numeroNota} do histórico? \n\nOs itens de entrega (Recebido/A Receber) serão ajustados automaticamente.`;
+                
+                if (confirm(confirmMessage)) {
+                    try {
+                        const response = await fetch(`/delete_nota/${numeroNota}`, { method: 'DELETE' });
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showFeedback(result.message, "success");
+                            loadNotasAndRenderTable(); // Recarrega a tabela
+                        } else {
+                            showFeedback('Erro: ' + result.message, "error");
+                        }
+                    } catch (error) {
+                        showFeedback('Ocorreu um erro ao excluir a nota fiscal.', "error");
+                    }
+                }
+            });
         });
     }
 

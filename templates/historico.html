@@ -4,6 +4,8 @@
 
 {% block content %}
     <div class="container">
+        <div id="feedback-message" class="feedback-message" style="display: none;"></div>
+        
         <h2>Histórico de Notas Fiscais</h2>
         <table class="historical-table">
             <thead>
@@ -12,6 +14,7 @@
                     <th>Valor Total</th>
                     <th>Data de Emissão</th>
                     <th>Data de Importação</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="notas-fiscais-body">
