@@ -4,6 +4,8 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import or_
+# CORREÇÃO: Importar 'foreign' não é mais necessário
+# from sqlalchemy.orm import foreign 
 # NOVAS IMPORTAÇÕES PARA AUTENTICAÇÃO
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -44,7 +46,6 @@ login_manager.login_message_category = "flash-error"
 @login_manager.user_loader
 def load_user(user_id):
     # Usa db.session.get() que é o método correto e moderno
-    # Note que o model User sabe que deve procurar no users.db
     return db.session.get(User, int(user_id))
 
 # --- NOVOS MODELOS DE BANCO DE DADOS ---
@@ -55,9 +56,8 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
     
-    # As relações continuam aqui, mas agora apontam para modelos em outro DB
-    items = db.relationship('ItemEntrega', backref='owner', lazy=True)
-    notas = db.relationship('NotaFiscal', backref='owner', lazy=True)
+    # CORREÇÃO: Relações 'items' e 'notas' removidas para
+    # evitar o erro 'blank-out primary key' em bancos de dados separados.
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -76,8 +76,12 @@ class ItemEntrega(db.Model):
     total_caixa = db.Column(db.Integer, default=0)
     a_receber = db.Column(db.Integer, default=0)
     recebido = db.Column(db.Integer, default=0)
-    # CORREÇÃO: Referencia 'user' table no bind 'users', e usa use_alter=True para evitar deadlock de FK cross-bind
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user.id', use_alter=True), nullable=False)
+    
+    # Apenas o ID do usuário. O 'ForeignKey' foi removido para
+    # permitir a criação de DBs separados.
+    user_id = db.Column(db.Integer, nullable=False, index=True) 
+    
+    # CORREÇÃO: Relação 'owner' removida.
 
 class NotaFiscal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -85,25 +89,28 @@ class NotaFiscal(db.Model):
     data_emissao = db.Column(db.String(20), nullable=False)
     data_importacao = db.Column(db.String(20), nullable=False)
     valor_total = db.Column(db.String(20), nullable=False)
-    # CORREÇÃO: Referencia 'user' table no bind 'users', e usa use_alter=True para evitar deadlock de FK cross-bind
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user.id', use_alter=True), nullable=False)
+    
+    # Apenas o ID do usuário.
+    user_id = db.Column(db.Integer, nullable=False, index=True)
+    
+    # CORREÇÃO: Relação 'owner' removida.
 
 class ItemNotaFiscal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    # Esta FK funciona, pois está no MESMO banco de dados (entregas.db)
     nota_id = db.Column(db.Integer, db.ForeignKey('nota_fiscal.id'), nullable=False)
     codigo_sap = db.Column(db.String(20), nullable=False)
     quantidade = db.Column(db.Float, default=0.0)
 
-# Adiciona relacionamento reverso na NotaFiscal para a exclusão em cascata (opcional, mas bom)
+# Adiciona relacionamento reverso na NotaFiscal para a exclusão em cascata
 NotaFiscal.itens_nota = db.relationship('ItemNotaFiscal', backref='nota', lazy=True, cascade='all, delete-orphan')
 
 
 # Cria as tabelas do banco de dados se elas não existirem
 with app.app_context():
-    # CORREÇÃO: Cria os bancos de dados na ordem de dependência
-    # 1. Cria as tabelas do bind 'users' (users.db) primeiro, pois não tem dependências
+    # 1. Cria as tabelas do bind 'users' (users.db) primeiro.
     db.create_all(bind_key='users')
-    # 2. Cria as tabelas do bind padrão (entregas.db), que dependem do 'users'
+    # 2. Cria as tabelas do bind padrão (entregas.db).
     db.create_all(bind_key=None) 
 
 # --- ROTAS DE AUTENTICAÇÃO ---
@@ -445,6 +452,7 @@ def delete_nota(numero_nota):
                 item_db.a_receber += item_nf.quantidade
         
         # 2. DELETA OS ITENS VINCULADOS (ItemNotaFiscal)
+        # (Isso é tratado pelo 'cascade' no relacionamento, mas é bom garantir)
         ItemNotaFiscal.query.filter_by(nota_id=nota.id).delete()
         
         # 3. DELETA A NOTA FISCAL DO HISTÓRICO
