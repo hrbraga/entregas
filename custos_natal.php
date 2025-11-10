@@ -1,3 +1,8 @@
+<?php 
+    require 'config.php'; 
+    require 'custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
+?>
+
 <!DOCTYPE html>
 <html lang="pr-BR">
 

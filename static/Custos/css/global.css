@@ -39,3 +39,14 @@ hr {
     margin: 0 auto; /* 30px de espaço vertical, 10% nas laterais (largura de 80%) */
     width: 100%; /* Centraliza a linha */
 }
+
+footer {
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    margin-top: auto;
+}
+
+footer a{
+    font-size: 2rem;
+}

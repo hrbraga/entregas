@@ -1,7 +1,6 @@
 <?php 
-    // 1. Inicia a sessão e 2. Protege a página
-    require 'config.php'; 
-    require 'auth_check.php'; 
+    require 'config.php';       
+    require 'custos_auth_check.php'; 
 ?>
 
 <!DOCTYPE html>
