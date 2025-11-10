@@ -5,8 +5,16 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
     async function getDashboardData() {
         try {
-            const response = await fetch('/get_dashboard_data');
+            // MUDANÇA AQUI: Aponta para a API PHP
+            const response = await fetch('api/get_dashboard_data.php');
+            
+            if (response.status === 401) { // 401 = Não Autorizado
+                window.location.href = 'login.php'; // Redireciona para o login
+                return null;
+            }
             if (!response.ok) {
+                const errorText = await response.text(); // Vê o erro do PHP
+                console.error("Erro do servidor (get_dashboard_data.php):", errorText);
                 throw new Error('Erro ao buscar dados do dashboard.');
             }
             return await response.json();
@@ -20,8 +28,8 @@ document.addEventListener('DOMContentLoaded', async () => {
      * Função para renderizar os totalizadores.
      */
     function renderTotalizers(data) {
-        const totalPedido = data.total_pedido;
-        const totalRecebido = data.total_recebido;
+        const totalPedido = parseInt(data.total_pedido, 10) || 0;
+        const totalRecebido = parseInt(data.total_recebido, 10) || 0;
         const totalAReceber = totalPedido - totalRecebido;
 
         document.getElementById('total-pedido-val').textContent = totalPedido.toFixed(0);
@@ -34,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
     function renderProgressChart(data) {
         const ctx = document.getElementById('progress-chart').getContext('2d');
-        const percentage = data.progresso_geral;
+        const percentage = parseFloat(data.progresso_geral) || 0;
 
         new Chart(ctx, {
             type: 'doughnut',
@@ -105,89 +113,57 @@ document.addEventListener('DOMContentLoaded', async () => {
     /**
      * Função para renderizar o gráfico de barras de status por grupo.
      */
-    /**
- * Função para renderizar o gráfico de barras de status por grupo.
- */
-function renderGroupStatusChart(data) {
-    const ctx = document.getElementById('group-status-chart').getContext('2d');
-    const grupos = data.grupos;
+    function renderGroupStatusChart(data) {
+        const ctx = document.getElementById('group-status-chart').getContext('2d');
+        const grupos = data.grupos;
 
-    const labels = Object.keys(grupos);
-    const naoEntregues = labels.map(label => grupos[label].nao_entregues);
-    const parcialmenteEntregues = labels.map(label => grupos[label].parcialmente_entregues);
-    const totalmenteEntregues = labels.map(label => grupos[label].totalmente_entregues);
+        const labels = Object.keys(grupos);
+        const naoEntregues = labels.map(label => grupos[label].nao_entregues);
+        const parcialmenteEntregues = labels.map(label => grupos[label].parcialmente_entregues);
+        const totalmenteEntregues = labels.map(label => grupos[label].totalmente_entregues);
 
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Não Entregues',
-                    data: naoEntregues,
-                    backgroundColor: '#dc3545',
-                },
-                {
-                    label: 'Parcialmente Entregues',
-                    data: parcialmenteEntregues,
-                    backgroundColor: '#ffc107',
-                },
-                {
-                    label: 'Totalmente Entregues',
-                    data: totalmenteEntregues,
-                    backgroundColor: '#28a745',
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Não Entregues',
+                        data: naoEntregues,
+                        backgroundColor: '#dc3545',
+                    },
+                    {
+                        label: 'Parcialmente Entregues',
+                        data: parcialmenteEntregues,
+                        backgroundColor: '#ffc107',
+                    },
+                    {
+                        label: 'Totalmente Entregues',
+                        data: totalmenteEntregues,
+                        backgroundColor: '#28a745',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                    }
                 }
-            ]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    stacked: true,
-                },
-                y: {
-                    stacked: true,
-               }
             }
-        }
-    });
-}
+        });
+    }
 
     // Carrega e renderiza os gráficos e totalizadores quando a página é carregada
     const dashboardData = await getDashboardData();
     if (dashboardData) {
-        renderTotalizers(dashboardData); // Nova função para preencher os totalizadores
+        renderTotalizers(dashboardData);
         renderProgressChart(dashboardData);
         renderSkuStatusChart(dashboardData);
         renderGroupStatusChart(dashboardData);
-    }
-});
-
-// Incluir as bibliotecas para PDF
-const script = document.createElement('script');
-script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-document.head.appendChild(script);
-
-document.getElementById('print-dashboard-btn').addEventListener('click', () => {
-      const printDashboardBtn = document.getElementById('print-dashboard-btn');
-    if (printDashboardBtn) {
-        printDashboardBtn.addEventListener('click', () => {
-            // Adiciona um pequeno atraso para garantir que os gráficos sejam renderizados
-            setTimeout(() => {
-                const dashboard = document.querySelector('.dashboard-container');
-                if (dashboard) {
-                    html2canvas(dashboard, { scale: 2 }).then(canvas => {
-                        const imgData = canvas.toDataURL('image/png');
-                        const { jsPDF } = window.jspdf;
-                        const pdf = new jsPDF('l', 'mm', 'a4'); // 'l' para paisagem
-                        const imgProps= pdf.getImageProperties(imgData);
-                        const pdfWidth = pdf.internal.pageSize.getWidth();
-                        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                        pdf.save('dashboard-entregas.pdf');
-                    });
-                }
-            }, 500); // Atraso de 500ms (meio segundo)
-        });
     }
 });

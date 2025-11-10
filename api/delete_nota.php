@@ -5,7 +5,7 @@ require '../auth_check.php';
 
 header('Content-Type: application/json');
 $user_id = $_SESSION['user_id'];
-$numero_nota = $_GET['numero_nota'] ?? '';
+$numero_nota = $_GET['numero_nota'] ?? ''; // Recebe pela URL
 
 if (empty($numero_nota)) {
     echo json_encode(['success' => false, 'message' => 'Número da nota não fornecido.']);

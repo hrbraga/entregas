@@ -11,7 +11,7 @@ if (!isset($_FILES['file']) && !isset($_FILES['file[]'])) {
     exit;
 }
 
-// O JS envia 'file[]', o que o PHP transforma num array
+// O JS envia 'file[]' (do script.js)
 $files = $_FILES['file'] ?? $_FILES['file[]'];
 $success_files = [];
 $failed_files = [];
