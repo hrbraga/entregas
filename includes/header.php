@@ -26,7 +26,8 @@
             <li><a href="recebimentos.php">Entregas</a></li>
             <li><a href="historico.php">Histórico</a></li>
             <li><a href="dashboard.php">Dashboard</a></li>
-            <li><a href="static/Custos/html/selecao.html">Custos Produtos</a></li>
+            
+            <li><a href="custos_selecao.php">Custos Produtos</a></li>
 
             <?php if (isset($_SESSION['user_id'])): ?>
                 <li><a href="logout.php">Sair (<?= htmlspecialchars($_SESSION['username']); ?>)</a></li>
