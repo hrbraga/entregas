@@ -1,5 +1,5 @@
 <?php
-// api/import_csv.php
+// api/import_csv.php (Versão Corrigida)
 require '../config.php';
 require '../auth_check.php';
 
@@ -19,11 +19,11 @@ if (!str_ends_with($file_name, '.csv')) {
     exit;
 }
 
-// Inicia a transação (para garantir que ou tudo ou nada é executado)
+// Inicia a transação
 $db_entregas->beginTransaction();
 try {
     
-    // 1. Limpa os dados de entrega anteriores do utilizador (como no app.py)
+    // 1. Limpa os dados de entrega anteriores do utilizador
     $stmt_delete = $db_entregas->prepare("DELETE FROM item_entrega WHERE user_id = ?");
     $stmt_delete->execute([$user_id]);
 
@@ -32,9 +32,7 @@ try {
         throw new Exception("Não foi possível abrir o arquivo CSV.");
     }
 
-    // 3. Pula a linha de cabeçalho
-    // (O seu app.py original pulava 6 linhas + cabeçalho, mas o seu CSV só tem 1. 
-    // Vamos pular apenas 1 linha).
+    // 3. Pula APENAS 1 linha (o cabeçalho)
     fgetcsv($handle, 1000, ";");
 
     // 4. Prepara a query de inserção (SQL)
@@ -46,7 +44,6 @@ try {
 
     // 5. Lê o CSV linha por linha
     while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-        // Verifica se as colunas essenciais não estão vazias
         if (empty($data[0]) || empty($data[1])) {
             continue; // Pula linha mal formatada
         }
@@ -57,11 +54,9 @@ try {
         $pedido_loja = (int)($data[3] ?? 0);
         $pedido_vd = (int)($data[4] ?? 0);
         
-        // Calcula os totais (como no app.py)
         $total_caixa = $pedido_loja + $pedido_vd;
-        $a_receber = $total_caixa; // No início, "a receber" é o total
+        $a_receber = $total_caixa;
         
-        // Executa a inserção
         $stmt_insert->execute([
             $codigo_sap,
             $item,
@@ -75,7 +70,7 @@ try {
     }
     fclose($handle);
 
-    // 6. Se tudo correu bem, confirma as alterações
+    // 6. Confirma as alterações
     $db_entregas->commit();
     echo json_encode(['success' => true, 'message' => 'Pedidos importados com sucesso! Os dados anteriores foram substituídos.']);
 
