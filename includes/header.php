@@ -27,7 +27,7 @@
             <li><a href="historico.php">Histórico</a></li>
             <li><a href="dashboard.php">Dashboard</a></li>
             
-            <li><a href="custos_selecao.php">Custos Produtos</a></li>
+            <li><a href="selecao_ferramentas.php">Ferramentas</a></li>
 
             <?php if (isset($_SESSION['user_id'])): ?>
                 <li><a href="logout.php">Sair (<?= htmlspecialchars($_SESSION['username']); ?>)</a></li>

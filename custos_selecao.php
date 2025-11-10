@@ -76,7 +76,11 @@
             </div>
         </section>
     </main>
-    
+    <footer>
+        <a href="selecao_ferramentas.php">
+            <p>Voltar ao Início</p>
+        </a>
+    </footer>
     <script src="static/Custos/js/campanha.js"></script>
 </body>
 </html>
