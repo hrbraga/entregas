@@ -1,11 +1,11 @@
 <?php require 'auth_check.php'; ?>
 
-{% extends 'base.html' %}
 
-{% block title %}Dashboard de Entregas{% endblock %}
+<?php 
+    require 'includes/header.php'; // No topo
+    require 'auth_check.php';      // Para proteger a página
+?>
 
-{% block head %} <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-{% endblock %}
 
 {% block content %}
 <div class="dashboard-container">
@@ -45,11 +45,11 @@
     </div>
 </div>
 
-{% endblock %}
 
-{% block scripts %}
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-{% endblock %}
+
+<?php require 'includes/footer.php'; // No fundo ?>

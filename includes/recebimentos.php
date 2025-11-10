@@ -125,9 +125,7 @@
         </table>
     </div>
 </section>
-{% endblock %}
 
-{% block scripts %}
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
