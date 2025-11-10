@@ -1,23 +1,26 @@
 <?php
 // auth_check.php (Versão Corrigida)
 
-// O 'config.php' já deve ter sido incluído pela página que chamou este script.
-// Apenas verificamos se a sessão existe.
+// O config.php já deve ter iniciado a sessão.
 if (session_status() == PHP_SESSION_NONE) {
-    // Se a sessão não foi iniciada, algo está errado.
-    // Inicia-a, mas isto é uma salvaguarda.
     session_start();
 }
 
-// Se não houver ID de utilizador na sessão, redireciona para o login e para a execução.
+// Se não houver ID de utilizador na sessão...
 if (!isset($_SESSION['user_id'])) {
-    // Se for uma chamada de API (como o get_data.php), devolve um erro 401
-    // Se for uma página normal, redireciona.
+    
+    // Se for uma chamada de API, só queremos enviar o código de erro.
+    // O JavaScript (em script.js) está programado para lidar com o 401.
     if (!headers_sent()) {
         http_response_code(401); // Não Autorizado
     }
-    // Para chamadas de API, o JS vai tratar o 401. Para páginas, fazemos o header.
-    header('Location: login.php');
+    
+    // Se for uma página (como recebimentos.php), o JS não está envolvido,
+    // então podemos enviar o redirecionamento.
+    // Mas como este ficheiro é usado por ambos, é mais seguro
+    // APENAS parar a execução. O JavaScript vai tratar do redirecionamento.
+    
+    // Apenas paramos o script.
     exit;
 }
 ?>
