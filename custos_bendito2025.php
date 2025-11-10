@@ -134,7 +134,7 @@ require 'auth_check.php';
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            gerarTabelaUniversal(produtos_linha);
+            gerarTabelaUniversal(produtos_produtos_bendito2025);
         });
     </script>
 </body>

@@ -1,20 +1,28 @@
 <?php 
-    $page_title = "Caixa de Ferramentas";
-    
-    // CSS específico para esta página
-    $additional_head_tags = '
-        <link rel="stylesheet" href="static/Custos/css/global.css">
-        <link rel="stylesheet" href="static/Custos/css/selecao.css">
-    ';
-    
-    require 'config.php';       // 1. Inclui a configuração e sessão
-    require 'auth_check.php'; // 2. Protege a página
-    require 'includes/header.php';  // 3. Inclui o cabeçalho HTML
+    // 1. Inicia a sessão e 2. Protege a página
+    require 'config.php'; 
+    require 'auth_check.php'; 
 ?>
 
-<hr>
-        <h2>Custos Produtos</h2>
-        <hr>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="static/Custos/css/global.css">
+    <link rel="stylesheet" href="static/Custos/css/selecao.css">
+    
+    <link rel="shortcut icon" href="static/Custos/src/img/chocolatinho.png" type="image/x-icon">
+    
+    <title>Caixa de Ferramentas</title>
+</head>
+<body>
+    <header>
+        <h1>Caixa de ferramentas</h1>
+    </header>
+
+    <main>
         <section class="custos">
             <div class="campanhas">
                 <div class="campanha-2 campanha">
@@ -65,25 +73,10 @@
                         <p>Natal 2024</p>
                     </a>
                 </div>
-
-            </div>
             </div>
         </section>
-        <hr>
-        <h2>Ferramentas</h2>
-        <hr>
-        <section class="ferramentas">
-            <div class="controleEntradas campanhas">
-                <div class="campanha-2 campanha">
-                    <a href="login.php">
-                        <img src="static/Custos/src/img/caminhoes.jfif" alt="Loja Cacau Show">
-                        <p>Entregas de Natal 2025</p>
-                    </a>
-                </div>
-        </section>
-        
-        <script src="static/Custos/js/campanha.js"></script>
-
-<?php 
-    require 'includes/footer.php'; // 4. Inclui o rodapé
-?>
+    </main>
+    
+    <script src="static/Custos/js/campanha.js"></script>
+</body>
+</html>
