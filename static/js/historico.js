@@ -18,7 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function loadNotasAndRenderTable() {
         try {
-            const response = await fetch('/get_notas');
+            // MUDANÇA AQUI: Aponta para a API PHP
+            const response = await fetch('api/get_notas.php');
+            
+            if (response.status === 401) { // 401 = Não Autorizado
+                window.location.href = 'login.php'; // Redireciona para o login
+                return;
+            }
             if (!response.ok) {
                 throw new Error('Erro ao buscar os dados de notas fiscais.');
             }
@@ -53,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>R$ ${parseFloat(nota.valor_total).toFixed(2).replace('.', ',')}</td>
                 <td>${nota.data_emissao}</td>
                 <td>${nota.data_importacao}</td>
-                <td><button class=\"delete-nota-btn action-btn\" data-numero-nota=\"${nota.numero_nota}\" title=\"Excluir Nota Fiscal\">🗑️</button></td>
+                <td><button class="delete-nota-btn action-btn" data-numero-nota="${nota.numero_nota}" title="Excluir Nota Fiscal">🗑️</button></td>
             `;
             tbody.appendChild(row);
         });
@@ -67,12 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', async (e) => {
                 const numeroNota = e.target.dataset.numeroNota;
                 
-                // Mensagem de confirmação que reflete a nova funcionalidade de reversão
                 const confirmMessage = `Tem certeza que deseja excluir a Nota Fiscal ${numeroNota} do histórico? \n\nOs itens de entrega (Recebido/A Receber) serão ajustados automaticamente.`;
                 
                 if (confirm(confirmMessage)) {
                     try {
-                        const response = await fetch(`/delete_nota/${numeroNota}`, { method: 'DELETE' });
+                        // MUDANÇA AQUI: Aponta para a API PHP (passando o número da nota pela URL)
+                        const response = await fetch(`api/delete_nota.php?numero_nota=${numeroNota}`, { method: 'DELETE' });
                         const result = await response.json();
                         
                         if (result.success) {

@@ -21,14 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
         tbodyReceived.innerHTML = '';
 
         data.forEach(item => {
-            const isFullyReceived = item.recebido >= item.total_caixa;
+            // No PHP, os valores podem vir como strings, então garantimos que são números
+            const recebido = parseInt(item.recebido, 10) || 0;
+            const total_caixa = parseInt(item.total_caixa, 10) || 0;
+
+            const isFullyReceived = recebido >= total_caixa;
             const targetTbody = isFullyReceived ? tbodyReceived : tbodyToReceive;
             
             const row = document.createElement('tr');
             
-            if (item.recebido === item.total_caixa) {
+            if (recebido === total_caixa) {
                 row.classList.add('fully-received');
-            } else if (item.recebido > item.total_caixa) {
+            } else if (recebido > total_caixa) {
                 row.classList.add('over-received');
             }
 
@@ -90,7 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Lógica do botão 'Salvar'
                 saveBtn.addEventListener('click', async () => {
                     const id = row.querySelector('.editable-cell').dataset.id;
-                    const updatedData = {};
+                    
+                    // MODIFICAÇÃO: Adicionamos o ID ao JSON enviado
+                    const updatedData = { id: parseInt(id, 10) };
                     let hasChanged = false;
 
                     row.querySelectorAll('input').forEach(input => {
@@ -99,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const oldValue = cell.dataset.oldValue;
                         const newValue = input.value;
                         
-                        updatedData[field] = parseInt(newValue);
+                        updatedData[field] = parseInt(newValue, 10);
                         if (oldValue !== newValue) {
                             hasChanged = true;
                         }
@@ -107,7 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (hasChanged) {
                         try {
-                            const response = await fetch(`/update_item/${id}`, {
+                            // MUDANÇA AQUI: Aponta para a API PHP
+                            const response = await fetch(`api/update_item.php`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(updatedData)
@@ -123,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             showFeedback('Ocorreu um erro ao editar o item.', 'error');
                         }
                     } else {
-                        loadDataAndRenderTables();
+                        loadDataAndRenderTables(); // Recarrega mesmo se não houver mudança (para restaurar a linha)
                     }
                 });
 
@@ -142,7 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (confirmDelete) {
                     try {
-                        const response = await fetch(`/delete_item/${id}`, { method: 'DELETE' });
+                        // MUDANÇA AQUI: Aponta para a API PHP (passando ID pela URL)
+                        const response = await fetch(`api/delete_item.php?id=${id}`, { method: 'DELETE' });
                         const result = await response.json();
                         if (result.success) {
                             showFeedback(result.message, 'success');
@@ -167,9 +175,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!summary[item.grupo]) {
                 summary[item.grupo] = { pedido: 0, a_receber: 0, entregue: 0 };
             }
-            summary[item.grupo].pedido += item.total_caixa;
-            summary[item.grupo].a_receber += item.a_receber;
-            summary[item.grupo].entregue += item.recebido;
+            // Garante que os valores são numéricos
+            summary[item.grupo].pedido += parseInt(item.total_caixa, 10) || 0;
+            summary[item.grupo].a_receber += parseInt(item.a_receber, 10) || 0;
+            summary[item.grupo].entregue += parseInt(item.recebido, 10) || 0;
         });
         return summary;
     }
@@ -209,19 +218,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (searchInput) searchInput.value = '';
 
         try {
-            const response = await fetch('/get_data');
-            // Verifica se a resposta é um redirecionamento de login (o fetch não segue por padrão)
-            if (response.status === 401 || response.redirected) {
-                window.location.href = '/login'; // Redireciona o usuário para a página de login
+            // MUDANÇA AQUI: Aponta para a API PHP
+            const response = await fetch('api/get_data.php');
+            
+            if (response.status === 401) { // 401 = Não Autorizado
+                // MUDANÇA AQUI: Redireciona para login.php
+                window.location.href = 'login.php'; 
                 return;
             }
+            if (!response.ok) {
+                 throw new Error('Falha ao carregar dados do servidor.');
+            }
+
             const data = await response.json();
             renderTable(data);
             const groupSummary = calculateGroupSummary(data);
             renderGroupSummary(groupSummary);
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
-            // Evita mostrar erro se for um redirecionamento de login
+            showFeedback("Não foi possível carregar os dados. Verifique a consola (F12).", "error");
         }
     }
 
@@ -268,7 +283,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             searchTimeout = setTimeout(async () => {
                 try {
-                    const response = await fetch(`/search_items?q=${query}`);
+                    // MUDANÇA AQUI: Aponta para a API PHP
+                    const response = await fetch(`api/search_items.php?q=${query}`);
                     const results = await response.json();
                     
                     renderFilteredResults(results);
@@ -339,34 +355,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
 if (fileInput) {
         fileInput.addEventListener('change', async (event) => {
-            const files = event.target.files; // Alterado de file para files
+            const files = event.target.files; 
             if (files.length > 0) {
                 
                 const formData = new FormData();
                 let hasInvalidFile = false;
 
-                // Itera sobre todos os arquivos selecionados
                 for (const file of files) {
                     if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
                         showFeedback(`Arquivo inválido ignorado: ${file.name}. Por favor, envie apenas arquivos XML.`, 'error');
                         hasInvalidFile = true;
-                        continue; // Pula este arquivo e vai para o próximo
+                        continue; 
                     }
-                    // Adiciona cada arquivo ao FormData com a mesma chave 'file'
-                    formData.append('file', file); 
+                    formData.append('file[]', file); // MUDANÇA AQUI: O PHP prefere 'file[]' para múltiplos uploads
                 }
 
-                // Se houver apenas arquivos inválidos e nenhum arquivo válido, para aqui.
-                if (!formData.has('file') && hasInvalidFile) {
+                if (!formData.has('file[]') && hasInvalidFile) {
                     return; 
                 }
 
                 showLoading();
                 try {
-                    const response = await fetch('/upload_xml', { method: 'POST', body: formData });
+                    // MUDANÇA AQUI: Aponta para a API PHP
+                    const response = await fetch('api/upload_xml.php', { method: 'POST', body: formData });
                     const result = await response.json();
                     
-                    // O backend (Python) agora retornará uma mensagem detalhada
                     if (result.success) {
                         showFeedback(result.message, 'success');
                         loadDataAndRenderTables();
@@ -377,7 +390,7 @@ if (fileInput) {
                     showFeedback('Ocorreu um erro ao enviar os arquivos.', 'error');
                 } finally {
                     hideLoading();
-                    fileInput.value = ''; // Limpa a seleção
+                    fileInput.value = ''; 
                 }
             }
         });
@@ -389,7 +402,7 @@ if (fileInput) {
 
     if (importCsvBtn) {
         importCsvBtn.addEventListener('click', () => {
-            csvFileInput.click(); // Abre o seletor de arquivo
+            csvFileInput.click(); 
         });
     }
 
@@ -409,7 +422,8 @@ if (fileInput) {
             showLoading();
 
             try {
-                const response = await fetch('/import_csv', {
+                // MUDANÇA AQUI: Aponta para a API PHP
+                const response = await fetch('api/import_csv.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -418,7 +432,7 @@ if (fileInput) {
                 
                 if (result.success) {
                     showFeedback(result.message, 'success');
-                    loadDataAndRenderTables(); // Recarrega os dados do usuário
+                    loadDataAndRenderTables(); 
                 } else {
                     showFeedback('Erro: ' + result.message, 'error');
                 }
@@ -426,7 +440,7 @@ if (fileInput) {
                 showFeedback('Ocorreu um erro ao importar o CSV.', 'error');
             } finally {
                 hideLoading();
-                csvFileInput.value = ''; // Limpa o input
+                csvFileInput.value = ''; 
             }
         });
     }
