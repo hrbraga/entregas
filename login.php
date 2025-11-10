@@ -26,7 +26,7 @@
             </div>
         <?php endif; ?>
         <?php if (isset($_GET['registrado'])): ?>
-            <div class="feedback-message success" style="display:block;">
+            <div class="feedback-message success" style="display:block; background-color: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 4px; margin-bottom: 15px; text-align: center;">
                 Cadastro realizado com sucesso! Faça o login.
             </div>
         <?php endif; ?>
