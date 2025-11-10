@@ -1,4 +1,5 @@
 <?php
+
 // api/upload_xml.php
 require '../config.php';
 require '../auth_check.php';
@@ -11,12 +12,10 @@ if (!isset($_FILES['file']) && !isset($_FILES['file[]'])) {
     exit;
 }
 
-// O JS envia 'file[]' (do script.js)
 $files = $_FILES['file'] ?? $_FILES['file[]'];
 $success_files = [];
 $failed_files = [];
 
-// Transforma o array de ficheiros num formato mais fácil de iterar
 $file_list = [];
 if (is_array($files['name'])) {
     foreach ($files['name'] as $key => $name) {
@@ -27,7 +26,7 @@ if (is_array($files['name'])) {
         ];
     }
 } else {
-    $file_list[] = $files; // Se for só um ficheiro
+    $file_list[] = $files; 
 }
 
 
@@ -49,24 +48,37 @@ foreach ($file_list as $file) {
             throw new Exception("Erro ao ler o XML.");
         }
         
+        // Registamos o namespace 'nfe' no documento principal
         $xml->registerXPathNamespace('nfe', 'http://www.portalfiscal.inf.br/nfe');
         
-        $n_nf = (string) $xml->xpath('//nfe:infNFe/nfe:ide/nfe:nNF')[0];
+        $n_nf_result = $xml->xpath('//nfe:infNFe/nfe:ide/nfe:nNF');
+        if (empty($n_nf_result)) {
+            throw new Exception("XML inválido: Tag <nNF> (número da nota) não encontrada.");
+        }
+        $n_nf = (string) $n_nf_result[0];
         
-        // Verifica se a nota já existe
         $stmt_check = $db_entregas->prepare("SELECT id FROM nota_fiscal WHERE numero_nota = ? AND user_id = ?");
         $stmt_check->execute([$n_nf, $user_id]);
         if ($stmt_check->fetch()) {
             throw new Exception("NF {$n_nf} já importada");
         }
 
-        $v_nf = (string) $xml->xpath('//nfe:infNFe/nfe:total/nfe:ICMSTot/nfe:vNF')[0];
-        $data_emi_str = (string) $xml->xpath('//nfe:infNFe/nfe:ide/nfe:dhEmi')[0];
+        $v_nf_result = $xml->xpath('//nfe:infNFe/nfe:total/nfe:ICMSTot/nfe:vNF');
+        if (empty($v_nf_result)) {
+            throw new Exception("XML inválido: Tag <vNF> (valor da nota) não encontrada.");
+        }
+        $v_nf = (string) $v_nf_result[0];
+
+        $data_emi_result = $xml->xpath('//nfe:infNFe/nfe:ide/nfe:dhEmi');
+         if (empty($data_emi_result)) {
+            throw new Exception("XML inválido: Tag <dhEmi> (data de emissão) não encontrada.");
+        }
+        $data_emi_str = (string) $data_emi_result[0];
+
         $data_emi = explode('T', $data_emi_str)[0];
         $data_dd_mm_aaaa = date('d-m-Y', strtotime($data_emi));
         $data_importacao = date('d-m-Y');
 
-        // 1. Insere a Nota Fiscal
         $stmt_nota = $db_entregas->prepare(
             "INSERT INTO nota_fiscal (numero_nota, data_emissao, data_importacao, valor_total, user_id)
              VALUES (?, ?, ?, ?, ?)"
@@ -74,7 +86,6 @@ foreach ($file_list as $file) {
         $stmt_nota->execute([$n_nf, $data_dd_mm_aaaa, $data_importacao, $v_nf, $user_id]);
         $nota_id = $db_entregas->lastInsertId();
 
-        // 2. Prepara os updates e inserts dos itens
         $stmt_update_item = $db_entregas->prepare(
             "UPDATE item_entrega 
              SET recebido = recebido + ?, a_receber = a_receber - ?
@@ -85,9 +96,30 @@ foreach ($file_list as $file) {
         );
         
         $det_tags = $xml->xpath('//nfe:infNFe/nfe:det');
+        if (empty($det_tags)) {
+            throw new Exception("XML inválido: Nenhum item <det> foi encontrado na nota.");
+        }
+
+        // --- INÍCIO DA CORREÇÃO ---
         foreach ($det_tags as $det_tag) {
-            $c_prod = ltrim((string) $det_tag->xpath('.//nfe:prod/nfe:cProd')[0], '0');
-            $q_com = (float) $det_tag->xpath('.//nfe:prod/nfe:qCom')[0];
+            
+            // CORREÇÃO: Re-registamos o namespace no elemento $det_tag
+            // para que o xpath() funcione dentro deste contexto mais pequeno.
+            $det_tag->registerXPathNamespace('nfe', 'http://www.portalfiscal.inf.br/nfe');
+
+            // Agora usamos o xpath() original, que estava logicamente correto.
+            $c_prod_result = $det_tag->xpath('.//nfe:prod/nfe:cProd');
+            if (empty($c_prod_result)) {
+                 throw new Exception("XML inválido: Item sem <cProd> (código do produto).");
+            }
+            $c_prod = ltrim((string) $c_prod_result[0], '0');
+
+            $q_com_result = $det_tag->xpath('.//nfe:prod/nfe:qCom');
+            if (empty($q_com_result)) {
+                 throw new Exception("XML inválido: Item $c_prod sem <qCom> (quantidade).");
+            }
+            $q_com = (float) $q_com_result[0];
+            // --- FIM DA CORREÇÃO ---
 
             // 3. Atualiza o stock
             $stmt_update_item->execute([$q_com, $q_com, $c_prod, $user_id]);
@@ -99,8 +131,9 @@ foreach ($file_list as $file) {
         $db_entregas->commit();
         $success_files[] = $file['name'];
 
-    } catch (Exception $e) {
+    } catch (Throwable $e) { // Captura Erros e Exceções
         $db_entregas->rollBack();
+        error_log("Erro no upload de XML: " . $e->getMessage() . " no ficheiro " . $e->getFile() . " na linha " . $e->getLine());
         $failed_files[] = "{$file['name']} (Erro: {$e->getMessage()})";
     }
 }

@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
     async function getDashboardData() {
         try {
-            // MUDANÇA AQUI: Aponta para a API PHP
-            const response = await fetch('api/get_dashboard_data.php');
+            // MUDANÇA AQUI: Adiciona cache-busting
+            const response = await fetch('api/get_dashboard_data.php?t=' + new Date().getTime());
             
             if (response.status === 401) { // 401 = Não Autorizado
                 window.location.href = 'login.php'; // Redireciona para o login

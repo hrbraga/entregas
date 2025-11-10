@@ -22,7 +22,7 @@ if (!str_ends_with($file_name, '.csv')) {
 // Inicia a transação
 $db_entregas->beginTransaction();
 try {
-    
+
     // 1. Limpa os dados de entrega anteriores do utilizador
     $stmt_delete = $db_entregas->prepare("DELETE FROM item_entrega WHERE user_id = ?");
     $stmt_delete->execute([$user_id]);
@@ -32,7 +32,7 @@ try {
         throw new Exception("Não foi possível abrir o arquivo CSV.");
     }
 
-    // 3. Pula APENAS 1 linha (o cabeçalho)
+    // 3. Pula APENAS a linha de cabeçalho
     fgetcsv($handle, 1000, ";");
 
     // 4. Prepara a query de inserção (SQL)
@@ -51,12 +51,12 @@ try {
         $codigo_sap = ltrim(trim($data[0]), '0'); // Remove zeros à esquerda
         $item = trim($data[1]);
         $grupo = trim($data[2]);
-        $pedido_loja = (int)($data[3] ?? 0);
-        $pedido_vd = (int)($data[4] ?? 0);
-        
+        $pedido_loja = (int) ($data[3] ?? 0);
+        $pedido_vd = (int) ($data[4] ?? 0);
+
         $total_caixa = $pedido_loja + $pedido_vd;
         $a_receber = $total_caixa;
-        
+
         $stmt_insert->execute([
             $codigo_sap,
             $item,

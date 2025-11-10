@@ -218,8 +218,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (searchInput) searchInput.value = '';
 
         try {
-            // MUDANÇA AQUI: Aponta para a API PHP
-            const response = await fetch('api/get_data.php');
+            // MUDANÇA AQUI: Força a atualização com um timestamp (cache-busting)
+            const response = await fetch('api/get_data.php?t=' + new Date().getTime());
             
             if (response.status === 401) { // 401 = Não Autorizado
                 // MUDANÇA AQUI: Redireciona para login.php
@@ -283,8 +283,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             searchTimeout = setTimeout(async () => {
                 try {
-                    // MUDANÇA AQUI: Aponta para a API PHP
-                    const response = await fetch(`api/search_items.php?q=${query}`);
+                    // MUDANÇA AQUI: Adiciona cache-busting
+                    const response = await fetch(`api/search_items.php?q=${query}&t=` + new Date().getTime());
                     const results = await response.json();
                     
                     renderFilteredResults(results);
@@ -382,7 +382,14 @@ if (fileInput) {
                     
                     if (result.success) {
                         showFeedback(result.message, 'success');
-                        loadDataAndRenderTables();
+                        
+                        // **** ESTA É A NOVA MUDANÇA ****
+                        // Adiciona uma pequena pausa antes de recarregar os dados
+                        // para dar tempo ao banco de dados de confirmar a transação.
+                        setTimeout(() => {
+                            loadDataAndRenderTables();
+                        }, 300); // 300ms de atraso
+                        
                     } else {
                         showFeedback('Erro: ' + result.message, 'error');
                     }
