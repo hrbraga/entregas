@@ -1,3 +1,5 @@
+<?php require 'auth_check.php'; ?>
+
 {% extends 'base.html' %}
 
 {% block title %}Histórico de Notas Fiscais{% endblock %}

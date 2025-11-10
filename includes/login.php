@@ -9,7 +9,7 @@
 
 {% block content %}
 <div class="login-container">
-    <form class="login-form" method="POST" action="{{ url_for('login') }}">
+    <form class="login-form" method="POST" action="login_action.php">
         <h2>Login - Controle de Entregas</h2>
         
         {% with messages = get_flashed_messages() %}
