@@ -1,15 +1,26 @@
-<?php require 'auth_check.php'; ?>
-<?php require 'includes/header.php'; ?>.
+<?php 
+    // --- Configuração da Página ---
+    $page_title = "Controle de Entregas";
+    
+    // CSS/JS específico desta página (do {% block head %})
+    $additional_head_tags = '
+        <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    ';
 
-{% block title %}Controle de Entregas{% endblock %}
+    // Scripts específicos desta página (do {% block scripts %})
+    $additional_scripts = '
+        <script src="static/js/script.js"></script>
+        <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    ';
+    // --- Fim da Configuração ---
 
-{% block head %}
-{{ super() }}
-<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-{% endblock %}
+    require 'config.php';       // 1. Inclui a configuração e sessão
+    require 'auth_check.php'; // 2. Protege a página
+    require 'includes/header.php';  // 3. Inclui o cabeçalho HTML
+?>
 
-{% block content %}
 <div id="feedback-message" class="feedback-message" style="display: none;"></div>
 <div id="loading-spinner" class="loading-spinner" style="display: none;"></div>
 
@@ -125,10 +136,6 @@
         </table>
     </div>
 </section>
-
-
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
-<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-<?php require 'includes/footer.php'; ?>.
+<?php 
+    require 'includes/footer.php'; // 4. Inclui o rodapé
+?>

@@ -1,12 +1,21 @@
-<?php require_once '../config.php'; ?>
+<?php 
+    // Tenta encontrar o config.php na raiz do projeto
+    if (file_exists(__DIR__ . '/../config.php')) {
+        require_once __DIR__ . '/../config.php';
+    } else {
+        die('Erro: config.php não encontrado.');
+    }
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Controle de Entregas{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    {% block head %}{% endblock %}
+    <title><?php echo isset($page_title) ? htmlspecialchars($page_title) : 'Controle de Entregas'; ?></title>
+    
+    <link rel="stylesheet" href="static/css/style.css">
+    
+    <?php echo isset($additional_head_tags) ? $additional_head_tags : ''; ?>
 </head>
 <body>
     <nav class="navbar">
@@ -14,17 +23,18 @@
             <h1>Controle de Entregas</h1>
         </div>
         <ul class="nav-links">
-            <li><a href="{{ url_for('recebimentos') }}">Entregas</a></li>
-            <li><a href="{{ url_for('historico') }}">Histórico</a></li>
-            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-            <li><a href="{{ url_for('custos_static_files', filename='html/selecao.html') }}">Custos Produtos</a></li>
+            <li><a href="recebimentos.php">Entregas</a></li>
+            <li><a href="historico.php">Histórico</a></li>
+            <li><a href="dashboard.php">Dashboard</a></li>
+            <li><a href="static/Custos/html/selecao.html">Custos Produtos</a></li>
 
-            {% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('logout') }}">Sair ({{ current_user.username }})</a></li>
-            {% else %}
-                <li><a href="{{ url_for('login') }}">Login</a></li>
-            {% endif %}
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <li><a href="logout.php">Sair (<?= htmlspecialchars($_SESSION['username']); ?>)</a></li>
+            <?php else: ?>
+                <li><a href="login.php">Login</a></li>
+            <?php endif; ?>
             
         </ul>
     </nav>
     
+    <main>

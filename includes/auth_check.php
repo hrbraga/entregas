@@ -1,5 +1,9 @@
 <?php
-// auth_check.php (Vamos incluir isto em todas as páginas seguras)
+
+if (session_status() == PHP_SESSION_NONE) {
+    require_once 'config.php';
+}
+
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
