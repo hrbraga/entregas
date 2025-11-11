@@ -519,7 +519,7 @@
     </main>
     
     <footer>
-        <a href="..\html\selecao.html">
+        <a href="custos_selecao.php">
             <p>Voltar ao Início</p>
         </a>
     </footer>

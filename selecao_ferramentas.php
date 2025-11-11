@@ -1,44 +1,42 @@
-<?php 
-    require 'config.php';       
-    require 'custos_auth_check.php'; 
-?>
+<?php
+    require 'config.php'; // Inicia a sessão
 
+    // Se o usuário já estiver logado no sistema de "Custos", redireciona
+    if (isset($_SESSION['rcky_code'])) {
+        header('Location: selecao_ferramentas.php');
+        exit;
+    }
+?>
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pr-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <link rel="stylesheet" href="static/Custos/css/global.css">
-    <link rel="stylesheet" href="static/Custos/css/selecao.css">
-    
-    <link rel="shortcut icon" href="static/Custos/src/img/chocolatinho.png" type="image/x-icon">
-    
-    <title>Caixa de Ferramentas</title>
+    <link rel="stylesheet" href="static/Custos/css/index.css">
+    <title>Custos de Produtos - Login</title>
 </head>
 <body>
     <header>
-        <h1>Caixa de ferramentas</h1>
+        <h1>Custos de Produtos</h1>
     </header>
-
     <main>
-        <section class="custos">
-            <div class="campanhas">
-                <div class="campanha-2 campanha">
-                    <a href="custos_selecao.php">
-                        <img src="static/Custos/src/img/lojas-cacau.jpeg" alt="Loja Cacau Show">
-                        <p>Custo dos Produtos</p>
-                    </a>
-                </div>
-                <div class="campanha-2 campanha">
-                    <a href="login.php">
-                        <img src="static/Custos/src/img/caminhoes.jfif" alt="Banner Caminhões">
-                        <p>Controle de Entregas</p>
-                    </a>
-                </div>
-
-        </section>
+        <div class="acesso">
+            <h2>Login</h2>
+            <p class="frase">Digite seu código RCKY para acessar</p>
+            
+            <form id="formularioAcesso" action="acesso_action.php" method="POST">
+                <input type="text" maxlength="4" placeholder="Código RCKY" id="codigo" name="codigo" required>
+                <button class="btn-acessar" type="submit">Acessar</button>
+                
+                <?php if (isset($_GET['erro'])): ?>
+                    <p id="mensagem" style="color: red; margin-top: 10px;"><?php echo htmlspecialchars($_GET['erro']); ?></p>
+                <?php endif; ?>
+            </form>
+        </div>
     </main>
-    <script src="static/Custos/js/campanha.js"></script>
+    <footer>
+        <p class="titulo_footer">Desenvolvido por Hugo Braga</p>
+    </footer>
 </body>
 </html>
