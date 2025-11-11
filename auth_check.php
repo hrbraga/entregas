@@ -1,26 +1,21 @@
 <?php
-// auth_check.php (Versão Corrigida)
+// auth_check.php (Versão ATUALIZADA)
+// Protege o Nível 2 (Aplicação de Entregas)
 
-// O config.php já deve ter iniciado a sessão.
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Se não houver ID de utilizador na sessão...
+// Aqui SÓ precisamos de verificar o login Nível 2 (o da loja).
+// A proteção de Nível 1 (RCKY) já foi feita pelo 'selecao_ferramentas.php'.
+
 if (!isset($_SESSION['user_id'])) {
     
-    // Se for uma chamada de API, só queremos enviar o código de erro.
-    // O JavaScript (em script.js) está programado para lidar com o 401.
+    // Se o utilizador não está logado numa loja, mandamos para o login.php
     if (!headers_sent()) {
-        http_response_code(401); // Não Autorizado
+        http_response_code(401); // Para o script.js
     }
-    
-    // Se for uma página (como recebimentos.php), o JS não está envolvido,
-    // então podemos enviar o redirecionamento.
-    // Mas como este ficheiro é usado por ambos, é mais seguro
-    // APENAS parar a execução. O JavaScript vai tratar do redirecionamento.
-    
-    // Apenas paramos o script.
+    header('Location: login.php'); // Para o navegador
     exit;
 }
 ?>

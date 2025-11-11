@@ -1,8 +1,8 @@
 <?php
     require 'config.php'; // Inicia a sessão
 
-    // Se o usuário já estiver logado no sistema de "Custos", redireciona
-    if (isset($_SESSION['custos_user_id'])) {
+    // Se o usuário já estiver logado no sistema de "Custos" (Nível 1), redireciona
+    if (isset($_SESSION['rcky_code'])) {
         header('Location: selecao_ferramentas.php');
         exit;
     }
@@ -24,11 +24,11 @@
         <div class="acesso">
             <h2>Login</h2>
             <p class="frase">Digite seu código RCKY para acessar</p>
-
+            
             <form id="formularioAcesso" action="acesso_action.php" method="POST">
                 <input type="text" maxlength="4" placeholder="Código RCKY" id="codigo" name="codigo" required>
                 <button class="btn-acessar" type="submit">Acessar</button>
-
+                
                 <?php if (isset($_GET['erro'])): ?>
                     <p id="mensagem" style="color: red; margin-top: 10px;"><?php echo htmlspecialchars($_GET['erro']); ?></p>
                 <?php endif; ?>
@@ -38,5 +38,5 @@
     <footer>
         <p class="titulo_footer">Desenvolvido por Hugo Braga</p>
     </footer>
-    </body>
+</body>
 </html>
