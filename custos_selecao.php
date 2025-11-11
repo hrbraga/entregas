@@ -10,14 +10,13 @@
     
     <link rel="stylesheet" href="static/Custos/css/global.css">
     <link rel="stylesheet" href="static/Custos/css/selecao.css">
-    
     <link rel="shortcut icon" href="static/Custos/src/img/chocolatinho.png" type="image/x-icon">
     
-    <title>Caixa de Ferramentas</title>
+    <title>Custo dos Produtos</title>
 </head>
 <body>
     <header>
-        <h1>Caixa de ferramentas</h1>
+        <h1>Custo dos Produtos</h1>
     </header>
 
     <main>
@@ -76,7 +75,7 @@
     </main>
     <footer>
         <a href="selecao_ferramentas.php">
-            <p>Voltar ao Início</p>
+            <p>Voltar a Caixa de Ferramentas</p>
         </a>
     </footer>
     <script src="static/Custos/js/campanha.js"></script>

@@ -1,14 +1,15 @@
 <?php
-    require 'config.php'; // Inicia a sessão
+require 'config.php'; // Inicia a sessão
 
-    // Se o usuário já estiver logado no sistema de "Custos" (Nível 1), redireciona
-    if (isset($_SESSION['rcky_code'])) {
-        header('Location: selecao_ferramentas.php');
-        exit;
-    }
+
+if (isset($_SESSION['rcky_code'])) {
+    header('Location: selecao_ferramentas.php');
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="pr-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +17,7 @@
     <link rel="stylesheet" href="static/Custos/css/index.css">
     <title>Custos de Produtos - Login</title>
 </head>
+
 <body>
     <header>
         <h1>Custos de Produtos</h1>
@@ -24,13 +26,14 @@
         <div class="acesso">
             <h2>Login</h2>
             <p class="frase">Digite seu código RCKY para acessar</p>
-            
+
             <form id="formularioAcesso" action="acesso_action.php" method="POST">
                 <input type="text" maxlength="4" placeholder="Código RCKY" id="codigo" name="codigo" required>
                 <button class="btn-acessar" type="submit">Acessar</button>
-                
+
                 <?php if (isset($_GET['erro'])): ?>
-                    <p id="mensagem" style="color: red; margin-top: 10px;"><?php echo htmlspecialchars($_GET['erro']); ?></p>
+                    <p id="mensagem" style="color: red; margin-top: 10px;"><?php echo htmlspecialchars($_GET['erro']); ?>
+                    </p>
                 <?php endif; ?>
             </form>
         </div>
@@ -39,4 +42,5 @@
         <p class="titulo_footer">Desenvolvido por Hugo Braga</p>
     </footer>
 </body>
+
 </html>
