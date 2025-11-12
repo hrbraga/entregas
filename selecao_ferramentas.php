@@ -27,13 +27,13 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
        
         <section class="custos">
             <div class="campanhas">
-                <div class="campanha-2 campanha"><a href="custos_selecao.php"><img
+                <div class="campanha-2 campanha"><a href="Custos/custos_selecao.php"><img
                             src="static/img/lojas.jfif" alt="Loja">
                         <p>Custo dos Produtos</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
-                    <a href="recebimentos.php">
+                    <a href="Recebimentos/recebimentos.php">
                         <img src="static/img/caminhoes.jfif" alt="Entregas">
                         <p>Controle de Entregas</p>
                     </a>

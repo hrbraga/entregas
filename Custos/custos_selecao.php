@@ -1,6 +1,6 @@
 <?php 
-    require 'config.php'; 
-    require 'custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
+    require '../config.php'; 
+    require '../auth/custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -8,9 +8,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <link rel="stylesheet" href="static/Custos/css/global.css">
-    <link rel="stylesheet" href="static/Custos/css/selecao.css">
-    <link rel="shortcut icon" href="static/Custos/src/img/chocolatinho.png" type="image/x-icon">
+    <link rel="stylesheet" href="../static/css/global.css">
+    <link rel="stylesheet" href="../static/css/selecao.css">
+    <link rel="shortcut icon" href="../static/img/chocolatinho.png" type="image/x-icon">
     
     <title>Custo dos Produtos</title>
 </head>
@@ -24,49 +24,49 @@
             <div class="campanhas">
                 <div class="campanha-2 campanha">
                     <a href="custos_linha.php">
-                        <img src="static/Custos/src/img/lojas-cacau.jpeg" alt="Loja Cacau Show">
+                        <img src="../static/img/lojas-cacau.jpeg" alt="Loja Cacau Show">
                         <p>Produtos de Linha</p>
                     </a>
                 </div>
                 <div class="campanha-3 campanha">
                     <a href="custos_natal_2025.php">
-                        <img src="static/Custos/src/img/natalCacauShow.jpg" alt="Banner Campanha de Natal">
+                        <img src="../static/img/natalCacauShow.jpg" alt="Banner Campanha de Natal">
                         <p>Natal 2025</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
                     <a href="custos_bendito2025.php">
-                        <img src="static/Custos/src/img/benditoCacao.jpg" alt="Banner Bendito Cacao">
+                        <img src="../static/img/benditoCacao.jpg" alt="Banner Bendito Cacao">
                         <p>Bendito Cacao</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
                     <a href="custos_criancas.php">
-                        <img src="static/Custos/src/img/criancada.png" alt="Banner Campanha de Crianças">
+                        <img src="../static/img/criancada.png" alt="Banner Campanha de Crianças">
                         <p>Crianças, Halloween e Professores</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
                     <a href="custos_maes.php">
-                        <img src="static/Custos/src/img/mamaes.png" alt="Banner Campanha de Mães 2025">
+                        <img src="../static/img/mamaes.png" alt="Banner Campanha de Mães 2025">
                         <p>Mães e Namorados</p>
                     </a>
                 </div>
                 <div class="campanha-1 campanha">
                     <a href="custos_pascoa.php">
-                        <img src="static/Custos/src/img/pascoa.webp" alt="Banner Campanha de Páscoa">
+                        <img src="../static/img/pascoa.webp" alt="Banner Campanha de Páscoa">
                         <p>Páscoa 2025</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
                     <a href="custos_canecas.php">
-                        <img src="static/Custos/src/img/canecas.jpg" alt="Banner Canecas">
+                        <img src="../static/img/canecas.jpg" alt="Banner Canecas">
                         <p>Canecas Oxford</p>
                     </a>
                 </div>
                 <div class="campanha-1 campanha">
                     <a href="custos_natal.php">
-                        <img src="static/Custos/src/img/magia-do-cacau.jpg" alt="Banner Campanha de Natal">
+                        <img src="../static/img/magia-do-cacau.jpg" alt="Banner Campanha de Natal">
                         <p>Natal 2024</p>
                     </a>
                 </div>
