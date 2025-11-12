@@ -38,6 +38,12 @@ require 'custos_auth_check.php'; // Protege esta página (Nível 1)
                         <p>Entregas de Natal 2025</p>
                     </a>
                 </div>
+                 <div class="campanha-2 campanha">
+                    <a href="contrato/contratoPetit.php">
+                        <img src="" alt="Contrato Petit Deli">
+                        <p>Entregas de Natal 2025</p>
+                    </a>
+                </div>
         </section>
     </main>
 

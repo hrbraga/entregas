@@ -1,0 +1,19 @@
+/* ... (todos os seus estilos normais) ... */
+
+/* Estilos de Impressão */
+@media print {
+    body {
+        background-color: #fff;
+        margin: 0;
+    }
+    .form-container, #gerarContrato, #imprimirContrato, hr {
+        display: none; /* Esconde o formulário ao imprimir */
+    }
+    .contrato-preview {
+        box-shadow: none;
+        border: none;
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+}
