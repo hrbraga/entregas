@@ -1,4 +1,10 @@
 <?php
+
+
+    require '../config.php';
+    require '../custos_auth_check.php';
+
+
 // Variável para guardar o HTML do contrato gerado
 $contractHTML = null;
 
@@ -91,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <p>O pagamento será realizado da seguinte forma:</p>
         <ul>
             <li>Entrada de <strong>R$ $valorEntradaFormatado</strong> do valor total no ato da assinatura deste contrato.</li>
-            <li>Saldo restante no valor de <strong>R$ $saldoRestanteFormatado</strong>, a ser pago no momento da retirada dos produtos, podendo ser parcelado em até 3 (quatro) vezes no cartão de crédito.</li>
+            <li>Saldo restante no valor de <strong>R$ $saldoRestanteFormatado</strong>, a ser pago no momento da retirada dos produtos, podendo ser parcelado em até 3 (três) vezes no cartão de crédito.</li>
         </ul>
 
         <h3>CLÁUSULA 4 – RETIRADA DOS PRODUTOS</h3>
@@ -141,52 +147,57 @@ HTML;
             <fieldset>
                 <legend>Dados do CONTRATANTE</legend>
                 <label for="contratanteNome">Nome:</label>
-                <input type="text" id="contratanteNome" name="contratanteNome" value="<?php echo htmlspecialchars($_POST['contratanteNome'] ?? 'Sarah Rayane Barbosa Elias Senefonte'); ?>" required>
+                <input type="text" id="contratanteNome" name="contratanteNome" placeholder="Nome completo do contratante" value="<?php echo htmlspecialchars($_POST['contratanteNome'] ?? ''); ?>" required>
                 
                 <label for="contratanteDoc">CPF/CNPJ:</label>
-                <input type="text" id="contratanteDoc" name="contratanteDoc" value="<?php echo htmlspecialchars($_POST['contratanteDoc'] ?? '052.527.529-07'); ?>" required>
+                <input type="text" id="contratanteDoc" name="contratanteDoc" placeholder="CPF ou CNPJ do contratante" value="<?php echo htmlspecialchars($_POST['contratanteDoc'] ?? ''); ?>" required>
+                <span class="error-message" id="error-contratanteDoc"></span>
                 
                 <label for="contratanteEnd">Endereço:</label>
-                <input type="text" id="contratanteEnd" name="contratanteEnd" value="<?php echo htmlspecialchars($_POST['contratanteEnd'] ?? 'Rua Piauí, 277, Cornélio Procópio-PR'); ?>" required>
+                <input type="text" id="contratanteEnd" name="contratanteEnd" placeholder="Endereço completo do contratante" value="<?php echo htmlspecialchars($_POST['contratanteEnd'] ?? ''); ?>" required>
             </fieldset>
 
             <fieldset>
                 <legend>Dados do CONTRATADO</legend>
                 <label for="contratadoNome">Nome/Razão Social:</label>
-                <input type="text" id="contratadoNome" name="contratadoNome" value="<?php echo htmlspecialchars($_POST['contratadoNome'] ?? 'R I CHAGAS BRAGA ME'); ?>" required>
+                <input type="text" id="contratadoNome" name="contratadoNome" placeholder="Nome ou Razão Social do contratado" value="<?php echo htmlspecialchars($_POST['contratadoNome'] ?? ''); ?>" required>
                 
                 <label for="contratadoDoc">CPF/CNPJ:</label>
-                <input type="text" id="contratadoDoc" name="contratadoDoc" value="<?php echo htmlspecialchars($_POST['contratadoDoc'] ?? '10.466.204/0001-76'); ?>" required>
+                <input type="text" id="contratadoDoc" name="contratadoDoc" placeholder="CPF ou CNPJ do contratado" value="<?php echo htmlspecialchars($_POST['contratadoDoc'] ?? ''); ?>" required>
+                <span class="error-message" id="error-contratadoDoc"></span>
                 
                 <label for="contratadoEnd">Endereço (Local de retirada):</label>
-                <input type="text" id="contratadoEnd" name="contratadoEnd" value="<?php echo htmlspecialchars($_POST['contratadoEnd'] ?? 'Avenida XV de Novembro, 448, Cornélio Procópio-PR'); ?>" required>
+                <input type="text" id="contratadoEnd" name="contratadoEnd" placeholder="Endereço (local de retirada)" value="<?php echo htmlspecialchars($_POST['contratadoEnd'] ?? ''); ?>" required>
             </fieldset>
 
             <fieldset>
                 <legend>Detalhes do Pedido e Pagamento</legend>
                 
                 <label for="dataEntrega">Data da Entrega/Retirada:</label>
-                <input type="date" id="dataEntrega" name="dataEntrega" value="<?php echo htmlspecialchars($_POST['dataEntrega'] ?? '2025-08-14'); ?>" required>
+                <input type="date" id="dataEntrega" name="dataEntrega" value="<?php echo htmlspecialchars($_POST['dataEntrega'] ?? ''); ?>" required>
+                <span class="error-message" id="error-dataEntrega"></span>
                 
                 <label for="valorTotal">Valor Total (R$):</label>
-                <input type="number" id="valorTotal" name="valorTotal" value="<?php echo htmlspecialchars($_POST['valorTotal'] ?? '440.00'); ?>" step="0.01" required>
+                <input type="number" id="valorTotal" name="valorTotal" placeholder="Ex: 440.00" value="<?php echo htmlspecialchars($_POST['valorTotal'] ?? ''); ?>" step="0.01" required>
                 
                 <label for="valorEntrada">Valor da Entrada (R$):</label>
-                <input type="number" id="valorEntrada" name="valorEntrada" value="<?php echo htmlspecialchars($_POST['valorEntrada'] ?? '100.00'); ?>" step="0.01" required>
+                <input type="number" id="valorEntrada" name="valorEntrada" placeholder="Ex: 100.00" value="<?php echo htmlspecialchars($_POST['valorEntrada'] ?? ''); ?>" step="0.01" required>
+                <span class="error-message" id="error-valores"></span>
             </fieldset>
 
             <fieldset>
                 <legend>Quantidades de Bombons</legend>
                 <div class="sabor-grid">
-                    <div><label for="qntBrigadeiro">BRIGADEIRO:</label><input type="number" id="qntBrigadeiro" name="qntBrigadeiro" value="<?php echo htmlspecialchars($_POST['qntBrigadeiro'] ?? '110'); ?>"></div>
-                    <div><label for="qntBeijinho">BEIJINHO:</label><input type="number" id="qntBeijinho" name="qntBeijinho" value="<?php echo htmlspecialchars($_POST['qntBeijinho'] ?? '0'); ?>"></div>
-                    <div><label for="qntCookies">COOKIES:</label><input type="number" id="qntCookies" name="qntCookies" value="<?php echo htmlspecialchars($_POST['qntCookies'] ?? '0'); ?>"></div>
-                    <div><label for="qntPaçoca">PAÇOCA:</label><input type="number" id="qntPaçoca" name="qntPaçoca" value="<?php echo htmlspecialchars($_POST['qntPaçoca'] ?? '110'); ?>"></div>
-                    <div><label for="qntTortaH">TORTA HOLANDESA:</label><input type="number" id="qntTortaH" name="qntTortaH" value="<?php echo htmlspecialchars($_POST['qntTortaH'] ?? '0'); ?>"></div>
-                    <div><label for="qntTortaM">TORTA MARACUJÁ:</label><input type="number" id="qntTortaM" name="qntTortaM" value="<?php echo htmlspecialchars($_POST['qntTortaM'] ?? '0'); ?>"></div>
-                    <div><label for="qntBemCasado">BEM CASADO:</label><input type="number" id="qntBemCasado" name="qntBemCasado" value="<?php echo htmlspecialchars($_POST['qntBemCasado'] ?? '0'); ?>"></div>
-                    <div><label for="qntMilFolhas">MIL-FOLHAS:</label><input type="number" id="qntMilFolhas" name="qntMilFolhas" value="<?php echo htmlspecialchars($_POST['qntMilFolhas'] ?? '0'); ?>"></div>
+                    <div><label for="qntBrigadeiro">BRIGADEIRO:</label><input type="number" id="qntBrigadeiro" name="qntBrigadeiro" placeholder="0" value="<?php echo htmlspecialchars($_POST['qntBrigadeiro'] ?? ''); ?>"></div>
+                    <div><label for="qntBeijinho">BEIJINHO:</label><input type="number" id="qntBeijinho" name="qntBeijinho" placeholder="0" value="<?php echo htmlspecialchars($_POST['qntBeijinho'] ?? ''); ?>"></div>
+                    <div><label for="qntCookies">COOKIES:</label><input type="number" id="qntCookies" name="qntCookies" placeholder="0" value="<?php echo htmlspecialchars($_POST['qntCookies'] ?? ''); ?>"></div>
+                    <div><label for="qntPaçoca">PAÇOCA:</label><input type="number" id="qntPaçoca" name="qntPaçoca" placeholder="0" value="<?php echo htmlspecialchars($_POST['qntPaçoca'] ?? ''); ?>"></div>
+                    <div><label for="qntTortaH">TORTA HOLANDESA:</label><input type="number" id="qntTortaH" name="qntTortaH" placeholder="0" value="<?php echo htmlspecialchars($_POST['qntTortaH'] ?? ''); ?>"></div>
+                    <div><label for="qntTortaM">TORTA MARACUJÁ:</label><input type="number" id="qntTortaM" name="qntTortaM" placeholder="0" value="<?php echo htmlspecialchars($_POST['qntTortaM'] ?? ''); ?>"></div>
+                    <div><label for="qntBemCasado">BEM CASADO:</label><input type="number" id="qntBemCasado" name="qntBemCasado" placeholder="0" value="<?php echo htmlspecialchars($_POST['qntBemCasado'] ?? ''); ?>"></div>
+                    <div><label for="qntMilFolhas">MIL-FOLHAS:</label><input type="number" id="qntMilFolhas" name="qntMilFolhas" placeholder="0" value="<?php echo htmlspecialchars($_POST['qntMilFolhas'] ?? ''); ?>"></div>
                 </div>
+                <span class="error-message" id="error-quantidades"></span>
             </fieldset>
             
             <button type="submit" id="gerarContrato">Gerar Contrato (PDF)</button>
@@ -211,6 +222,12 @@ HTML;
     <?php 
     endif;
     ?>
+
+ <footer>
+        <a href="../selecao_ferramentas.php">
+            <p>Voltar ao Início</p>
+        </a>
+</footer>
 
     <script src="../static/js/contrato.js"></script>
 </body>

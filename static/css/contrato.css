@@ -120,8 +120,11 @@ button:hover {
         margin: 0;
     }
     
-    /* Esconde o formulário, botões, etc. ao imprimir */
-    .form-container, #gerarContrato, #limparContrato, hr, h1, p {
+    /* * CORREÇÃO AQUI: 
+     * Usamos "body > h1" e "body > p" para esconder APENAS o título e o parágrafo
+     * de instrução da página, e não os <p> e <h1> de dentro do contrato.
+    */
+    .form-container, #gerarContrato, #limparContrato, hr, body > h1, body > p {
         display: none;
     }
     
@@ -134,4 +137,66 @@ button:hover {
         padding: 0;
         margin: 0;
     }
+
+    /* Garante que os parágrafos dentro do contrato sejam visíveis na impressão */
+     #contratoOutput p {
+        display: block;
+        text-align: left; /* Alinha o texto do contrato à esquerda */
+    }
+
+    #contratoOutput h2 {
+        text-align: center; /* Alinha os subtítulos do contrato à esquerda */
+    }
+
+    #contratoOutput h3 {
+        text-align: left; /* Alinha os títulos do contrato à esquerda */
+    }
+
+     #contratoOutput tbody tr td, thead tr th {
+        text-align: center;
+        border: 1px solid #050a0f;
+        padding: 5px; /* Alinha o texto das tabelas do contrato à esquerda */
+     }
+}
+
+/* =================================== */
+/* === NOVOS ESTILOS PARA VALIDAÇÃO === */
+/* =================================== */
+
+/* Estilo para a mensagem de erro */
+.error-message {
+    color: #d9534f; /* Vermelho */
+    font-size: 0.9em;
+    margin-top: 5px;
+    display: none; /* Começa escondido */
+    text-align: left; /* Garante que o erro fique alinhado */
+}
+
+/* Estilo para o campo de input inválido */
+input.invalid {
+    border-color: #d9534f; /* Borda vermelha */
+    background-color: #fdf7f7; /* Fundo levemente rosado */
+}
+
+footer {
+    font-size: 20px;
+    font-weight: 400;   
+}
+
+
+footer a {
+    text-decoration: none;
+}  
+
+footer p {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
 }
