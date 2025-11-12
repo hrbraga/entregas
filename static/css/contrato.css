@@ -1,15 +1,133 @@
-/* ... (todos os seus estilos normais) ... */
+/* AJUSTE (Item 1): Estilos para o formulário */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 20px;
+    background-color: #f4f7f6;
+    color: #333;
+}
 
-/* Estilos de Impressão */
+h1 {
+    text-align: center;
+    color: #0056b3;
+}
+
+p {
+    text-align: center;
+    font-size: 1.1em;
+    margin-bottom: 25px;
+}
+
+.form-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 25px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+fieldset {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+legend {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #0056b3;
+    padding: 0 10px;
+}
+
+label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 0.95em;
+    color: #555;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box; 
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.sabor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 20px;
+}
+
+.sabor-grid div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.sabor-grid label {
+    margin-top: 0;
+    flex-basis: 150px;
+}
+.sabor-grid input {
+    width: 100px;
+    padding: 8px;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+}
+button:hover {
+    background-color: #0056b3;
+}
+
+/* AJUSTE (Item 3): Estilo para o botão de limpar */
+#limparContrato {
+    background-color: #6c757d;
+}
+#limparContrato:hover {
+    background-color: #5a6268;
+}
+
+/* * AJUSTE (Item 2): Esconde o contrato na tela (display: none).
+ * Ele só será visível na impressão (bloco @media print).
+*/
+#contratoOutput {
+    display: none;
+}
+
+
+/* Regras de Impressão */
 @media print {
     body {
         background-color: #fff;
         margin: 0;
     }
-    .form-container, #gerarContrato, #imprimirContrato, hr {
-        display: none; /* Esconde o formulário ao imprimir */
+    
+    /* Esconde o formulário, botões, etc. ao imprimir */
+    .form-container, #gerarContrato, #limparContrato, hr, h1, p {
+        display: none;
     }
-    .contrato-preview {
+    
+    /* Mostra o contrato SÓ ao imprimir */
+    #contratoOutput {
+        display: block;
         box-shadow: none;
         border: none;
         max-width: 100%;
