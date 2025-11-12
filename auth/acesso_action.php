@@ -22,17 +22,17 @@ try {
         $_SESSION['rcky_code'] = $rcky['code'];
         
         // Redireciona para a página de ferramentas
-        header('Location: selecao_ferramentas.php');
+        header('Location: ../selecao_ferramentas.php');
         exit;
     } else {
         // Código não encontrado
-        header('Location: inicio.php?erro=Código de acesso inválido.');
+        header('Location: ../inicio.php?erro=Código de acesso inválido.');
         exit;
     }
 
 } catch (Exception $e) {
     error_log("Erro em acesso_action.php: " . $e->getMessage());
-    header('Location: inicio.php?erro=Ocorreu um erro no servidor.');
+    header('Location: ../inicio.php?erro=Ocorreu um erro no servidor.');
     exit;
 }
 ?>

@@ -8,9 +8,9 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="static/css/global.cs">
+    <link rel="stylesheet" href="static/css/global.css">
     <link rel="stylesheet" href="static/css/selecao.css">
-    <link rel="shortcut icon" href="static/src/img/chocolatinho.png" type="image/x-icon">
+    <link rel="shortcut icon" href="static/img/chocolatinho.png" type="image/x-icon">
     <title>Caixa de Ferramentas</title>
 </head>
 
@@ -28,19 +28,19 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
         <section class="custos">
             <div class="campanhas">
                 <div class="campanha-2 campanha"><a href="custos_selecao.php"><img
-                            src="static/src/img/lojas.jfif" alt="Loja">
+                            src="static/img/lojas.jfif" alt="Loja">
                         <p>Custo dos Produtos</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
                     <a href="recebimentos.php">
-                        <img src="static/src/img/caminhoes.jfif" alt="Entregas">
+                        <img src="static/img/caminhoes.jfif" alt="Entregas">
                         <p>Controle de Entregas</p>
                     </a>
                 </div>
                  <div class="campanha-2 campanha">
                     <a href="contrato/contratoPetit.php">
-                        <img src="static/src/img/petitDeli.jpg" alt="Bombons Petit Deli">
+                        <img src="static/img/petitDeli.jpg" alt="Bombons Petit Deli">
                         <p>Gerador de Contrato Petit Deli</p>
                     </a>
                 </div>
