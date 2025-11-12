@@ -19,10 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadNotasAndRenderTable() {
         try {
             // MUDANÇA AQUI: Adiciona cache-busting
-            const response = await fetch('api/get_notas.php?t=' + new Date().getTime());
+            const response = await fetch('../api/get_notas.php?t=' + new Date().getTime());
             
             if (response.status === 401) { // 401 = Não Autorizado
-                window.location.href = 'login.php'; // Redireciona para o login
+                window.location.href = '../auth/login.php'; // Redireciona para o login
                 return;
             }
             if (!response.ok) {
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (confirm(confirmMessage)) {
                     try {
                         // MUDANÇA AQUI: Aponta para a API PHP (passando o número da nota pela URL)
-                        const response = await fetch(`api/delete_nota.php?numero_nota=${numeroNota}`, { method: 'DELETE' });
+                        const response = await fetch(`../api/delete_nota.php?numero_nota=${numeroNota}`, { method: 'DELETE' });
                         const result = await response.json();
                         
                         if (result.success) {

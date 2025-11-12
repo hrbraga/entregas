@@ -2,7 +2,7 @@
 
 
     require '../config.php';
-    require '../custos_auth_check.php';
+    require '../auth/custos_auth_check.php';
 
 
 // Variável para guardar o HTML do contrato gerado

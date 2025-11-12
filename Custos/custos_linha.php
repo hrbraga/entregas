@@ -1,7 +1,8 @@
 <?php 
-    require 'config.php'; 
-    require 'custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
+    require '../config.php'; 
+    require '../auth/custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
 ?>
+
 <!DOCTYPE html>
 <html lang="pr-BR">
 
@@ -9,16 +10,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <link rel="shortcut icon" href="static/Custos/src/img/coelho.png" type="image/x-icon">
-    <link rel="stylesheet" href="static/Custos/css/planilhas.css">
-    <link rel="stylesheet" href="static/Custos/css/global.css">
+    <link rel="shortcut icon" href="../static/img/coelho.png" type="image/x-icon">
+    <link rel="stylesheet" href="../static/css/planilhas.css">
+    <link rel="stylesheet" href="../static/css/global.css">
     
-    <title>Bendito Cacao 2025</title>
+    <title>Produtos de linha</title>
 </head>
 
 <body>
     <header>
-        <h1>Bendito Cacao 2025</h1>
+        <h1>Produtos de linha</h1>
          <div class="botoes">
             <div class="btn-importar botoesImportacaoEExportacao">
                 <p>IMPORTAR ARQUIVO</p>
@@ -93,11 +94,11 @@
         </a>
     </footer>
     
-    <script src="static/Custos/js/dados.js"></script>
-    <script src="static/Custos/js/gerador.js"></script>
-    <script src="static/Custos/js/btn-export.js"></script>
-    <script src="static/Custos/js/filtro.js"></script>
-    <script src="static/Custos/js/import-xls.js"></script>
+    <script src="../static/js/dados.js"></script>
+    <script src="../static/js/gerador.js"></script>
+    <script src="../static/js/btn-export.js"></script>
+    <script src="../static/js/filtro.js"></script>
+    <script src="../static/js/import-xls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/shim.min.js"></script>
@@ -105,7 +106,7 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            gerarTabelaUniversal(produtos_benditoCacao);
+            gerarTabelaUniversal(produtos_linha);
         });
     </script>
 </body>

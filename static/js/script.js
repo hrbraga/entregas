@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (hasChanged) {
                         try {
                             // MUDANÇA AQUI: Aponta para a API PHP
-                            const response = await fetch(`api/update_item.php`, {
+                            const response = await fetch(`../api/update_item.php`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(updatedData)
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (confirmDelete) {
                     try {
                         // MUDANÇA AQUI: Aponta para a API PHP (passando ID pela URL)
-                        const response = await fetch(`api/delete_item.php?id=${id}`, { method: 'DELETE' });
+                        const response = await fetch(`../api/delete_item.php?id=${id}`, { method: 'DELETE' });
                         const result = await response.json();
                         if (result.success) {
                             showFeedback(result.message, 'success');
@@ -219,11 +219,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // MUDANÇA AQUI: Força a atualização com um timestamp (cache-busting)
-            const response = await fetch('api/get_data.php?t=' + new Date().getTime());
+            const response = await fetch('../api/get_data.php?t=' + new Date().getTime());
             
             if (response.status === 401) { // 401 = Não Autorizado
                 // MUDANÇA AQUI: Redireciona para login.php
-                window.location.href = 'login.php'; 
+                window.location.href = '../auth/login.php'; 
                 return;
             }
             if (!response.ok) {
@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchTimeout = setTimeout(async () => {
                 try {
                     // MUDANÇA AQUI: Adiciona cache-busting
-                    const response = await fetch(`api/search_items.php?q=${query}&t=` + new Date().getTime());
+                    const response = await fetch(`../api/search_items.php?q=${query}&t=` + new Date().getTime());
                     const results = await response.json();
                     
                     renderFilteredResults(results);
@@ -377,7 +377,7 @@ if (fileInput) {
                 showLoading();
                 try {
                     // MUDANÇA AQUI: Aponta para a API PHP
-                    const response = await fetch('api/upload_xml.php', { method: 'POST', body: formData });
+                    const response = await fetch('../api/upload_xml.php', { method: 'POST', body: formData });
                     const result = await response.json();
                     
                     if (result.success) {
@@ -430,7 +430,7 @@ if (fileInput) {
 
             try {
                 // MUDANÇA AQUI: Aponta para a API PHP
-                const response = await fetch('api/import_csv.php', {
+                const response = await fetch('../api/import_csv.php', {
                     method: 'POST',
                     body: formData
                 });

@@ -74,10 +74,10 @@
         </section>
     </main>
     <footer>
-        <a href="selecao_ferramentas.php">
+        <a href="../selecao_ferramentas.php">
             <p>Voltar a Caixa de Ferramentas</p>
         </a>
     </footer>
-    <script src="static/Custos/js/campanha.js"></script>
+    <script src="../static/js/campanha.js"></script>
 </body>
 </html>

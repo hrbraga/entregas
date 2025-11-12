@@ -16,9 +16,9 @@
     ';
     // --- Fim da Configuração ---
 
-    require 'config.php';       // 1. Inclui a configuração e sessão
-    require 'auth_check.php'; // 2. Protege a página
-    require 'includes/header.php';  // 3. Inclui o cabeçalho HTML
+    require '../config.php';       // 1. Inclui a configuração e sessão
+    require '../auth/auth_check.php'; // 2. Protege a página
+    require '../includes/header.php';  // 3. Inclui o cabeçalho HTML
 ?>
 
 <div id="feedback-message" class="feedback-message" style="display: none;"></div>
@@ -137,5 +137,5 @@
     </div>
 </section>
 <?php 
-    require 'includes/footer.php'; // 4. Inclui o rodapé
+    require '../includes/footer.php'; // 4. Inclui o rodapé
 ?>

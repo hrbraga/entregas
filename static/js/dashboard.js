@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function getDashboardData() {
         try {
             // MUDANÇA AQUI: Adiciona cache-busting
-            const response = await fetch('api/get_dashboard_data.php?t=' + new Date().getTime());
+            const response = await fetch('../api/get_dashboard_data.php?t=' + new Date().getTime());
             
             if (response.status === 401) { // 401 = Não Autorizado
-                window.location.href = 'login.php'; // Redireciona para o login
+                window.location.href = '../auth/login.php'; // Redireciona para o login
                 return null;
             }
             if (!response.ok) {

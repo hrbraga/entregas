@@ -1,6 +1,6 @@
 <?php
 // register_action.php
-require 'config.php';
+require '../config.php';
 
 $username = $_POST['username'];
 $password = $_POST['password'];

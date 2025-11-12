@@ -1,10 +1,10 @@
 <?php
-require 'config.php'; // Liga-se ao config (sessão, $db_portal)
+require '../config.php'; // Liga-se ao config (sessão, $db_portal)
 
 $codigo_rcky = $_POST['codigo'] ?? '';
 
 if (empty($codigo_rcky)) {
-    header('Location: inicio.php?erro=Por favor, digite um código.');
+    header('Location: ../inicio.php?erro=Por favor, digite um código.');
     exit;
 }
 

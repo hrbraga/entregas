@@ -3,9 +3,9 @@
 
 session_start();
 
-$db_entregas_path = __DIR__ . '/entregas.db';
-$db_users_path = __DIR__ . '/users.db';
-$db_portal_path = __DIR__ . '/portal_access.db'; // BD Novo
+$db_entregas_path = __DIR__ . '/db/entregas.db';
+$db_users_path = __DIR__ . '/db/users.db';
+$db_portal_path = __DIR__ . '/db/portal_access.db'; // BD Novo
 
 try {
     // DB 1: Entregas (Dados das notas)

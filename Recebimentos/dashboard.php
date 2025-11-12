@@ -4,21 +4,21 @@
     
     // CSS específico desta página (do {% block head %})
     $additional_head_tags = '
-        <link rel="stylesheet" href="static/css/dashboard.css">
+        <link rel="stylesheet" href="../static/css/dashboard.css">
     ';
 
     // Scripts específicos desta página (do {% block scripts %})
     $additional_scripts = '
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="static/js/dashboard.js"></script>
+        <script src="../static/js/dashboard.js"></script>
         <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     ';
     // --- Fim da Configuração ---
 
-    require 'config.php';       // 1. Inclui a configuração e sessão
-    require 'auth_check.php'; // 2. Protege a página
-    require 'includes/header.php';  // 3. Inclui o cabeçalho HTML
+    require '../config.php';       // 1. Inclui a configuração e sessão
+    require '../auth/auth_check.php'; // 2. Protege a página
+    require '../includes/header.php';  // 3. Inclui o cabeçalho HTML
 ?>
 
 <div class="dashboard-container">
@@ -58,5 +58,5 @@
     </div>
 </div>
 <?php 
-    require 'includes/footer.php'; // 4. Inclui o rodapé
+    require '../includes/footer.php'; // 4. Inclui o rodapé
 ?>

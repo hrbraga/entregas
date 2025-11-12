@@ -1,6 +1,6 @@
 <?php 
-    require 'config.php'; 
-    require 'custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
+    require '../config.php'; 
+    require '../auth/custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
 ?>
 
 <!DOCTYPE html>
@@ -9,9 +9,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../src/img/coelho.png" type="image/x-icon">
-    <link rel="stylesheet" href="static/Custos/css/planilhas.css">
-    <link rel="stylesheet" href="static/Custos/css/global.css">
+    <link rel="shortcut icon" href="../static/img/coelho.png" type="image/x-icon">
+    <link rel="stylesheet" href="../static/css/planilhas.css">
+    <link rel="stylesheet" href="../static/css/global.css">
     <title>Mães e Namorados</title>
 </head>
 
@@ -524,10 +524,10 @@
         </a>
     </footer>
     
-    <script src="../js/planilha.js"></script>
-    <script src="../js/btn-export.js"></script>
-    <script src="../js/filtro.js"></script>
-       <script src="../js/import-xls.js"></script>
+    <script src="../static/js/gerador.js"></script>
+    <script src="../static/js/btn-export.js"></script>
+    <script src="../static/js/filtro.js"></script>
+    <script src="../static/js/import-xls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/shim.min.js"></script>

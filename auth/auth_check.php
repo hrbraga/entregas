@@ -15,7 +15,7 @@ if (!isset($_SESSION['user_id'])) {
     if (!headers_sent()) {
         http_response_code(401); // Para o script.js
     }
-    header('Location: login.php'); // Para o navegador
+    header('Location: ../auth/login.php'); // Para o navegador
     exit;
 }
 ?>

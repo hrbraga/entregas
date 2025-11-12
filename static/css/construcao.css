@@ -7,7 +7,7 @@ body {
     height: 100vh;
     background-color: #f2f2f2;
     font-family: Arial, sans-serif;
-    background-image: url(../src/img/construindo.jpg);
+    background-image: url(../img/construindo.jpg);
     background-repeat: no-repeat;
     background-size: cover;
 }

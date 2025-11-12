@@ -13,8 +13,8 @@ if (isset($_SESSION['rcky_code'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="static/Custos/css/global.css">
-    <link rel="stylesheet" href="static/Custos/css/index.css">
+    <link rel="stylesheet" href="static/css/global.css">
+    <link rel="stylesheet" href="static/css/index.css">
     <title>Custos de Produtos - Login</title>
 </head>
 
@@ -27,7 +27,7 @@ if (isset($_SESSION['rcky_code'])) {
             <h2>Login</h2>
             <p class="frase">Digite seu código RCKY para acessar</p>
 
-            <form id="formularioAcesso" action="acesso_action.php" method="POST">
+            <form id="formularioAcesso" action="auth/acesso_action.php" method="POST">
                 <input type="text" maxlength="4" placeholder="Código RCKY" id="codigo" name="codigo" required>
                 <button class="btn-acessar" type="submit">Acessar</button>
 

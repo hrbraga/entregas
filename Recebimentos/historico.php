@@ -7,13 +7,13 @@
 
     // Scripts específicos desta página (do {% block scripts %})
     $additional_scripts = '
-        <script src="static/js/historico.js"></script>
+        <script src="../static/js/historico.js"></script>
     ';
     // --- Fim da Configuração ---
 
-    require 'config.php';       // 1. Inclui a configuração e sessão
-    require 'auth_check.php'; // 2. Protege a página
-    require 'includes/header.php';  // 3. Inclui o cabeçalho HTML
+    require '../config.php';       // 1. Inclui a configuração e sessão
+    require '../auth/auth_check.php'; // 2. Protege a página
+    require '../includes/header.php';  // 3. Inclui o cabeçalho HTML
 ?>
 
 <div class="container">
@@ -35,5 +35,5 @@
     </table>
 </div>
 <?php 
-    require 'includes/footer.php'; // 4. Inclui o rodapé
+    require '../includes/footer.php'; // 4. Inclui o rodapé
 ?>

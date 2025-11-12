@@ -19,7 +19,7 @@ function acessar() {
     if (codigosValidos.includes(codigoDigitado)) {
         alert("Acesso Autorizado!");
         setTimeout(function () {
-            window.location.href = '/custos/html/selecao.html';
+            window.location.href = 'Custos/custos_selecao.php';
         }, 50);
     } else {
         mensagemElemento.textContent = "Código de acesso inválido.";

@@ -2,19 +2,19 @@
     $page_title = "Login";
     
     // Inclui o config para iniciar a sessão
-    require 'config.php';
+    require '../config.php';
     
     // Se o utilizador já estiver logado, redireciona
     if (isset($_SESSION['user_id'])) {
-        header('Location: recebimentos.php');
+        header('Location: ../Recebimentos/recebimentos.php');
         exit;
     }
 
     // Inclui o header
-    require 'includes/header.php';
+    require '../includes/header.php';
 ?>
 
-<link rel="stylesheet" href="static/css/login.css">
+<link rel="stylesheet" href="../static/css/login.css">
 
 <div class="login-container">
     <form class="login-form" method="POST" action="login_action.php">
@@ -46,5 +46,5 @@
 
 <?php 
     // Inclui o rodapé
-    require 'includes/footer.php'; 
+    require '../includes/footer.php'; 
 ?>

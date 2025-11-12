@@ -1,7 +1,7 @@
 <?php
 // api/get_dashboard_data.php (Ficheiro Novo)
 require '../config.php';
-require '../auth_check.php';
+require '../auth/auth_check.php';
 
 header('Content-Type: application/json');
 $user_id = $_SESSION['user_id'];

@@ -16,7 +16,7 @@ if ($user && password_verify($password, $user['password_hash'])) {
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
 
-    header('Location: recebimentos.php'); // Redireciona para a app
+    header('Location: ../Recebimentos/recebimentos.php'); // Redireciona para a app
     exit;
 } else {
     header('Location: login.php?erro=1'); // Envia de volta com erro

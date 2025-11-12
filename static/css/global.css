@@ -20,7 +20,7 @@ header h1 {
 
 header,
 footer {
-    background-image: url(../src/img/bg__header--desk.png);
+    background-image: url(../img/bg__header--desk.png);
     background-color: rgb(100, 18, 18);
     color: #ffffff;
     text-align: center;
