@@ -63,7 +63,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // ==================================================
 
     // 4. Montar o HTML do Contrato
-    // (Este é o bloco que você colou, que está correto)
     $contractHTML = <<<HTML
         <h2>CONTRATO DE FORNECIMENTO DE PETIT DELI</h2>
         
@@ -136,6 +135,7 @@ HTML;
     <p>Preencha os campos abaixo para gerar o contrato com base no modelo.</p>
 
     <div class="form-container">
+        
         <form action="contratoPetit.php" method="POST" id="contractForm">
             
             <fieldset>
