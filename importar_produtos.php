@@ -1,103 +1,102 @@
 <?php
-// entradas/importar_produtos.php
+// entradas/importar_completo.php
 header('Content-Type: text/html; charset=utf-8');
-require_once 'config.php'; // Carrega a conexão com o banco ($db_produtos)
+require_once 'config.php';
 
-// Configurações
-$arquivo_csv = 'produtos.csv'; // O nome do arquivo que você salvou
-$delimiter = ';'; //
+// --- CONFIGURAÇÃO IMPORTANTE ---
+$arquivo_csv = 'produtos.csv';
+$delimitador = ';'; // SEU ARQUIVO USA PONTO E VÍRGULA!
+// -------------------------------
 
-echo "<h1>Importador de Produtos</h1>";
+echo "<h1>Importador V3 (Correção Total)</h1>";
 
-// 1. Verifica se o arquivo existe
 if (!file_exists($arquivo_csv)) {
-    die("<p style='color: red;'>Erro: O arquivo <strong>$arquivo_csv</strong> não foi encontrado na pasta 'entradas/'.</p>");
+    die("<p style='color: red'>Erro: Arquivo '$arquivo_csv' não encontrado.</p>");
 }
 
-// 2. Abre o arquivo
+// 1. RECRIAR A TABELA (Fora de transação para evitar erros de lock)
+try {
+    $db_produtos->exec("DROP TABLE IF EXISTS produtos");
+    $sql_create = "
+    CREATE TABLE produtos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        codigo_barras TEXT,
+        codigo_interno TEXT,
+        nome_produto TEXT NOT NULL,
+        preco1 REAL NOT NULL,
+        preco2 REAL NOT NULL
+    );";
+    $db_produtos->exec($sql_create);
+    echo "<p style='color: green'>✔ Tabela 'produtos' recriada com sucesso.</p>";
+} catch (PDOException $e) {
+    die("<p style='color: red'>Erro fatal ao criar tabela: " . $e->getMessage() . "</p>");
+}
+
+// 2. PROCESSAR O CSV
 $handle = fopen($arquivo_csv, "r");
-if ($handle === FALSE) {
-    die("<p style='color: red;'>Erro ao abrir o arquivo.</p>");
-}
+if ($handle === FALSE) die("Erro ao abrir arquivo.");
 
-// 3. Prepara a query (SQL)
-// Usamos "INSERT OR REPLACE" do SQLite. 
-// Isso significa: "Se o produto já existir (pelo código interno), atualize os dados. Se não, crie um novo."
-$sql = "INSERT INTO produtos (codigo_interno, codigo_barras, nome_produto, preco1, preco2) 
-        VALUES (:cod_int, :cod_bar, :nome, :p1, :p2)
-        ON CONFLICT(codigo_interno) DO UPDATE SET
-        nome_produto = excluded.nome_produto,
-        preco1 = excluded.preco1,
-        preco2 = excluded.preco2,
-        codigo_barras = excluded.codigo_barras";
-
-$stmt = $db_produtos->prepare($sql);
-
-// Inicia contadores e transação (para ser ultra rápido)
 $db_produtos->beginTransaction();
-$linha_atual = 0;
+$stmt = $db_produtos->prepare("INSERT INTO produtos (codigo_interno, codigo_barras, nome_produto, preco1, preco2) VALUES (?, ?, ?, ?, ?)");
+
+echo "<div style='height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background: #f9f9f9;'>";
+
+$linha = 0;
 $sucessos = 0;
-$erros = 0;
 
-echo "<p>Iniciando importação... (Isso pode levar alguns segundos)</p>";
-echo "<div style='background: #f4f4f4; padding: 10px; border: 1px solid #ccc; height: 300px; overflow-y: scroll;'>";
+while (($dados = fgetcsv($handle, 2000, $delimitador)) !== FALSE) {
+    $linha++;
+    
+    // Pula cabeçalho
+    if ($linha == 1) continue; 
 
-// 4. Lê linha por linha
-while (($dados = fgetcsv($handle, 2000, $delimiter)) !== FALSE) {
-    $linha_atual++;
-
-    // Pula a primeira linha (cabeçalho: Código,Cód. de Barras...)
-    if ($linha_atual == 1) {
-        continue; 
-    }
-
-    // Verifica se a linha tem dados suficientes (mínimo 5 colunas)
+    // Verifica se a linha tem as 5 colunas (Cod, Bar, Desc, P1, P2)
     if (count($dados) < 5) {
-        continue; 
+        echo "<span style='color: orange'>⚠ Linha $linha ignorada (dados incompletos).</span><br>";
+        continue;
     }
 
-    // Mapeia as colunas do seu CSV
-    // CSV: Código, Cód. de Barras, Descrição, Preço 1, Preço 2
+    // --- TRATAMENTO DE DADOS ---
+    
+    // 1. Códigos
     $cod_interno = trim($dados[0]);
-    $cod_barras  = trim($dados[1]);
-    $nome        = trim($dados[2]);
     
-    // Tratamento de Preços (troca vírgula por ponto se necessário, remove R$)
-    $preco1      = floatval(str_replace(',', '.', $dados[3]));
-    $preco2      = floatval(str_replace(',', '.', $dados[4]));
+    // IMPORTANTE: Corrige erro de notação científica do Excel (ex: 7,89E+12)
+    // Se o código de barras vier quebrado do Excel, tentamos limpá-lo, mas o ideal é corrigir no Excel.
+    $cod_barras = trim($dados[1]); 
+    
+    // 2. Nome (Converte caracteres estranhos do Excel para UTF-8)
+    $nome = mb_convert_encoding(trim($dados[2]), 'UTF-8', 'Windows-1252'); // Tenta corrigir 
+    if (!$nome) $nome = trim($dados[2]); // Se falhar, usa o original
 
-    // Ajustes finos
-    if ($cod_barras == '') $cod_barras = null; // Se não tiver barra, deixa NULL
+    // 3. Preços (Troca vírgula por ponto)
+    // Ex: "31,99" vira "31.99"
+    $p1_str = str_replace(',', '.', $dados[3]);
+    $p2_str = str_replace(',', '.', $dados[4]);
     
-    // Tenta inserir
+    $preco1 = floatval($p1_str);
+    $preco2 = floatval($p2_str);
+
+    // Insere
     try {
-        $stmt->execute([
-            ':cod_int' => $cod_interno,
-            ':cod_bar' => $cod_barras,
-            ':nome'    => $nome,
-            ':p1'      => $preco1,
-            ':p2'      => $preco2
-        ]);
+        $stmt->execute([$cod_interno, $cod_barras, $nome, $preco1, $preco2]);
         $sucessos++;
-        // echo "<small style='color: green'>✔ $nome ($cod_interno)</small><br>"; // Descomente para ver linha a linha
-    } catch (PDOException $e) {
-        $erros++;
-        echo "<p style='color: red'>✖ Erro na linha $linha_atual ($nome): " . $e->getMessage() . "</p>";
+    } catch (Exception $e) {
+        echo "<span style='color: red'>Erro linha $linha: " . $e->getMessage() . "</span><br>";
     }
 }
 
-// Finaliza
 $db_produtos->commit();
 fclose($handle);
 
 echo "</div>";
 echo "<h2>Relatório Final</h2>";
 echo "<ul>";
-echo "<li>Linhas processadas: " . ($linha_atual - 1) . "</li>";
-echo "<li style='color: green'><strong>Produtos importados/atualizados: $sucessos</strong></li>";
-if ($erros > 0) echo "<li style='color: red'>Erros: $erros</li>";
+echo "<li>Total processado: $linha linhas</li>";
+echo "<li style='color: green'><strong>Importados com sucesso: $sucessos</strong></li>";
 echo "</ul>";
 
 echo "<hr>";
-echo "<a href='etiquetas/etiquetas.php'><button style='padding: 10px 20px; font-size: 16px; cursor: pointer;'>Ir para o Gerador de Etiquetas</button></a>";
+echo "<a href='ver_produtos.php'><button>Ver Tabela Preenchida</button></a> ";
+echo "<a href='etiquetas/etiquetas.php'><button>Ir para Etiquetas</button></a>";
 ?>
