@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Gerador de Etiquetas</title>
-    
     <link rel="stylesheet" href="../static/css/etiquetas.css">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -28,8 +25,8 @@
             <thead>
                 <tr>
                     <th>Produto</th>
-                    <th>Preço 1 (R$)</th>
-                    <th>Preço 2 (R$)</th>
+                    <th>Preço NCL</th>
+                    <th>Preço CL</th>
                     <th>Qtd.</th>
                     <th>Ação</th>
                 </tr>
@@ -38,7 +35,7 @@
                 </tbody>
         </table>
 
-        <button id="gerar_etiquetas" class="botao-gerar">Gerar Etiquetas</button>
+        <button id="gerar_etiquetas" class="botao-gerar">Imprimir Etiquetas</button>
     </div>
 
     <div id="container_impressao"></div>

@@ -1,4 +1,4 @@
-/* --- Estilos da Interface de Usuário (O que o usuário vê) --- */
+/* --- Estilos da Interface de Usuário --- */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     margin: 20px;
@@ -74,121 +74,133 @@ td .remover {
 .botao-gerar:hover { background-color: #218838; }
 
 
-/* --- Estilos da Impressão/PDF (O que é gerado) --- */
+/* --- Estilos da Impressão (Ajuste Fino) --- */
 
-/* A "folha" A4 virtual onde as etiquetas serão colocadas */
+#container_impressao {
+    position: fixed;
+    top: 0;
+    left: -10000px; /* Esconde da tela normal */
+    width: 210mm;
+    z-index: -1;
+}
+
 .pagina_a4 {
     width: 210mm;
     height: 297mm;
-    page-break-after: always; /* Para criar novas páginas na impressão */
+    page-break-after: always;
     display: flex;
-    flex-wrap: wrap; /* Faz as etiquetas quebrarem a linha */
-    align-content: flex-start; /* Começa a preencher de cima */
-    padding: 10mm; /* Margem da página */
-    box-sizing: border-box; /* Garante que o padding não aumente o tamanho */
+    flex-wrap: wrap;
+    align-content: flex-start;
+    
+    /* AJUSTE PARA 3 COLUNAS: */
+    /* 68mm * 3 = 204mm. Sobram 6mm. Usamos 3mm de cada lado. */
+    padding: 5mm 3mm; 
+    justify-content: space-between; /* Distribui as etiquetas igualmente */
+    
+    box-sizing: border-box;
+    background-color: white; 
 }
 
-#container_impressao {
-    position: absolute;
-    top: 0;
-    left: -9999px; /* Joga bem longe para a esquerda */
-    width: 210mm;
-}
-
-/* A ETIQUETA INDIVIDUAL */
 .etiqueta {
-    /* ** O MAIS IMPORTANTE ** */
-    /* Caminho ajustado: Sobe de 'css' para 'static' (../), entra em 'img' (img/) */
-    background-image: url('../img/etiqueta.png'); /* <-- COLOQUE SUA IMAGEM NA PASTA img */
-    background-size: 100% 100%; /* Faz a arte preencher a etiqueta */
+    /* Força o navegador a imprimir o background */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    
+    background-image: url('../img/etiqueta.png'); 
+    background-size: 100% 100%;
     background-repeat: no-repeat;
     
-    /* Defina o tamanho exato da sua etiqueta (Ajuste fino aqui) */
+    /* Tamanho exato */
     width: 68mm;  
     height: 24mm; 
     
-    /* Para posicionar os textos */
     position: relative; 
+    margin-bottom: 2mm; /* Espaço vertical entre etiquetas */
     
-    /* Margem entre as etiquetas */
-    margin: 2mm;
-    
-    /* Para debug (descomente para ver as bordas) */
-    /* border: 1px solid red; */
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 /* --- Posicionamento dos Textos --- */
-/*
-  Aqui é o "ajuste fino". Você terá que alterar os valores de 'top' e 'left'
-  até que os textos caiam EXATAMENTE nos lugares certos da sua imagem.
-  Use 'mm' (milímetros) para precisão na impressão.
-*/
 
 .etiqueta .nome_produto {
     position: absolute;
-    top: 8mm;     /* Ajuste: Distância do topo da etiqueta */
-    left: 7mm;     /* Ajuste: Distância da esquerda da etiqueta */
-    font-size: 10pt;
+    
+    /* Movi para cima (Top) para afastar do preço */
+    top: 1.5mm;     
+    left: 3mm;
+    
+    font-size: 9pt;
     font-weight: bold;
-    color: #40231b; /* Cor marrom escura */
+    color: #40231b; /* Marrom escuro */
+    
+    /* Limites para não invadir outras áreas */
+    width: 38mm; 
+    height: 9mm; 
+    overflow: hidden;
+    line-height: 1;
 }
 
-/* Bloco de Preço Comum (para alinhar RS, Int e Dec) */
 .etiqueta .preco-bloco {
     position: absolute;
     font-weight: bold;
-    color: #333;
 }
-.etiqueta .preco-bloco .rs { font-size: 10pt; vertical-align: top; margin-right: 2px; }
-.etiqueta .preco-bloco .int { font-size: 24pt; line-height: 1; }
-.etiqueta .preco-bloco .dec { font-size: 12pt; vertical-align: top; }
 
-/* Preço 1 (Maior) */
+/* REMOVE O R$ VISUALMENTE */
+.etiqueta .preco-bloco .rs { 
+    display: none; 
+}
+
+.etiqueta .preco-bloco .int { font-size: 25pt; line-height: 1; }
+.etiqueta .preco-bloco .dec { font-size: 9pt; vertical-align: top; margin-top: 1px; display: inline-block;}
+
+/* Preço 1 (Maior - Esquerda) */
 .etiqueta .preco1 {
-    top: 18mm;     /* Ajuste */
-    left: 10mm;    /* Ajuste */
+    /* Desci para 13mm para afastar do nome */
+    top: 10mm;    
+    left: 8mm;
+    color: #333; /* Cinza escuro */   
 }
 
-/* Preço 2 (Menor, Cacau Lovers) */
+/* Preço 2 (Menor - Direita/Cacau Lovers) */
 .etiqueta .preco2 {
-    top: 25mm;     /* Ajuste */
-    right: 15mm;   /* Ajuste */
-    color: #000;
+    /* Alinhado com o preço 1 */
+    top: 13.5mm;     
+    right: 8mm;   
+    
+    /* COR BRANCA PARA O PREÇO NO FUNDO MARROM */
+    color: #fff !important; 
 }
-.etiqueta .preco2 .rs { font-size: 9pt; }
-.etiqueta .preco2 .int { font-size: 20pt; }
-.etiqueta .preco2 .dec { font-size: 11pt; }
+
+/* Ajuste fino: Preço menor um pouco menor */
+.etiqueta .preco2 .int { font-size: 25pt; }
 
 
 /* --- Regras de Impressão (@media print) --- */
 @media print {
-    /* Esconde a interface inteira */
     .interface-usuario {
-        display: none;
+        display: none !important;
     }
 
-    /* Mostra APENAS o container de impressão */
     #container_impressao {
-        display: block;
-        position: static; 
+        position: static;
         left: auto;
+        display: block;
     }
     
-    /* Remove margens e cabeçalhos do navegador */
     @page {
         size: A4;
-        margin: 0;
+        margin: 0; /* Margem zero na folha */
     }
     
     body {
         margin: 0;
+        background: white;
     }
     
     .pagina_a4 {
         border: none;
         box-shadow: none;
         margin: 0;
-        padding: 10mm; /* Garante que as margens da página sejam aplicadas */
-        box-sizing: border-box;
+        padding: 5mm 3mm; /* Repete o padding para garantir na impressão */
     }
 }
