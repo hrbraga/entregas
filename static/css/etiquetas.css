@@ -4,9 +4,8 @@
 
 .interface-usuario {
     max-width: 900px;
-    /* AQUI: Mudei de '0 auto' para '40px auto' para desgrudar do header */
     margin: 40px auto; 
-    padding: 30px; /* Mais espaço interno */
+    padding: 30px; 
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -16,14 +15,17 @@ h2 {
     text-align: center; 
     margin-top: 0;
     margin-bottom: 30px;
-    font-size: 2.8rem; /* Título bem visível */
+    font-size: 2.8rem; 
     color: #0056b3;
 }
 
 h3 {
-    font-size: 2.0rem; /* Subtítulo maior */
+    font-size: 2.2rem; 
+    text-align: center;
     color: #333;
     margin-bottom: 15px;
+    border-bottom: 2px solid #eee; 
+    padding-bottom: 10px;
 }
 
 .controles {
@@ -32,11 +34,11 @@ h3 {
     margin-bottom: 30px;
     align-items: flex-end;
     justify-content: center;
-    flex-wrap: wrap; /* Permite quebrar linha em telas menores */
+    flex-wrap: wrap; 
 }
 
 .controles label { 
-    font-size: 1.2rem; /* AUMENTADO: ~16px */
+    font-size: 1.2rem; 
     font-weight: bold;
     color: #333;
     margin-bottom: 5px;
@@ -45,9 +47,9 @@ h3 {
 
 .controles input {
     border: 1px solid #ccc;
-    padding: 10px; /* Input mais alto e confortável */
+    padding: 10px; 
     border-radius: 4px;
-    font-size: 1.2rem; /* AUMENTADO: Texto digitado maior */
+    font-size: 1.2rem; 
 }
 
 .controles input[type="text"] { width: 300px; }
@@ -70,21 +72,21 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 30px;
-    font-size: 1.2rem; /* AUMENTADO: Tabela mais legível */
+    font-size: 1rem; 
 }
 
 th, td {
     border: 1px solid #ddd;
-    padding: 12px; /* Células mais espaçosas */
+    padding: 15px; 
     text-align: center;
+    font-size: 1.4rem; 
 }
 
-th, td { 
+th { 
     background-color: #f4f4f4; 
-    font-weight: 800; /* Negrito extra */
-    font-size: 1.6rem; /* AUMENTADO: ~20px */
-    color: #000; /* Preto absoluto para destaque */
-    text-transform: uppercase; /* (Opcional) Deixa tudo em maiúsculo para destacar */
+    font-weight: 800; 
+    color: #000; 
+    text-transform: uppercase; 
 }
 
 td .remover {
@@ -99,8 +101,8 @@ td .remover {
 
 .botao-gerar {
     width: 100%;
-    padding: 20px; /* Botão final bem grande */
-    font-size: 1.6rem; /* Texto gigante */
+    padding: 20px; 
+    font-size: 2.0rem; 
     font-weight: bold;
     background-color: #28a745;
     color: white;
@@ -113,108 +115,146 @@ td .remover {
 .botao-gerar:hover { background-color: #218838; }
 
 
-/* --- Estilos da Impressão (Mantidos exatamente como estavam funcionando) --- */
+/* --- Estilos do Modal --- */
+.modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+}
+.modal-box {
+    background: white; padding: 30px; border-radius: 8px; text-align: center; width: 400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.modal-box h3 { font-size: 2.2rem; margin-bottom: 10px; color: #333; }
+.modal-box p { font-size: 1.4rem; color: #666; margin-bottom: 25px; }
+.modal-botoes { display: flex; gap: 15px; justify-content: center; margin-bottom: 15px; }
+.btn-modal {
+    padding: 15px 20px; border: none; border-radius: 5px; cursor: pointer;
+    font-weight: bold; font-size: 1.2rem; transition: transform 0.1s;
+}
+.btn-modal:active { transform: scale(0.98); }
+.btn-modal.primaria { background-color: #28a745; color: white; }
+.btn-modal.secundaria { background-color: #007bff; color: white; }
+.btn-modal.cancelar { background-color: #ccc; color: #333; width: 100%; margin-top: 10px;}
+
+
+/* ========================================== */
+/* === ESTILOS DA IMPRESSÃO === */
+/* ========================================== */
 
 #container_impressao {
-    position: fixed;
-    top: 0;
-    left: -10000px;
-    width: 210mm;
-    z-index: -1;
+    position: fixed; top: 0; left: -10000px; width: 210mm; z-index: -1;
 }
 
 .pagina_a4 {
-    width: 210mm;
-    height: 297mm;
-    page-break-after: always;
-    display: flex;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    padding: 5mm 3mm; 
-    justify-content: space-between;
-    box-sizing: border-box;
-    background-color: white; 
+    width: 210mm; height: 297mm; page-break-after: always;
+    display: flex; flex-wrap: wrap; align-content: flex-start;
+    box-sizing: border-box; background-color: white; 
 }
 
-
-
+/* LAYOUT PADRÃO (68mm - 3 Colunas) */
+#container_impressao.layout-padrao .pagina_a4 {
+    padding: 5mm 3mm; justify-content: space-between;
+}
 .etiqueta {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    background-image: url('../img/etiqueta.png'); 
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    width: 68mm;  
-    height: 24mm; 
-    position: relative; 
-    margin-bottom: 2mm;
-    font-family: Arial, Helvetica, sans-serif;
+    width: 68mm; height: 24mm; position: relative; margin-bottom: 2mm;
 }
 
+/* LAYOUT TAMANHO 2 (80mm - 2 Colunas) */
+#container_impressao.layout-tamanho-2 .pagina_a4 {
+    padding: 5mm 15mm; justify-content: space-between;
+}
+.etiqueta-tipo-2 {
+    width: 80mm; height: 38mm; position: relative; margin-bottom: 2mm;
+}
+
+/* Imagem e Conteúdo */
+.img-fundo {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; object-fit: fill;
+}
+.conteudo-frente {
+    position: relative; z-index: 1; width: 100%; height: 100%;
+}
+
+/* Posicionamento Genérico */
+.nome_produto {
+    position: absolute; font-weight: bold; color: #40231b; 
+    overflow: hidden; line-height: 1.1; text-align: left;
+}
+.preco-bloco { position: absolute; font-weight: bold; }
+.preco-bloco .rs { display: none; }
+.preco-bloco .dec { font-size: 9pt; vertical-align: top; margin-top: 1px; display: inline-block; }
+
+/* --- AJUSTES ESPECÍFICOS: ETIQUETA 1 (68x24mm) --- */
 .etiqueta .nome_produto {
-    position: absolute;
-    top: 1.5mm;     
-    left: 3mm;
-    font-size: 9pt;
-    font-weight: bold;
-    color: #40231b; 
-    width: 38mm; 
-    height: 9mm; 
-    overflow: hidden;
-    line-height: 1;
-    text-align: left;
+    top: 1.5mm; left: 3mm; font-size: 9pt; width: 30mm; height: 9mm; line-height: 1;
+}
+.etiqueta .preco-bloco .int { font-size: 20pt; line-height: 1; }
+
+.etiqueta .preco1 { top: 11mm; left: 8mm; color: #333; }
+
+/* CORREÇÃO BLINDADA DO PREÇO BRANCO (TIPO 1) */
+.etiqueta .preco2 { 
+    top: 13.5mm; right: 4mm; 
+    color: #ffffff !important; 
+    z-index: 50;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+.etiqueta .preco2 span, 
+.etiqueta .preco2 .int, 
+.etiqueta .preco2 .dec {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: 0 0 0 #ffffff !important;
+    opacity: 0.99; /* Força renderização como gráfico */
+    position: relative;
+    z-index: 51;
+}
+.etiqueta .preco2 .int { font-size: 20pt; }
+
+
+/* --- AJUSTES ESPECÍFICOS: ETIQUETA 2 (80x38mm) --- */
+.etiqueta-tipo-2 .nome_produto { 
+    top: 6mm; left: 4mm; font-size: 12pt; 
+    width: 45mm; height: 15mm; line-height: 1.1;
+}
+.etiqueta-tipo-2 .preco-bloco .int { font-size: 30pt; line-height: 1; }
+.etiqueta-tipo-2 .preco-bloco .dec { font-size: 12pt; margin-top: 3px; }
+
+.etiqueta-tipo-2 .preco1 { 
+    top: 19mm; left: 11mm; color: #333; 
 }
 
-.etiqueta .preco-bloco {
-    position: absolute;
-    font-weight: bold;
+/* CORREÇÃO BLINDADA DO PREÇO BRANCO (TIPO 2) */
+.etiqueta-tipo-2 .preco2 { 
+    top: 21mm; right: 4mm; 
+    color: #ffffff !important; 
+    z-index: 50;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
 }
-
-.etiqueta .preco-bloco .rs { display: none; }
-.etiqueta .preco-bloco .int { font-size: 16pt; line-height: 1; }
-.etiqueta .preco-bloco .dec { font-size: 9pt; vertical-align: top; margin-top: 1px; display: inline-block;}
-
-.etiqueta .preco1 {
-    top: 13mm;    
-    left: 3mm;
-    color: #333;    
+.etiqueta-tipo-2 .preco2 span,
+.etiqueta-tipo-2 .preco2 .int,
+.etiqueta-tipo-2 .preco2 .dec {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: 0 0 0 #ffffff !important;
+    opacity: 0.99; /* Força renderização como gráfico */
+    position: relative;
+    z-index: 51;
 }
-
-.etiqueta .preco2 {
-    top: 13.5mm;     
-    right: 8mm;   
-    color: #fff !important; 
-}
-.etiqueta .preco2 .int { font-size: 14pt; }
+.etiqueta-tipo-2 .preco2 .int { font-size: 25pt; }
 
 
-/* --- Regras de Impressão (@media print) --- */
+/* --- Regras de Impressão --- */
 @media print {
-    /* Esconde tudo o que não é etiqueta */
-    .interface-usuario, header, footer, h2, body > h1 {
+    .interface-usuario, header, footer, h2, body > h1, .modal-overlay {
         display: none !important;
     }
-
     #container_impressao {
-        position: static;
-        left: auto;
-        display: block;
+        position: static; left: auto; display: block;
     }
-    
-    @page {
-        size: A4;
-        margin: 0; 
-    }
-    
-    body {
-        margin: 0;
-        background: white;
-    }
-    
-    .pagina_a4 {
-        border: none;
-        box-shadow: none;
-        margin: 0;
-        padding: 5mm 3mm;
-    }
+    @page { size: A4; margin: 0; }
+    body { margin: 0; background: white; }
+    .pagina_a4 { border: none; box-shadow: none; margin: 0; }
 }

@@ -1,11 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
     
+    // Elementos da Interface
     const inputCodigo = document.getElementById('codigo_produto');
     const inputQuantidade = document.getElementById('quantidade');
     const btnAdicionar = document.getElementById('adicionar_produto');
     const tabelaCorpo = document.querySelector("#lista_produtos tbody");
     const btnGerar = document.getElementById('gerar_etiquetas');
     const containerImpressao = document.getElementById('container_impressao');
+
+    // Elementos do Modal
+    const modal = document.getElementById('modal-escolha');
+    const btnFecharModal = document.getElementById('btn-fechar-modal');
+    const btnTamanhoPadrao = document.getElementById('btn-tamanho-padrao');
+    const btnTamanho2 = document.getElementById('btn-tamanho-2');
 
     // --- Ação: Adicionar Produto ---
     const adicionarProdutoNaLista = async () => {
@@ -46,22 +53,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Eventos de Adição e Remoção
     btnAdicionar.addEventListener('click', adicionarProdutoNaLista);
-    
-    inputCodigo.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            adicionarProdutoNaLista();
-        }
-    });
+    inputCodigo.addEventListener('keypress', (e) => { if (e.key === 'Enter') adicionarProdutoNaLista(); });
+    tabelaCorpo.addEventListener('click', (e) => { if (e.target.classList.contains('remover')) e.target.closest('tr').remove(); });
 
-    tabelaCorpo.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remover')) {
-            e.target.closest('tr').remove();
-        }
-    });
-
-    // --- Ação: Gerar Etiquetas (Somente Impressão) ---
+    // --- Lógica do Modal e Impressão ---
     btnGerar.addEventListener('click', () => {
+        if (tabelaCorpo.rows.length === 0) { alert('Adicione pelo menos um produto à lista.'); return; }
+        modal.style.display = 'flex';
+    });
+
+    btnFecharModal.addEventListener('click', () => { modal.style.display = 'none'; });
+
+    btnTamanhoPadrao.addEventListener('click', () => { gerarImpressao('padrao'); });
+    btnTamanho2.addEventListener('click', () => { gerarImpressao('tamanho2'); });
+
+    function gerarImpressao(tipo) {
         const produtosParaImprimir = [];
         tabelaCorpo.querySelectorAll('tr').forEach(row => {
             produtosParaImprimir.push({
@@ -72,24 +80,53 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        if (produtosParaImprimir.length === 0) {
-            alert('Adicione pelo menos um produto à lista.');
-            return;
+        // Configura o container para o CSS saber o tamanho da página
+        containerImpressao.className = ''; 
+        if (tipo === 'tamanho2') {
+            containerImpressao.classList.add('layout-tamanho-2');
+        } else {
+            containerImpressao.classList.add('layout-padrao');
         }
 
-        // 1. Constrói o HTML
-        prepararHTMLParaImpressao(produtosParaImprimir);
+        // Gera o HTML das etiquetas
+        prepararHTMLParaImpressao(produtosParaImprimir, tipo);
+        
+        modal.style.display = 'none';
 
-        // 2. Chama a impressão do navegador
-        window.print();
-    });
+        // --- CORREÇÃO DO PROBLEMA DE CARREGAMENTO ---
+        // Espera todas as imagens carregarem antes de imprimir
+        const imagens = containerImpressao.querySelectorAll('img');
+        const promessas = Array.from(imagens).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(resolve => {
+                img.onload = resolve;
+                img.onerror = resolve; // Imprime mesmo se der erro na imagem
+            });
+        });
 
-    function prepararHTMLParaImpressao(produtos) {
+        Promise.all(promessas).then(() => {
+            // Pequeno delay de segurança para o navegador renderizar
+            setTimeout(() => {
+                window.print();
+            }, 100);
+        });
+    }
+
+    function prepararHTMLParaImpressao(produtos, tipo) {
         containerImpressao.innerHTML = ''; 
         
         let paginaAtual = document.createElement('div');
         paginaAtual.className = 'pagina_a4';
         containerImpressao.appendChild(paginaAtual);
+
+        // --- DEFINIÇÃO DA IMAGEM E CLASSE ---
+        let imagemSrc = '../static/img/etiqueta.png'; // Padrão
+        let classeEtiqueta = 'etiqueta';
+
+        if (tipo === 'tamanho2') {
+            imagemSrc = '../static/img/etiquetaMaior.png'; // Imagem maior
+            classeEtiqueta = 'etiqueta-tipo-2';
+        }
 
         produtos.forEach(produto => {
             for (let i = 0; i < produto.qtd; i++) {
@@ -98,21 +135,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const [int2, dec2] = produto.preco2.split('.');
                 
                 const etiqueta = document.createElement('div');
-                etiqueta.className = 'etiqueta';
+                etiqueta.className = classeEtiqueta;
                 
+                // HTML com a imagem dinâmica
                 etiqueta.innerHTML = `
-                    <div class="nome_produto">${produto.nome}</div>
+                    <img src="${imagemSrc}" class="img-fundo" alt="">
                     
-                    <div class="preco1 preco-bloco">
-                        <span class="rs">R$</span>
-                        <span class="int">${int1}</span>
-                        <span class="dec">,${dec1 ? dec1.padEnd(2, '0') : '00'}</span>
-                    </div>
-                    
-                    <div class="preco2 preco-bloco">
-                        <span class="rs">R$</span>
-                        <span class="int">${int2}</span>
-                        <span class="dec">,${dec2 ? dec2.padEnd(2, '0') : '00'}</span>
+                    <div class="conteudo-frente">
+                        <div class="nome_produto">${produto.nome}</div>
+                        
+                        <div class="preco1 preco-bloco">
+                            <span class="rs">R$</span>
+                            <span class="int">${int1}</span>
+                            <span class="dec">,${dec1 ? dec1.padEnd(2, '0') : '00'}</span>
+                        </div>
+                        
+                        <div class="preco2 preco-bloco">
+                            <span class="rs">R$</span>
+                            <span class="int">${int2}</span>
+                            <span class="dec">,${dec2 ? dec2.padEnd(2, '0') : '00'}</span>
+                        </div>
                     </div>
                 `;
                 

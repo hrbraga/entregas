@@ -1,7 +1,50 @@
 <?php 
     require '../config.php'; 
-    require '../auth/custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
+    
+    // --- INÍCIO DA PROTEÇÃO POR SENHA SIMPLES ---
+    session_start();
+    $senha_da_pagina = "franqueado"; // <--- DEFINA SUA SENHA AQUI
+
+    // Verifica se a senha foi enviada via POST
+    if (isset($_POST['senha_acesso'])) {
+        if ($_POST['senha_acesso'] === $senha_da_pagina) {
+            $_SESSION['custos_acesso_liberado'] = true;
+        } else {
+            $erro_senha = "Senha incorreta!";
+        }
+    }
+
+    // Se não estiver logado, mostra o formulário de senha e interrompe o script
+    if (!isset($_SESSION['custos_acesso_liberado']) || $_SESSION['custos_acesso_liberado'] !== true) {
 ?>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso Restrito</title>
+    <link rel="stylesheet" href="../static/css/login.css"> </head>
+<body>
+    <div class="login-container">
+        <form class="login-form" method="POST">
+            <h2>Área Restrita</h2>
+            <?php if (isset($erro_senha)) echo "<p style='color:red;text-align:center'>$erro_senha</p>"; ?>
+            <div class="form-group">
+                <label>Digite a senha de acesso:</label>
+                <input type="password" name="senha_acesso" required autofocus>
+            </div>
+            <button type="submit" class="login-btn">Entrar</button>
+        </form>
+    </div>
+</body>
+</html>
+<?php
+        exit; // Impede que o restante da página carregue
+    }
+    // --- FIM DA PROTEÇÃO ---
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>

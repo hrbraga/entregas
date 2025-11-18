@@ -2,6 +2,7 @@
 require 'config.php';
 require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -16,7 +17,7 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
 
 <body>
     <header>
-        <h1>Caixa de ferramentas</h1>
+        <h1>Caixa de Ferramentas</h1>
         <div style="position: absolute; top: 10px; right: 20px; font-size: 1.6rem; color: white; z-index: 100;">
             Acesso: <?php echo htmlspecialchars($_SESSION['rcky_code']); ?> | <a href="auth/custos_logout.php"
                 style="color: white; text-decoration: underline;">Sair</a>
@@ -24,11 +25,11 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
     </header>
 
     <main>
-       
+
         <section class="custos">
             <div class="campanhas">
-                <div class="campanha-2 campanha"><a href="Custos/custos_selecao.php"><img
-                            src="static/img/lojas.jfif" alt="Loja">
+                <div class="campanha-2 campanha"><a href="Custos/custos_selecao.php"><img src="static/img/lojas.jfif"
+                            alt="Loja">
                         <p>Custo dos Produtos</p>
                     </a>
                 </div>
@@ -38,10 +39,16 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
                         <p>Controle de Entregas</p>
                     </a>
                 </div>
-                 <div class="campanha-2 campanha">
+                <div class="campanha-2 campanha">
                     <a href="contrato/contratoPetit.php">
                         <img src="static/img/petitDeli.jpg" alt="Bombons Petit Deli">
                         <p>Gerador de Contrato Petit Deli</p>
+                    </a>
+                </div>
+                <div class="campanha-2 campanha">
+                    <a href="etiquetas/etiquetas.php">
+                        <img src="static/img/megaloja.webp" alt="Mega Loja">
+                        <p>Gerador de Etiquetas Prateleira</p>
                     </a>
                 </div>
         </section>

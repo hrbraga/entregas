@@ -39,8 +39,8 @@
                 <thead>
                     <tr>
                         <th>Produto</th>
-                        <th>Preço 1 (R$)</th>
-                        <th>Preço 2 (R$)</th>
+                        <th>Preço NCL</th>
+                        <th>Preço CL</th>
                         <th>Qtd.</th>
                         <th>Ação</th>
                     </tr>
@@ -58,6 +58,29 @@
             <p>Voltar a Caixa de Ferramentas</p>
         </a>
     </footer>
+
+    <div id="container_impressao"></div>
+
+<div id="modal-escolha" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Qual o tamanho da etiqueta?</h3>
+            <p>Selecione o tipo de loja.</p>
+            
+            <div class="modal-botoes">
+                <button id="btn-tamanho-padrao" class="btn-modal primaria">
+                    Águia Convencional, Retrofit e Smart<br>
+                    <small>(68x24mm)</small>
+                </button>
+                
+                <button id="btn-tamanho-2" class="btn-modal secundaria">
+                    Águia 2.0, Quiosque Premium e Premium<br>
+                    <small>(80x38mm)</small>
+                </button>
+            </div>
+            
+            <button id="btn-fechar-modal" class="btn-modal cancelar">Cancelar</button>
+        </div>
+    </div>
 
     <div id="container_impressao"></div>
 
