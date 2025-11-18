@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Sobe de 'js' para 'static' (../)
             // Sobe de 'static' para 'entradas' (../)
             // Entra em 'api' (api/)
-            const response = await fetch(`../../api/buscar_produto.php?codigo=${codigo}`);
+            const response = await fetch(`../api/buscar_produto.php?codigo=${codigo}`);
             
             if (!response.ok) {
                 // Se a API retornou 404 (Not Found) ou outro erro

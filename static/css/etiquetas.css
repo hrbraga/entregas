@@ -88,9 +88,11 @@ td .remover {
     box-sizing: border-box; /* Garante que o padding não aumente o tamanho */
 }
 
-/* O container de preparação fica invisível, exceto na hora de imprimir */
 #container_impressao {
-    display: none;
+    position: absolute;
+    top: 0;
+    left: -9999px; /* Joga bem longe para a esquerda */
+    width: 210mm;
 }
 
 /* A ETIQUETA INDIVIDUAL */
@@ -168,6 +170,8 @@ td .remover {
     /* Mostra APENAS o container de impressão */
     #container_impressao {
         display: block;
+        position: static; 
+        left: auto;
     }
     
     /* Remove margens e cabeçalhos do navegador */
