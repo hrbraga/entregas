@@ -6,6 +6,7 @@
         die('Erro: config.php não encontrado.');
     }
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>

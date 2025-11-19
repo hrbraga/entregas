@@ -1,9 +1,8 @@
 <?php 
     require '../config.php'; 
     
-    // --- INÍCIO DA PROTEÇÃO POR SENHA SIMPLES ---
-    session_start();
-    $senha_da_pagina = "franqueado"; // <--- DEFINA SUA SENHA AQUI
+    // --- INÍCIO DA PROTEÇÃO POR SENHA SIMPLES --
+    $senha_da_pagina = "trufadebanana"; // <--- DEFINA SUA SENHA AQUI
 
     // Verifica se a senha foi enviada via POST
     if (isset($_POST['senha_acesso'])) {
