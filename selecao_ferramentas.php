@@ -51,6 +51,12 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
                         <p>Gerador de Etiquetas Prateleira</p>
                     </a>
                 </div>
+                <div class="campanha-2 campanha">
+                    <a href="delivery/gerador_delivery.php">
+                        <img src="static/img/delivery.jfif" alt="Delivery">
+                        <p>Gerador de Etiqueta Delivery</p>
+                    </a>
+                </div>
         </section>
     </main>
 
