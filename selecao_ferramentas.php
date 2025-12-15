@@ -42,19 +42,19 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
                 <div class="campanha-2 campanha">
                     <a href="contrato/contratoPetit.php">
                         <img src="static/img/petitDeli.jpg" alt="Bombons Petit Deli">
-                        <p>Gerador de Contrato Petit Deli</p>
+                        <p>Contrato Encomenda Petit Deli</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
                     <a href="etiquetas/etiquetas.php">
                         <img src="static/img/megaloja.webp" alt="Mega Loja">
-                        <p>Gerador de Etiquetas Prateleira</p>
+                        <p>Etiquetas Prateleira</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
                     <a href="delivery/gerador_delivery.php">
                         <img src="static/img/delivery.jfif" alt="Delivery">
-                        <p>Gerador de Etiqueta Delivery</p>
+                        <p>Etiqueta Delivery</p>
                     </a>
                 </div>
         </section>
