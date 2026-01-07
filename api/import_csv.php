@@ -1,5 +1,5 @@
 <?php
-// api/import_csv.php (Versão Corrigida)
+// api/import_csv.php (Versão com Correção de Encoding UTF-8)
 require '../config.php';
 require '../auth/auth_check.php';
 
@@ -14,7 +14,7 @@ if (!isset($_FILES['file'])) {
 $file = $_FILES['file']['tmp_name'];
 $file_name = $_FILES['file']['name'];
 
-if (!str_ends_with($file_name, '.csv')) {
+if (!str_ends_with(strtolower($file_name), '.csv')) {
     echo json_encode(['success' => false, 'message' => 'Formato de arquivo inválido. Use CSV.']);
     exit;
 }
@@ -48,9 +48,13 @@ try {
             continue; // Pula linha mal formatada
         }
 
+        // --- CORREÇÃO DE ENCODING AQUI ---
+        // Tenta detectar se é UTF-8, se não for, converte de ISO-8859-1 (Excel Padrão) para UTF-8
+        $item_utf8 = mb_convert_encoding(trim($data[1]), 'UTF-8', 'UTF-8, ISO-8859-1');
+        $grupo_utf8 = mb_convert_encoding(trim($data[2]), 'UTF-8', 'UTF-8, ISO-8859-1');
+        // ---------------------------------
+
         $codigo_sap = ltrim(trim($data[0]), '0'); // Remove zeros à esquerda
-        $item = trim($data[1]);
-        $grupo = trim($data[2]);
         $pedido_loja = (int) ($data[3] ?? 0);
         $pedido_vd = (int) ($data[4] ?? 0);
 
@@ -59,8 +63,8 @@ try {
 
         $stmt_insert->execute([
             $codigo_sap,
-            $item,
-            $grupo,
+            $item_utf8,  // Usa a variável convertida
+            $grupo_utf8, // Usa a variável convertida
             $pedido_loja,
             $pedido_vd,
             $total_caixa,
@@ -72,7 +76,7 @@ try {
 
     // 6. Confirma as alterações
     $db_entregas->commit();
-    echo json_encode(['success' => true, 'message' => 'Pedidos importados com sucesso! Os dados anteriores foram substituídos.']);
+    echo json_encode(['success' => true, 'message' => 'Pedidos importados com sucesso! Encoding corrigido para UTF-8.']);
 
 } catch (Exception $e) {
     // 7. Se algo deu errado, desfaz tudo

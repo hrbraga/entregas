@@ -5,7 +5,7 @@
 ?>
 
 <!DOCTYPE html>
-<html lang="pr-BR"></html>
+<html lang="pr-BR">
 
 <head>
     <meta charset="UTF-8">
@@ -17,7 +17,7 @@
     <title>Histório Notas Fiscais</title>
 </head>
 
-<body></body>
+<body>
 
 <div class="container">
     <div id="feedback-message" class="feedback-message" style="display: none;"></div>

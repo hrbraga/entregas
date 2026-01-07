@@ -2,12 +2,11 @@
 /* 1. ESTILOS BASE E NAVEGAÇÃO */
 /* =================================== */
 
-/* Importa a fonte padrão do projeto (Poppins) */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 body {
-    font-family: 'Poppins', sans-serif; /* Padrão do etiquetas.php */
-    background-color: burlywood; /* Padrão do selecao.css/etiquetas.php */
+    font-family: 'Poppins', sans-serif;
+    background-color: burlywood;
     margin: 0;
     padding: 0;
     color: #333;
@@ -18,29 +17,26 @@ body {
 
 main {
     max-width: 1200px;
-    margin: 40px auto; /* Aumentado espaçamento superior */
+    margin: 40px auto;
     padding: 0 20px;
     width: 100%;
 }
 
-p{
+p {
     font-size: 1.2rem;
     line-height: 1.6;
     margin-bottom: 15px;
 }
 
-/* Estilos para a barra de navegação (Estilo Global) */
+/* Navbar */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
-    /* Identidade Visual do Header Global (Vermelho + Textura) */
     background-color: rgb(100, 18, 18);
     background-image: url('../img/bg__header--desk.png');
     background-size: cover;
     background-position: center;
-    
     color: white;
     padding: 15px 30px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -70,7 +66,7 @@ p{
     padding: 8px 15px;
     border-radius: 4px;
     transition: all 0.3s ease;
-    background-color: rgba(255, 255, 255, 0.1); /* Fundo sutil nos links */
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .nav-links a:hover {
@@ -78,59 +74,43 @@ p{
     transform: translateY(-2px);
 }
 
-/* Estilos de títulos e seções (Cartões Brancos) */
+/* Cartões e Títulos */
 section {
-    background-color: #fff; /* Fundo branco igual ao .interface-usuario */
+    background-color: #fff;
     padding: 30px;
     margin-bottom: 30px;
-    border-radius: 8px; /* Bordas arredondadas padrão */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra padrão */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 h2 {
-    color: #333; /* Mantido o azul para títulos (padrão etiquetas) */
+    color: #333;
     border-bottom: 2px solid #eee;
     padding-bottom: 10px;
     margin-bottom: 25px;
     font-size: 2rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center; /* Centralizado igual etiquetas */
+    text-align: center;
 }
 
-/* Estilos para o rodapé */
 footer {
     text-align: center;
     padding: 20px;
     margin-top: auto;
-    
-    /* Identidade Global */
     background-color: rgb(100, 18, 18);
     background-image: url('../img/bg__header--desk.png');
     color: white;
     font-size: 1.2rem;
-    border-top: none;
 }
 footer a { color: white; }
 
+
 /* =================================== */
-/* 2. TABELAS E RESPONSIVIDADE */
+/* 2. TABELAS, ABAS E RESPONSIVIDADE */
 /* =================================== */
 
 .table-container {
     overflow-x: auto;
     width: 100%;
-}
-
-.delivery-tables-container {
-    display: block;
-    width: 100%;
-    margin-top: 30px;
-}
-
-.table-section {
-    margin-bottom: 30px;
 }
 
 table {
@@ -140,63 +120,130 @@ table {
     min-width: 800px;
 }
 
-th, td {
-    padding: 15px; /* Mais espaçamento */
-    text-align: left;
-    border: 1px solid #ddd; /* Bordas completas igual etiquetas */
-}
-
+/* MELHORIA: Cabeçalho Fixo (Sticky Header) */
 th {
-    background-color: #f4f4f4; /* Fundo cinza claro igual etiquetas */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #f4f4f4;
     color: #000;
     font-size: 1.1rem;
     font-weight: 800;
     text-transform: uppercase;
     text-align: center;
-    border-bottom: 2px solid #ddd;
+    padding: 15px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4); /* Sombra para destacar */
 }
 
 td {
+    padding: 15px;
     text-align: center;
     font-size: 1rem;
-}
-
-tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-tr:hover {
-    background-color: #f1f1f1;
-}
-
-/* CORREÇÃO DA QUEBRA DE PALAVRA */
-.delivery-table-section table td:nth-child(2),
-.items-received table td:nth-child(2),
-.items-to-receive table td:nth-child(2) {
-    white-space: normal;
-    word-wrap: break-word; 
-    max-width: 150px;
-    text-align: left;
-}
-
-/* Demais células sem quebra */
-.delivery-table-section table td,
-.items-received table td,
-.items-to-receive table td {
+    border: 1px solid #ddd;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.delivery-table-section table td:nth-child(2),
-.items-received table td:nth-child(2),
-.items-to-receive table td:nth-child(2) {
+
+/* Permite quebra de linha apenas na coluna de descrição (Item) */
+td:nth-child(2) {
     white-space: normal;
+    word-wrap: break-word; 
+    max-width: 150px;
+    text-align: left;
     overflow: visible;
+}
+
+tr:nth-child(even) { background-color: #f9f9f9; }
+tr:hover { background-color: #f1f1f1; }
+
+/* --- MELHORIA: Estilos das Abas (Tabs) --- */
+.tabs-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 0;
+    justify-content: center;
+}
+
+.tab-btn {
+    background: #e9ecef;
+    border: none;
+    border-bottom: 4px solid transparent;
+    padding: 12px 25px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #555;
+    opacity: 0.8;
+    transition: all 0.3s;
+    border-radius: 5px 5px 0 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.tab-btn:hover {
+    background-color: #dde0e3;
+    opacity: 1;
+}
+
+.tab-btn.active {
+    background-color: #fff;
+    border-bottom-color: rgb(100, 18, 18);
+    color: rgb(100, 18, 18);
+    opacity: 1;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.4s ease-in-out;
+    padding-top: 20px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- MELHORIA: Barra de Progresso Visual --- */
+.progress-container {
+    background-color: #e9ecef;
+    border-radius: 4px;
+    width: 100%;
+    height: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #28a745;
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.progress-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 0;
+    left: 0;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #333;
+    line-height: 20px;
+    text-shadow: 0 0 2px rgba(255,255,255,0.8);
 }
 
 
 /* =================================== */
-/* 3. ESTILOS DE AÇÃO E FEEDBACK */
+/* 3. BOTÕES, FEEDBACK E IMPRESSÃO */
 /* =================================== */
 
 .upload-area {
@@ -204,11 +251,10 @@ tr:hover {
     display: flex;
     gap: 15px;
     align-items: center;
-    justify-content: center; /* Centraliza botões */
+    justify-content: center;
     flex-wrap: wrap;
 }
 
-/* Padronização dos Botões */
 button, .import-csv-btn, .print-btn, #import-xml-btn {
     padding: 10px 25px;
     border: none;
@@ -223,23 +269,28 @@ button, .import-csv-btn, .print-btn, #import-xml-btn {
 
 button:active { transform: scale(0.98); }
 
-#import-xml-btn {
-    background-color: #28a745;
-    color: white;
-}
+#import-xml-btn { background-color: #28a745; color: white; }
 #import-xml-btn:hover { background-color: #218838; }
 
-.import-csv-btn {
-    background-color: #ffc107;
-    color: #333;
-}
+.import-csv-btn { background-color: #ffc107; color: #333; }
 .import-csv-btn:hover { background-color: #e0a800; }
 
-.print-btn {
-    background-color: #8f07ff;
-    color: white;
-}
+.print-btn { background-color: #8f07ff; color: white; }
 .print-btn:hover { background-color: #7000b3; }
+
+/* Botões de Ação na Tabela */
+.action-btn {
+    padding: 5px 10px;
+    margin: 0 2px;
+    font-size: 1.2rem;
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.action-btn:hover { background-color: #eee; }
+.save-btn { color: green; border-color: green; }
+.cancel-btn { color: red; border-color: red; }
+
 
 /* Feedback */
 .feedback-message {
@@ -264,10 +315,7 @@ button:active { transform: scale(0.98); }
     animation: spin 1s linear infinite;
     margin: 30px auto;
 }
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 /* Pesquisa */
 .search-area {
@@ -275,24 +323,50 @@ button:active { transform: scale(0.98); }
     gap: 10px;
     align-items: center;
     margin-bottom: 20px;
+    justify-content: center;
 }
 #product-search {
-    flex-grow: 1;
+    width: 60%;
     padding: 12px;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 1rem;
 }
-.clear-search-btn {
-    background-color: #dc3545;
-    color: white;
-}
+.clear-search-btn { background-color: #dc3545; color: white; }
 .clear-search-btn:hover { background-color: #c82333; }
 
-/* Cores de status da tabela */
+/* Cores de status */
 .fully-received { background-color: #d4edda !important; }
 .over-received { background-color: #f8d7da !important; }
 
+/* --- MELHORIA: Impressão Limpa --- */
+@media print {
+    header, footer, .upload-area, .pesquisar, .tabs-container, .action-btn, #feedback-message {
+        display: none !important;
+    }
+    
+    section {
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Mostra todas as abas para imprimir tudo */
+    .tab-content {
+        display: block !important;
+        margin-bottom: 30px;
+        page-break-inside: avoid;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    body { background-color: white; }
+}
+
 @media (max-width: 1200px) {
     main { padding: 0 10px; }
+    #product-search { width: 100%; }
 }

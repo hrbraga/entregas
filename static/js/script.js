@@ -1,68 +1,136 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Cache para armazenar o último timer de pesquisa (usado para o filtro dinâmico)
+    // ===============================================
+    // 1. LÓGICA DAS ABAS (TABS) - CORRIGIDA
+    // ===============================================
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // 1. Remove 'active' de todos os botões e conteúdos
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+
+            // 2. Adiciona 'active' no botão clicado
+            btn.classList.add('active');
+
+            // 3. Pega o ID do alvo (ex: 'tab-to-receive') e mostra
+            const targetId = btn.getAttribute('data-target'); 
+            // Fallback: se não tiver data-target, tenta usar onclick ou id manual
+            if (targetId) {
+                const targetContent = document.getElementById(targetId);
+                if(targetContent) {
+                    targetContent.classList.add('active');
+                }
+            } else {
+                // Caso o HTML esteja usando o modelo antigo de onclick, chamamos a função global
+                // (Mas o código acima deve resolver 99% dos casos)
+                console.warn('Botão sem data-target:', btn);
+            }
+        });
+    });
+
+    // ===============================================
+    // 2. INICIALIZAÇÃO E VARIÁVEIS GLOBAIS
+    // ===============================================
     let searchTimeout = null;
-    
-    // Elementos de pesquisa
     const searchInput = document.getElementById('product-search');
     const filteredResultsContainer = document.getElementById('filtered-results-container');
     const filteredResultsBody = document.getElementById('filtered-results-body');
     const clearSearchButton = document.getElementById('clear-search-btn');
 
-    /**
-     * Esta função preenche as DUAS tabelas principais (A Receber e Recebidos).
-     * @param {Array} data - Os dados completos de ItemEntrega.
-     */
+    // Inicializa a tabela ao carregar
+    loadDataAndRenderTables();
+
+
+    // ===============================================
+    // 3. FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO
+    // ===============================================
     function renderTable(data) {
-        const tbodyToReceive = document.getElementById('table-body-to-receive');
-        const tbodyReceived = document.getElementById('table-body-received');
+        const tbodyToReceive = document.getElementById('table-body-to-receive'); // Aba "A Receber"
+        const tbodyReceived = document.getElementById('table-body-received');     // Aba "Concluídos"
         
-        tbodyToReceive.innerHTML = '';
-        tbodyReceived.innerHTML = '';
+        // Limpa tabelas
+        if(tbodyToReceive) tbodyToReceive.innerHTML = '';
+        if(tbodyReceived) tbodyReceived.innerHTML = '';
 
         data.forEach(item => {
-            // No PHP, os valores podem vir como strings, então garantimos que são números
             const recebido = parseInt(item.recebido, 10) || 0;
             const total_caixa = parseInt(item.total_caixa, 10) || 0;
+            const a_receber = Math.max(0, total_caixa - recebido);
 
-            const isFullyReceived = recebido >= total_caixa;
-            const targetTbody = isFullyReceived ? tbodyReceived : tbodyToReceive;
-            
-            const row = document.createElement('tr');
-            
-            if (recebido === total_caixa) {
-                row.classList.add('fully-received');
-            } else if (recebido > total_caixa) {
-                row.classList.add('over-received');
+            // Cálculo da porcentagem para a barra
+            let percentage = 0;
+            if (total_caixa > 0) {
+                percentage = (recebido / total_caixa) * 100;
+                if (percentage > 100) percentage = 100;
             }
 
-            row.innerHTML = `
-                <td>${item.codigo_sap}</td>
-                <td>${item.item}</td>
-                <td>${item.grupo}</td>
-                <td class="editable-cell" data-id="${item.id}" data-field="pedido_loja" data-old-value="${item.pedido_loja}">${item.pedido_loja}</td>
-                <td class="editable-cell" data-id="${item.id}" data-field="pedido_vd" data-old-value="${item.pedido_vd}">${item.pedido_vd}</td>
-                <td>${item.total_caixa}</td>
-                <td>${item.a_receber}</td>
-                <td>${item.recebido}</td>
-                <td>
-                    <button class="action-btn edit-btn" data-id="${item.id}" title="Editar">✏️</button>
-                    <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
-                </td>
-            `;
+            const isFullyReceived = recebido >= total_caixa && total_caixa > 0;
+            const row = document.createElement('tr');
+
+            // Verifica Excesso (Vermelho se recebeu a mais)
+            if (recebido > total_caixa) {
+                row.classList.add('over-received'); 
+            }
+
+            // --- CONTEÚDO DA LINHA ---
             
-            targetTbody.appendChild(row);
+            // CASO 1: CONCLUÍDO (Vai para a aba de Concluídos)
+            if (isFullyReceived) {
+                row.classList.add('fully-received'); // Verde
+                row.innerHTML = `
+                    <td>${item.codigo_sap}</td>
+                    <td>${item.item}</td>
+                    <td>${item.grupo}</td>
+                    <td>${item.total_caixa}</td>
+                    <td class="editable-cell" data-id="${item.id}" data-field="recebido" data-old-value="${item.recebido}">${item.recebido}</td>
+                    <td style="color: green; font-weight: bold;">CONCLUÍDO</td>
+                    <td>
+                        <button class="action-btn edit-btn" data-id="${item.id}" title="Editar">✏️</button>
+                        <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
+                    </td>
+                `;
+                if(tbodyReceived) tbodyReceived.appendChild(row);
+
+            } else {
+                // CASO 2: A RECEBER (Vai para a aba A Receber)
+                row.innerHTML = `
+                    <td>${item.codigo_sap}</td>
+                    <td>${item.item}</td>
+                    <td>${item.grupo}</td>
+                    <td class="editable-cell" data-id="${item.id}" data-field="pedido_loja" data-old-value="${item.pedido_loja}">${item.pedido_loja}</td>
+                    <td class="editable-cell" data-id="${item.id}" data-field="pedido_vd" data-old-value="${item.pedido_vd}">${item.pedido_vd}</td>
+                    <td>${item.total_caixa}</td>
+                    <td style="font-weight: bold; color: #d9534f;">${a_receber}</td>
+                    
+                    <td>
+                        <div class="progress-container" title="Recebido: ${recebido} de ${total_caixa}">
+                            <div class="progress-bar" style="width: ${percentage}%;"></div>
+                            <div class="progress-text">${recebido} (${percentage.toFixed(0)}%)</div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <button class="action-btn edit-btn" data-id="${item.id}" title="Editar">✏️</button>
+                        <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
+                    </td>
+                `;
+                if(tbodyToReceive) tbodyToReceive.appendChild(row);
+            }
         });
 
+        // Reaplica os eventos de clique nos botões recém-criados
         attachTableListeners();
     }
 
-    /**
-     * Função para anexar os event listeners (edição e exclusão).
-     */
+    // ===============================================
+    // 4. EDIÇÃO E EXCLUSÃO (EVENT LISTENERS)
+    // ===============================================
     function attachTableListeners() {
         
-        // 1. Lógica de Edição
+        // --- EDIÇÃO ---
         document.querySelectorAll('.edit-btn').forEach(button => {
             button.addEventListener('click', (e) => {
                 const row = e.target.closest('tr');
@@ -70,7 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const editBtn = e.target;
                 
                 editBtn.style.display = 'none';
-                row.querySelector('.delete-btn').style.display = 'none';
+                const delBtn = row.querySelector('.delete-btn');
+                if(delBtn) delBtn.style.display = 'none';
                 
                 const saveBtn = document.createElement('button');
                 const cancelBtn = document.createElement('button');
@@ -78,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveBtn.innerHTML = '✔️';
                 saveBtn.className = 'action-btn save-btn';
                 saveBtn.title = 'Confirmar';
+                saveBtn.style.marginRight = '5px';
 
                 cancelBtn.innerHTML = '❌';
                 cancelBtn.className = 'action-btn cancel-btn';
@@ -88,32 +158,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 editableCells.forEach(cell => {
                     const oldValue = cell.textContent;
-                    cell.innerHTML = `<input type="number" value="${oldValue}" min="0">`;
+                    cell.innerHTML = `<input type="number" value="${oldValue}" min="0" style="width: 70px;">`;
                 });
                 
-                // Lógica do botão 'Salvar'
                 saveBtn.addEventListener('click', async () => {
-                    const id = row.querySelector('.editable-cell').dataset.id;
+                    const firstCell = row.querySelector('.editable-cell');
+                    const id = firstCell.dataset.id;
                     
-                    // MODIFICAÇÃO: Adicionamos o ID ao JSON enviado
                     const updatedData = { id: parseInt(id, 10) };
                     let hasChanged = false;
 
                     row.querySelectorAll('input').forEach(input => {
                         const cell = input.closest('td');
-                        const field = cell.dataset.field;
+                        const field = cell.dataset.field; 
                         const oldValue = cell.dataset.oldValue;
                         const newValue = input.value;
                         
                         updatedData[field] = parseInt(newValue, 10);
-                        if (oldValue !== newValue) {
-                            hasChanged = true;
-                        }
+                        if (oldValue !== newValue) hasChanged = true;
                     });
 
                     if (hasChanged) {
                         try {
-                            // MUDANÇA AQUI: Aponta para a API PHP
                             const response = await fetch(`../api/update_item.php`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -122,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             const result = await response.json();
                             if (result.success) {
                                 showFeedback(result.message, 'success');
-                                loadDataAndRenderTables();
+                                loadDataAndRenderTables(); 
                             } else {
                                 showFeedback('Erro: ' + result.message, 'error');
                             }
@@ -130,26 +196,22 @@ document.addEventListener('DOMContentLoaded', () => {
                             showFeedback('Ocorreu um erro ao editar o item.', 'error');
                         }
                     } else {
-                        loadDataAndRenderTables(); // Recarrega mesmo se não houver mudança (para restaurar a linha)
+                        loadDataAndRenderTables();
                     }
                 });
 
-                // Lógica do botão 'Cancelar'
                 cancelBtn.addEventListener('click', () => {
                     loadDataAndRenderTables();
                 });
             });
         });
 
-        // 2. Lógica de Exclusão
+        // --- EXCLUSÃO ---
         document.querySelectorAll('.delete-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const id = e.target.dataset.id;
-                const confirmDelete = confirm("Tem certeza que deseja excluir este item?");
-
-                if (confirmDelete) {
+                if (confirm("Tem certeza que deseja excluir este item?")) {
                     try {
-                        // MUDANÇA AQUI: Aponta para a API PHP (passando ID pela URL)
                         const response = await fetch(`../api/delete_item.php?id=${id}`, { method: 'DELETE' });
                         const result = await response.json();
                         if (result.success) {
@@ -159,36 +221,38 @@ document.addEventListener('DOMContentLoaded', () => {
                             showFeedback('Erro: ' + result.message, 'error');
                         }
                     } catch (error) {
-                        showFeedback('Ocorreu um erro ao excluir o item.', 'error');
+                        showFeedback('Erro ao excluir o item.', 'error');
                     }
                 }
             });
         });
     }
 
-    /**
-     * Esta função calcula o resumo de grupos a partir dos dados da tabela principal.
-     */
+    // ===============================================
+    // 5. RESUMO E LOAD DE DADOS
+    // ===============================================
+    
     function calculateGroupSummary(data) {
         const summary = {};
         data.forEach(item => {
-            if (!summary[item.grupo]) {
-                summary[item.grupo] = { pedido: 0, a_receber: 0, entregue: 0 };
+            const grupo = item.grupo || 'Sem Grupo';
+            if (!summary[grupo]) {
+                summary[grupo] = { pedido: 0, a_receber: 0, entregue: 0 };
             }
-            // Garante que os valores são numéricos
-            summary[item.grupo].pedido += parseInt(item.total_caixa, 10) || 0;
-            summary[item.grupo].a_receber += parseInt(item.a_receber, 10) || 0;
-            summary[item.grupo].entregue += parseInt(item.recebido, 10) || 0;
+            const recebido = parseInt(item.recebido, 10) || 0;
+            const total = parseInt(item.total_caixa, 10) || 0;
+            const a_receber = Math.max(0, total - recebido);
+
+            summary[grupo].pedido += total;
+            summary[grupo].a_receber += a_receber;
+            summary[grupo].entregue += recebido;
         });
         return summary;
     }
 
-    /**
-     * Esta função preenche a tabela de resumo por grupo.
-     */
     function renderGroupSummary(data) {
         const tbody = document.getElementById('group-summary-body');
-        if (!tbody) return; // Se a tabela de resumo não existir, não faz nada
+        if (!tbody) return;
         tbody.innerHTML = '';
         for (const grupo in data) {
             const item = data[grupo];
@@ -196,78 +260,43 @@ document.addEventListener('DOMContentLoaded', () => {
             row.innerHTML = `
                 <td>${grupo}</td>
                 <td>${item.pedido}</td>
-                <td>${item.a_receber}</td>
+                <td style="color: ${item.a_receber > 0 ? 'red' : 'green'}">${item.a_receber}</td>
                 <td>${item.entregue}</td>
             `;
             tbody.appendChild(row);
         }
     }
 
-    /**
-     * Função assíncrona para buscar os dados do servidor e renderizar as tabelas.
-     */
     async function loadDataAndRenderTables() {
-        const tableSections = document.querySelector('.delivery-tables-container');
-        const summarySection = document.querySelector('.group-summary-section');
-        
-        if (tableSections) tableSections.style.display = 'grid';
-        if (summarySection) summarySection.style.display = 'block';
-        
         if (filteredResultsContainer) filteredResultsContainer.style.display = 'none';
         if (clearSearchButton) clearSearchButton.style.display = 'none';
         if (searchInput) searchInput.value = '';
 
         try {
-            // MUDANÇA AQUI: Força a atualização com um timestamp (cache-busting)
             const response = await fetch('../api/get_data.php?t=' + new Date().getTime());
             
-            if (response.status === 401) { // 401 = Não Autorizado
-                // MUDANÇA AQUI: Redireciona para login.php
+            if (response.status === 401) {
                 window.location.href = '../auth/login.php'; 
                 return;
             }
-            if (!response.ok) {
-                 throw new Error('Falha ao carregar dados do servidor.');
-            }
+            if (!response.ok) throw new Error('Falha ao carregar dados.');
 
             const data = await response.json();
+            
             renderTable(data);
             const groupSummary = calculateGroupSummary(data);
             renderGroupSummary(groupSummary);
+            
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
-            showFeedback("Não foi possível carregar os dados. Verifique a consola (F12).", "error");
+            showFeedback("Não foi possível carregar os dados.", "error");
         }
     }
 
-    // Funções para gerenciar o feedback na tela
-    function showFeedback(message, type) {
-        const feedbackDiv = document.getElementById('feedback-message');
-        if (!feedbackDiv) return;
-        feedbackDiv.textContent = message;
-        feedbackDiv.className = `feedback-message ${type}`;
-        feedbackDiv.style.display = 'block';
-        setTimeout(() => {
-            feedbackDiv.style.display = 'none';
-        }, 5000);
-    }
-
-    function showLoading() {
-        const spinner = document.getElementById('loading-spinner');
-        if (spinner) spinner.style.display = 'block';
-    }
-
-    function hideLoading() {
-        const spinner = document.getElementById('loading-spinner');
-        if (spinner) spinner.style.display = 'none';
-    }
-
-    loadDataAndRenderTables();
 
     // ===============================================
-    // LÓGICA DE BUSCA INSTANTÂNEA (FILTRO DINÂMICO)
+    // 6. BUSCA INSTANTÂNEA
     // ===============================================
-    
     if (searchInput) {
         searchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
@@ -283,10 +312,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             searchTimeout = setTimeout(async () => {
                 try {
-                    // MUDANÇA AQUI: Adiciona cache-busting
                     const response = await fetch(`../api/search_items.php?q=${query}&t=` + new Date().getTime());
                     const results = await response.json();
-                    
                     renderFilteredResults(results);
                 } catch (error) {
                     console.error("Erro na busca:", error);
@@ -305,10 +332,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Renderiza os resultados da busca na mini-tabela.
-     */
     function renderFilteredResults(results) {
+        if (!filteredResultsBody) return;
         filteredResultsBody.innerHTML = '';
         
         if (results.length === 0) {
@@ -320,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         results.forEach(item => {
             const row = document.createElement('tr');
             row.className = 'search-result-row';
-            row.dataset.id = item.id;
+            row.style.cursor = 'pointer';
             
             row.innerHTML = `
                 <td>${item.codigo_sap}</td>
@@ -331,87 +356,69 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             
             row.addEventListener('click', () => {
-                const targetRow = document.querySelector(`.delivery-tables-container [data-id="${item.id}"]`);
-                if (targetRow) {
-                    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    targetRow.classList.add('highlight-row');
-                    setTimeout(() => targetRow.classList.remove('highlight-row'), 3000);
-                }
+                alert(`Detalhes:\nProduto: ${item.item}\nCódigo: ${item.codigo_sap}\nRecebido: ${item.recebido}`);
             });
 
             filteredResultsBody.appendChild(row);
         });
-
         filteredResultsContainer.style.display = 'block';
     }
+
+
+    // ===============================================
+    // 7. IMPORTAÇÃO DE ARQUIVOS (XML / CSV)
+    // ===============================================
     
-    // Lógica para o botão de upload do XML
-    const importBtn = document.getElementById('import-xml-btn');
-    const fileInput = document.getElementById('xml-file-input');
+    // --- XML ---
+    const importXmlBtn = document.getElementById('import-xml-btn');
+    const xmlFileInput = document.getElementById('xml-file-input');
 
-    if (importBtn) {
-        importBtn.addEventListener('click', () => fileInput.click());
-    }
+    if (importXmlBtn) importXmlBtn.addEventListener('click', () => xmlFileInput.click());
 
-if (fileInput) {
-        fileInput.addEventListener('change', async (event) => {
+    if (xmlFileInput) {
+        xmlFileInput.addEventListener('change', async (event) => {
             const files = event.target.files; 
             if (files.length > 0) {
-                
                 const formData = new FormData();
                 let hasInvalidFile = false;
 
                 for (const file of files) {
                     if (file.type !== 'text/xml' && !file.name.endsWith('.xml')) {
-                        showFeedback(`Arquivo inválido ignorado: ${file.name}. Por favor, envie apenas arquivos XML.`, 'error');
+                        showFeedback(`Arquivo inválido ignorado: ${file.name}.`, 'error');
                         hasInvalidFile = true;
                         continue; 
                     }
-                    formData.append('file[]', file); // MUDANÇA AQUI: O PHP prefere 'file[]' para múltiplos uploads
+                    formData.append('file[]', file);
                 }
 
-                if (!formData.has('file[]') && hasInvalidFile) {
-                    return; 
-                }
+                if (!formData.has('file[]') && hasInvalidFile) return;
 
                 showLoading();
                 try {
-                    // MUDANÇA AQUI: Aponta para a API PHP
                     const response = await fetch('../api/upload_xml.php', { method: 'POST', body: formData });
                     const result = await response.json();
                     
                     if (result.success) {
                         showFeedback(result.message, 'success');
-                        
-                        // **** ESTA É A NOVA MUDANÇA ****
-                        // Adiciona uma pequena pausa antes de recarregar os dados
-                        // para dar tempo ao banco de dados de confirmar a transação.
-                        setTimeout(() => {
-                            loadDataAndRenderTables();
-                        }, 300); // 300ms de atraso
-                        
+                        setTimeout(() => loadDataAndRenderTables(), 300);
                     } else {
                         showFeedback('Erro: ' + result.message, 'error');
                     }
                 } catch (error) {
-                    showFeedback('Ocorreu um erro ao enviar os arquivos.', 'error');
+                    showFeedback('Erro ao enviar XML.', 'error');
                 } finally {
                     hideLoading();
-                    fileInput.value = ''; 
+                    xmlFileInput.value = ''; 
                 }
             }
         });
     }
-    
-    // **** NOVO: LÓGICA PARA IMPORTAR PEDIDOS (CSV) ****
+
+    // --- CSV ---
     const importCsvBtn = document.getElementById('import-csv-btn');
     const csvFileInput = document.getElementById('csv-file-input');
 
-    if (importCsvBtn) {
-        importCsvBtn.addEventListener('click', () => {
-            csvFileInput.click(); 
-        });
-    }
+    if (importCsvBtn) importCsvBtn.addEventListener('click', () => csvFileInput.click());
 
     if (csvFileInput) {
         csvFileInput.addEventListener('change', async (event) => {
@@ -419,8 +426,7 @@ if (fileInput) {
             if (!file) return;
 
             if (!file.name.endsWith('.csv')) {
-                showFeedback('Por favor, selecione um arquivo no formato CSV.', 'error');
-                csvFileInput.value = '';
+                showFeedback('Selecione um arquivo CSV.', 'error');
                 return;
             }
 
@@ -429,12 +435,7 @@ if (fileInput) {
             showLoading();
 
             try {
-                // MUDANÇA AQUI: Aponta para a API PHP
-                const response = await fetch('../api/import_csv.php', {
-                    method: 'POST',
-                    body: formData
-                });
-                
+                const response = await fetch('../api/import_csv.php', { method: 'POST', body: formData });
                 const result = await response.json();
                 
                 if (result.success) {
@@ -444,7 +445,7 @@ if (fileInput) {
                     showFeedback('Erro: ' + result.message, 'error');
                 }
             } catch (error) {
-                showFeedback('Ocorreu um erro ao importar o CSV.', 'error');
+                showFeedback('Erro ao importar CSV.', 'error');
             } finally {
                 hideLoading();
                 csvFileInput.value = ''; 
@@ -452,25 +453,25 @@ if (fileInput) {
         });
     }
 
-    // Lógica para o botão de imprimir listagem
-    const printListBtn = document.getElementById('print-list-btn');
-    if (printListBtn) {
-        printListBtn.addEventListener('click', () => {
-            const tablesContainer = document.querySelector('.delivery-tables-container');
-            if (tablesContainer) {
-                showLoading();
-                html2canvas(tablesContainer, { scale: 2 }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const imgProps= pdf.getImageProperties(imgData);
-                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
-                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                    pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth, pdfHeight);
-                    pdf.save('listagem-entregas.pdf');
-                    hideLoading();
-                });
-            }
-        });
+    // ===============================================
+    // 8. UTILITÁRIOS (Feedback, Loading)
+    // ===============================================
+    function showFeedback(message, type) {
+        const feedbackDiv = document.getElementById('feedback-message');
+        if (!feedbackDiv) return;
+        feedbackDiv.textContent = message;
+        feedbackDiv.className = `feedback-message ${type}`;
+        feedbackDiv.style.display = 'block';
+        setTimeout(() => { feedbackDiv.style.display = 'none'; }, 5000);
+    }
+
+    function showLoading() {
+        const spinner = document.getElementById('loading-spinner');
+        if (spinner) spinner.style.display = 'block';
+    }
+
+    function hideLoading() {
+        const spinner = document.getElementById('loading-spinner');
+        if (spinner) spinner.style.display = 'none';
     }
 });

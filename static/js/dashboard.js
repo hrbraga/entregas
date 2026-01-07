@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
     async function getDashboardData() {
         try {
-            // MUDANÇA AQUI: Adiciona cache-busting
+            // MUDANÇA AQUI: Adiciona cache-busting para evitar cache antigo
             const response = await fetch('../api/get_dashboard_data.php?t=' + new Date().getTime());
             
             if (response.status === 401) { // 401 = Não Autorizado
@@ -25,16 +25,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /**
-     * Função para renderizar os totalizadores.
+     * Função para renderizar os totalizadores com porcentagem.
      */
     function renderTotalizers(data) {
         const totalPedido = parseInt(data.total_pedido, 10) || 0;
         const totalRecebido = parseInt(data.total_recebido, 10) || 0;
         const totalAReceber = totalPedido - totalRecebido;
 
+        // Atualiza os valores absolutos
         document.getElementById('total-pedido-val').textContent = totalPedido.toFixed(0);
         document.getElementById('recebido-val').textContent = totalRecebido.toFixed(0);
         document.getElementById('a-receber-val').textContent = totalAReceber.toFixed(0);
+
+        // -- NOVO: Cálculo das porcentagens --
+        let pctRecebido = 0;
+        let pctAReceber = 0;
+
+        if (totalPedido > 0) {
+            pctRecebido = (totalRecebido / totalPedido) * 100;
+            pctAReceber = (totalAReceber / totalPedido) * 100;
+        }
+
+        // Atualiza os elementos de porcentagem (formatando com vírgula e 1 casa decimal)
+        // Certifique-se de ter adicionado os elementos <small id="recebido-pct"> e <small id="a-receber-pct"> no HTML
+        const elRecebidoPct = document.getElementById('recebido-pct');
+        const elAReceberPct = document.getElementById('a-receber-pct');
+
+        if (elRecebidoPct) {
+            elRecebidoPct.textContent = pctRecebido.toFixed(1).replace('.', ',') + '%';
+        }
+        
+        if (elAReceberPct) {
+            elAReceberPct.textContent = pctAReceber.toFixed(1).replace('.', ',') + '%';
+        }
     }
 
     /**
