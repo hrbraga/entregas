@@ -3097,6 +3097,24 @@ const produtos_linha = [
     custoUn: 12.61,
     total: 0
   },
+    {
+    codigo: '1002485',
+    descricao: 'CX BENDITO CACAO 170GX10UN',
+    qtCaixa: 10,
+    caixas: 0,
+    unidades: 0,
+    valorUn: 216.48,
+    royalties: 108.24,
+    st: 22.01,
+    ipi: 7.04,
+    txsAdicionais: 0.9,
+    txMidia: 0,
+    custoCaixa: 354.67,
+    custoUn: 35.47,
+    total: 0,
+    mbLiquida: 40.88,
+    mbBruta: 45.87
+  },
   {
     codigo: '1003298',
     descricao: 'CX 70 MIAU BLESS ZL AO LEITE',
@@ -3291,8 +3309,6 @@ const produtos_linha = [
   }
   
 ];
-
-//Início da Campanha Crianças
 
 const produtos_benditoCacao = [
   {
