@@ -2,34 +2,56 @@
 /* 1. ESTILOS BASE E NAVEGAÇÃO */
 /* =================================== */
 
+/* Importa a fonte padrão do projeto (Poppins) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f7f6;
+    font-family: 'Poppins', sans-serif; /* Padrão do etiquetas.php */
+    background-color: burlywood; /* Padrão do selecao.css/etiquetas.php */
     margin: 0;
     padding: 0;
     color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 main {
     max-width: 1200px;
-    margin: 20px auto;
+    margin: 40px auto; /* Aumentado espaçamento superior */
     padding: 0 20px;
+    width: 100%;
 }
 
-/* Estilos para a barra de navegação */
+p{
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+/* Estilos para a barra de navegação (Estilo Global) */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #0056b3;
+    
+    /* Identidade Visual do Header Global (Vermelho + Textura) */
+    background-color: rgb(100, 18, 18);
+    background-image: url('../img/bg__header--desk.png');
+    background-size: cover;
+    background-position: center;
+    
     color: white;
-    padding: 10px 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding: 15px 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .nav-brand h1 {
-    font-size: 1.5em;
+    font-size: 1.8rem;
+    font-weight: 700;
     margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .nav-links {
@@ -37,63 +59,70 @@ main {
     margin: 0;
     padding: 0;
     display: flex;
-    gap: 20px;
+    gap: 15px;
 }
 
 .nav-links a {
     color: white;
     text-decoration: none;
-    font-size: 1em;
-    padding: 5px 10px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.1); /* Fundo sutil nos links */
 }
 
 .nav-links a:hover {
-    background-color: #007bff;
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
 }
 
-/* Estilos de títulos e seções */
+/* Estilos de títulos e seções (Cartões Brancos) */
 section {
-    background-color: white;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff; /* Fundo branco igual ao .interface-usuario */
+    padding: 30px;
+    margin-bottom: 30px;
+    border-radius: 8px; /* Bordas arredondadas padrão */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra padrão */
 }
 
-h2{
-    color: #0056b3;
-    border-bottom: 2px solid #0056b3;
+h2 {
+    color: #333; /* Mantido o azul para títulos (padrão etiquetas) */
+    border-bottom: 2px solid #eee;
     padding-bottom: 10px;
-    margin-bottom: 20px;
-    white-space: nowrap; /* Mantém títulos do dashboard em uma linha */
+    margin-bottom: 25px;
+    font-size: 2rem;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-align: center; /* Centralizado igual etiquetas */
 }
 
 /* Estilos para o rodapé */
 footer {
     text-align: center;
     padding: 20px;
-    margin-top: 20px;
-    border-top: 1px solid #ccc;
-    font-size: 14px;
-    color: #666;
+    margin-top: auto;
+    
+    /* Identidade Global */
+    background-color: rgb(100, 18, 18);
+    background-image: url('../img/bg__header--desk.png');
+    color: white;
+    font-size: 1.2rem;
+    border-top: none;
 }
-
+footer a { color: white; }
 
 /* =================================== */
 /* 2. TABELAS E RESPONSIVIDADE */
 /* =================================== */
 
-/* Torna o contêiner das tabelas rolavel horizontalmente em telas pequenas */
 .table-container {
     overflow-x: auto;
-    width: 100%; /* Garante que o contêiner ocupe a largura total disponível */
+    width: 100%;
 }
 
-/* Layout para as duas tabelas de entrega (uma abaixo da outra) */
 .delivery-tables-container {
     display: block;
     width: 100%;
@@ -108,46 +137,49 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
-    min-width: 800px; /* Garante largura mínima para a barra de rolagem aparecer */
+    min-width: 800px;
 }
 
 th, td {
-    padding: 12px;
+    padding: 15px; /* Mais espaçamento */
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border: 1px solid #ddd; /* Bordas completas igual etiquetas */
 }
 
 th {
-    background-color: #007bff;
-    color: white;
-    font-weight: bold;
-    white-space: nowrap; /* Garante que cabeçalhos não quebrem linha */
+    background-color: #f4f4f4; /* Fundo cinza claro igual etiquetas */
+    color: #000;
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-transform: uppercase;
     text-align: center;
+    border-bottom: 2px solid #ddd;
 }
 
 td {
     text-align: center;
+    font-size: 1rem;
 }
 
 tr:nth-child(even) {
-    background-color: #f2f2f2;
+    background-color: #f9f9f9;
 }
 
 tr:hover {
-    background-color: #e9ecef;
+    background-color: #f1f1f1;
 }
 
-/* CORREÇÃO DA QUEBRA DE PALAVRA: Apenas a coluna ITEM PÁSCOA 2025 pode quebrar linha */
+/* CORREÇÃO DA QUEBRA DE PALAVRA */
 .delivery-table-section table td:nth-child(2),
 .items-received table td:nth-child(2),
 .items-to-receive table td:nth-child(2) {
-    white-space: normal; /* Permite que o texto quebre a linha dentro da célula */
+    white-space: normal;
     word-wrap: break-word; 
-    max-width: 150px; /* Largura máxima para evitar que nomes longos estiquem demais */
+    max-width: 150px;
     text-align: left;
 }
 
-/* Garante que TODAS as outras células (códigos, números, grupos, etc.) não quebrem */
+/* Demais células sem quebra */
 .delivery-table-section table td,
 .items-received table td,
 .items-to-receive table td {
@@ -155,34 +187,11 @@ tr:hover {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
-/* Sobrescreve a regra acima APENAS para a célula do ITEM (2ª coluna) */
 .delivery-table-section table td:nth-child(2),
 .items-received table td:nth-child(2),
 .items-to-receive table td:nth-child(2) {
     white-space: normal;
-    overflow: visible; /* Necessário para que a quebra de linha funcione visualmente */
-}
-
-
-/* --- Responsividade da Fonte da Tabela --- */
-.delivery-table-section table,
-.items-received table,
-.items-to-receive table,
-.group-summary-section table {
-    font-size: 14px;
-}
-
-@media (max-width: 600px) {
-    .delivery-table-section table,
-    .items-received table,
-    .items-to-receive table,
-    .group-summary-section table {
-        font-size: 12px;
-    }
-    th, td {
-        padding: 8px 4px; 
-    }
+    overflow: visible;
 }
 
 
@@ -190,32 +199,49 @@ tr:hover {
 /* 3. ESTILOS DE AÇÃO E FEEDBACK */
 /* =================================== */
 
-/* Estilos para a área de upload e o botão */
 .upload-area {
     margin: 20px 0;
     display: flex;
-    gap: 10px;
+    gap: 15px;
     align-items: center;
+    justify-content: center; /* Centraliza botões */
+    flex-wrap: wrap;
 }
+
+/* Padronização dos Botões */
+button, .import-csv-btn, .print-btn, #import-xml-btn {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    font-family: 'Poppins', sans-serif;
+    transition: background-color 0.3s, transform 0.1s;
+    text-transform: uppercase;
+}
+
+button:active { transform: scale(0.98); }
 
 #import-xml-btn {
     background-color: #28a745;
     color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    align-items: center;
-    text-align: center;
-    transition: background-color 0.3s ease;
 }
+#import-xml-btn:hover { background-color: #218838; }
 
-#import-xml-btn:hover {
-    background-color: #218838;
+.import-csv-btn {
+    background-color: #ffc107;
+    color: #333;
 }
+.import-csv-btn:hover { background-color: #e0a800; }
 
-/* Estilos para mensagens de feedback */
+.print-btn {
+    background-color: #8f07ff;
+    color: white;
+}
+.print-btn:hover { background-color: #7000b3; }
+
+/* Feedback */
 .feedback-message {
     padding: 15px;
     margin: 20px 0;
@@ -223,250 +249,50 @@ tr:hover {
     font-weight: bold;
     text-align: center;
     color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
+.feedback-message.success { background-color: #28a745; }
+.feedback-message.error { background-color: #dc3545; }
 
-.feedback-message.success {
-    background-color: #4CAF50;
-}
-
-.feedback-message.error {
-    background-color: #f44336;
-}
-
-/* Estilos para o spinner de carregamento */
+/* Spinner */
 .loading-spinner {
     border: 5px solid #f3f3f3;
     border-top: 5px solid #3498db;
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     animation: spin 1s linear infinite;
-    margin: 20px auto;
+    margin: 30px auto;
 }
-
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-/* Estilos para os botões de ação na tabela */
-.action-btn {
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 1.2em;
-    padding: 0;
-    margin-right: 5px;
-}
-
-/* Estilos para os botões Salvar e Cancelar na edição */
-.save-btn, .cancel-btn {
-    border: none;
-    cursor: pointer;
-    font-size: 1.2em;
-    padding: 5px 10px;
-    border-radius: 4px;
-    margin-left: 5px;
-}
-
-.save-btn {
-    background-color: #4CAF50; /* Verde */
-    color: white;
-}
-
-.cancel-btn {
-    background-color: #F44336; /* Vermelho */
-    color: white;
-}
-
-/* Estilos para coloração de linhas */
-.delivery-table-section table tr.fully-received,
-.items-received table tr.fully-received,
-.items-to-receive table tr.fully-received {
-    background-color: #e8f5e9; /* Verde claro */
-}
-
-.delivery-table-section table tr.over-received,
-.items-received table tr.over-received,
-.items-to-receive table tr.over-received {
-    background-color: #ffebee; /* Vermelho claro */
-}
-
-/* --- Correção de Estouro em Telas Menores que 1200px --- */
-
-@media (max-width: 1200px) {
-    /* Remove o padding lateral do main para dar mais espaço à rolagem */
-    main {
-        padding: 0 5px; /* Reduz o padding lateral para um valor mínimo */
-    }
-}
-
-/* Estilos para a área de pesquisa */
-.search-area {
-    display: flex; /* Permite alinhar o input e o botão lado a lado */
-    gap: 10px; /* Espaçamento entre o input e o botão */
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-#product-search {
-    flex-grow: 1; /* Ocupa o máximo de espaço disponível */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-}
-
-/* Estilo do novo botão de limpar */
-.clear-search-btn {
-    background-color: #f44336; /* Cor de destaque (vermelho) */
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    white-space: nowrap; /* Evita que o texto quebre */
-    transition: background-color 0.3s;
-}
-
-.clear-search-btn:hover {
-    background-color: #d32f2f;
-}
-
-/* Estilos para a caixa de resultados (autocomplete) */
-.search-results {
-    position: absolute;
-    top: 100%; /* Coloca abaixo do input */
-    left: 0;
-    right: 0;
-    z-index: 10; /* Garante que fique acima de outros elementos */
-    background: white;
-    border: 1px solid #ddd;
-    border-top: none;
-    max-height: 300px;
-    overflow-y: auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 0 0 4px 4px;
-}
-
-.search-item {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-}
-
-.search-item:last-child {
-    border-bottom: none;
-}
-
-.search-item:hover {
-    background-color: #f0f0f0;
-}
-
-.search-item .item-details {
-    display: flex;
-    gap: 20px;
-    font-size: 0.9em;
-    color: #555;
-}
-
-.search-item .item-name {
-    font-weight: bold;
-    color: #333;
-}
-
-/* Estilos para a nova área de resultados de pesquisa */
+/* Pesquisa */
 .search-area {
     display: flex;
     gap: 10px;
     align-items: center;
-    margin: 20px 0;
+    margin-bottom: 20px;
 }
-
 #product-search {
-    flex-grow: 1; /* O input ocupa o máximo de espaço */
+    flex-grow: 1;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
 }
-
-.search-results-list {
-    background-color: white;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.clear-search-btn {
+    background-color: #dc3545;
+    color: white;
 }
+.clear-search-btn:hover { background-color: #c82333; }
 
-.search-results-list h2 {
-    color: #0056b3;
-    border-bottom: 2px solid #0056b3;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-}
+/* Cores de status da tabela */
+.fully-received { background-color: #d4edda !important; }
+.over-received { background-color: #f8d7da !important; }
 
-/* Estilos para a área de resultados filtrados (Mini-Tabela) */
-.filtered-results-container {
-    background-color: #e3f2fd; /* Cor de fundo para destacar */
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.filtered-results-container h2 {
-    color: #1565c0;
-    border-bottom: 2px solid #1565c0;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-}
-
-#filtered-results-table {
-    min-width: 100%; /* Garante que a tabela se ajuste ao contêiner */
-    /* Remove a quebra forçada de linha no resultado */
-}
-
-/* Garante que o input de pesquisa ocupe a largura total */
-#product-search, .prprint-btn {
-    width: 100%;
-}
-
-/* Estilo para o botão de Importar CSV */
-.import-csv-btn {
-    background-color: #ffc107; /* Amarelo/Laranja */
-    color: #333;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-}
-
-.import-csv-btn:hover {
-    background-color: #e6a100;
-}
-
-.print-btn {
-    background-color: #8f07ff; /* Amarelo/Laranja */
-    color: #ffffff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-}
-
-.print-btn:hover {
-    background-color: #b000e6;
-}
-
-/* Garante que os botões de upload fiquem bem alinhados */
-.upload-area {
-    flex-wrap: wrap; 
+@media (max-width: 1200px) {
+    main { padding: 0 10px; }
 }

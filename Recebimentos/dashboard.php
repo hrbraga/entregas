@@ -1,25 +1,26 @@
 <?php 
-    // --- Configuração da Página ---
-    $page_title = "Dashboard de Entregas";
-    
-    // CSS específico desta página (do {% block head %})
-    $additional_head_tags = '
-        <link rel="stylesheet" href="../static/css/dashboard.css">
-    ';
-
-    // Scripts específicos desta página (do {% block scripts %})
-    $additional_scripts = '
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="../static/js/dashboard.js"></script>
-        <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    ';
-    // --- Fim da Configuração ---
-
     require '../config.php';       // 1. Inclui a configuração e sessão
     require '../auth/auth_check.php'; // 2. Protege a página
     require '../includes/header.php';  // 3. Inclui o cabeçalho HTML
 ?>
+
+<!DOCTYPE html>
+<html lang="pr-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="https://img.icons8.com/dusk/64/cafe.png" type="image/x-icon">
+    <link rel="stylesheet" href="../static/css/planilhas.css">
+    <link rel="stylesheet" href="../static/css/global.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="stylesheet" href="../static/css/dashboard.css">
+    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <title>Dashboard Entregas</title>
+</head>
+
+<body>
 
 <div class="dashboard-container">
     <div class="card totalizer-card">
@@ -57,6 +58,12 @@
         <canvas id="group-status-chart"></canvas>
     </div>
 </div>
+
+</body>
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="../static/js/dashboard.js"></script>
+        <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <?php 
     require '../includes/footer.php'; // 4. Inclui o rodapé
 ?>
