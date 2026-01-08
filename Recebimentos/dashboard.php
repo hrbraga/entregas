@@ -12,10 +12,8 @@ require '../auth/auth_check.php'; // 2. Protege a página
     <link rel="shortcut icon" href="https://img.icons8.com/dusk/64/cafe.png" type="image/x-icon">
     <link rel="stylesheet" href="../static/css/planilhas.css">
     <link rel="stylesheet" href="../static/css/global.css">
-    <link rel="stylesheet" href="../static/css/dashboard.css">
     <link rel="stylesheet" href="../static/css/style.css">
-    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="../static/css/dashboard.css">
     <title>Dashboard Entregas</title>
 </head>
 
@@ -52,12 +50,12 @@ require '../auth/auth_check.php'; // 2. Protege a página
                 <div class="totalizer-item">
                     <p class="label">RECEBIDO</p>
                     <span class="value received" id="recebido-val">0</span>
-                    <small class="percentual-a-receber" id="recebido-pct" style="display: block; font-size: 0.8rem; margin-top: 5px;">0%</small>
+                    <small class="percentual-a-receber" id="recebido-pct">0%</small>
                 </div>
                 <div class="totalizer-item">
                     <p class="label">A RECEBER</p>
                     <span class="value to-receive" id="a-receber-val">0</span>
-                    <small class="percentual-a-receber" id="a-receber-pct" style="display: block; font-size: 0.8rem; margin-top: 5px;">0%</small>
+                    <small class="percentual-a-receber" id="a-receber-pct">0%</small>
                 </div>
             </div>
 
@@ -84,6 +82,7 @@ require '../auth/auth_check.php'; // 2. Protege a página
 <script src="../static/js/dashboard.js"></script>
 <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 <?php
 require '../includes/footer.php'; // 4. Inclui o rodapé
 ?>

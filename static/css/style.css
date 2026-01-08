@@ -339,6 +339,41 @@ button:active { transform: scale(0.98); }
 .fully-received { background-color: #d4edda !important; }
 .over-received { background-color: #f8d7da !important; }
 
+
+/* Estilo para colunas ordenáveis */
+th.sortable {
+    cursor: pointer;
+    user-select: none; /* Impede seleção de texto ao clicar duplo */
+    transition: background-color 0.2s;
+}
+
+th.sortable:hover {
+    background-color: #e2e6ea; /* Cor leve ao passar o mouse */
+    color: #000;
+}
+
+/* Ícone da setinha */
+th.sortable::after {
+    content: ' ▲'; /* Seta padrão (neutra) */
+    font-size: 0.8em;
+    opacity: 0.3;
+    margin-left: 5px;
+}
+
+/* Quando estiver ordenado Crescente */
+th.sortable.asc::after {
+    content: ' ▲';
+    opacity: 1;
+    color: #28a745;
+}
+
+/* Quando estiver ordenado Decrescente */
+th.sortable.desc::after {
+    content: ' ▼';
+    opacity: 1;
+    color: #dc3545;
+}
+
 /* --- MELHORIA: Impressão Limpa --- */
 @media print {
     header, footer, .upload-area, .pesquisar, .tabs-container, .action-btn, #feedback-message {

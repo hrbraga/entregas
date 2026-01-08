@@ -9,10 +9,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="https://img.icons8.com/dusk/64/cafe.png" type="image/x-icon">
+    <link rel="shortcut icon" href="../static/img/caminhao.png" type="image/x-icon">
     <link rel="stylesheet" href="../static/css/planilhas.css">
     <link rel="stylesheet" href="../static/css/global.css">
-    <link rel="stylesheet" href="../static/css/style.css"> <title>Controle Recebimentos</title>
+    <link rel="stylesheet" href="../static/css/style.css"> 
+    <title>Controle Recebimentos</title>
 </head>
 
 <body>
@@ -35,7 +36,7 @@
             
         </ul>
     </nav>
-    
+
    <div id="feedback-message" class="feedback-message" style="display: none;"></div>
    <div id="loading-spinner" class="loading-spinner" style="display: none;"></div>
 
@@ -64,8 +65,8 @@
             <table id="filtered-results-table">
                 <thead>
                     <tr>
-                        <th>CÓDIGO SAP</th>
-                        <th>ITEM</th>
+                        <th class="sortable" data-key="codigo_sap">CÓDIGO SAP</th>
+                        <th class="sortable" data-key="item">ITEM</th>
                         <th>TOTAL CAIXA</th>
                         <th>RECEBIDO</th>
                         <th>A RECEBER</th>
@@ -93,8 +94,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>CÓDIGO SAP</th>
-                        <th>ITEM</th>
+                        <th class="sortable" data-key="codigo_sap">CÓDIGO SAP</th>
+                        <th class="sortable" data-key="item">ITEM</th>
                         <th>GRUPO</th>
                         <th>PEDIDO LOJA</th>
                         <th>PEDIDO VD</th>
@@ -116,8 +117,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>CÓDIGO SAP</th>
-                        <th>ITEM</th>
+                        <th class="sortable" data-key="codigo_sap">CÓDIGO SAP</th>
+                        <th class="sortable" data-key="item">ITEM</th>
                         <th>GRUPO</th>
                         <th>TOTAL CAIXA</th>
                         <th>RECEBIDO</th>

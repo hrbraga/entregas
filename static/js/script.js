@@ -1,7 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ===============================================
-    // 1. LÓGICA DAS ABAS (TABS)
+    // 1. VARIÁVEIS GLOBAIS E ESTADO
+    // ===============================================
+    let globalData = []; // Armazena todos os dados para permitir ordenação local
+    let currentSort = { key: null, direction: 'asc' }; // Estado da ordenação
+    
+    let searchTimeout = null;
+    const searchInput = document.getElementById('product-search');
+    const filteredResultsContainer = document.getElementById('filtered-results-container');
+    const filteredResultsBody = document.getElementById('filtered-results-body');
+    const clearSearchButton = document.getElementById('clear-search-btn');
+
+    // ===============================================
+    // 2. LÓGICA DAS ABAS (TABS)
     // ===============================================
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -25,140 +37,181 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ===============================================
-    // 2. VARIÁVEIS GLOBAIS
+    // 3. LÓGICA DE ORDENAÇÃO (NOVO)
     // ===============================================
-    let searchTimeout = null;
-    const searchInput = document.getElementById('product-search');
-    const filteredResultsContainer = document.getElementById('filtered-results-container');
-    const filteredResultsBody = document.getElementById('filtered-results-body');
-    const clearSearchButton = document.getElementById('clear-search-btn');
-
-    // Inicializa
-    loadDataAndRenderTables();
-
-
-// ===============================================
-// 3. FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO
-// ===============================================
-function renderTable(data) {
-    const tbodyToReceive = document.getElementById('table-body-to-receive');
-    const tbodyReceived = document.getElementById('table-body-received');
-    const tbodyVerify = document.getElementById('table-body-verify'); 
-    const btnVerifyTab = document.getElementById('btn-verify-tab');
-
-    // Limpa tabelas
-    if(tbodyToReceive) tbodyToReceive.innerHTML = '';
-    if(tbodyReceived) tbodyReceived.innerHTML = '';
-    if(tbodyVerify) tbodyVerify.innerHTML = '';
-
-    let hasVerifyItems = false; 
-
-    data.forEach(item => {
-        const recebido = parseInt(item.recebido, 10) || 0;
-        const total_caixa = parseInt(item.total_caixa, 10) || 0;
-        const a_receber = Math.max(0, total_caixa - recebido);
-        const excesso = Math.max(0, recebido - total_caixa);
-
-        // Barra de progresso (apenas visual)
-        let percentage = 0;
-        if (total_caixa > 0) {
-            percentage = (recebido / total_caixa) * 100;
-            if (percentage > 100) percentage = 100;
-        }
-
-        const row = document.createElement('tr');
-
-        // --- LÓGICA DE DISTRIBUIÇÃO ---
-
-        // 1. CASO: ITENS A VERIFICAR (Excesso)
-        if (recebido > total_caixa) {
-            hasVerifyItems = true;
-            row.classList.add('over-received'); // Deixa vermelho claro
-            
-            // AQUI ESTÁ A CORREÇÃO:
-            // Agora Pedido Loja e Pedido VD são 'editable-cell', igual na aba 'A Receber'
-            row.innerHTML = `
-                <td>${item.codigo_sap}</td>
-                <td>${item.item}</td>
-                <td>${item.grupo}</td>
+    function setupSorting() {
+        // Seleciona todos os cabeçalhos que possuem a classe .sortable
+        document.querySelectorAll('th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                const key = th.getAttribute('data-key');
                 
-                <td class="editable-cell" data-id="${item.id}" data-field="pedido_loja" data-old-value="${item.pedido_loja}">${item.pedido_loja}</td>
-                <td class="editable-cell" data-id="${item.id}" data-field="pedido_vd" data-old-value="${item.pedido_vd}">${item.pedido_vd}</td>
-                
-                <td>${item.total_caixa}</td>
-                <td>${item.recebido}</td>
-                <td style="color: red; font-weight: bold;">+${excesso} (Excesso)</td>
-                
-                <td>
-                    <button class="action-btn edit-btn" data-id="${item.id}" title="Editar Pedido">✏️</button>
-                    <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
-                </td>
-            `;
-            if(tbodyVerify) tbodyVerify.appendChild(row);
+                // Se clicar na mesma coluna, inverte a ordem. Se for nova, reseta para ASC.
+                if (currentSort.key === key) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.key = key;
+                    currentSort.direction = 'asc';
+                }
 
-        // 2. CASO: CONCLUÍDO (Exatamente igual)
-        } else if (recebido === total_caixa && total_caixa > 0) {
-            row.classList.add('fully-received');
-            row.innerHTML = `
-                <td>${item.codigo_sap}</td>
-                <td>${item.item}</td>
-                <td>${item.grupo}</td>
-                <td>${item.total_caixa}</td>
-                <td>${item.recebido}</td>
-                <td style="color: green; font-weight: bold;">CONCLUÍDO</td>
-                <td>
-                    <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
-                </td>
-            `;
-            if(tbodyReceived) tbodyReceived.appendChild(row);
-
-        // 3. CASO: A RECEBER (Pendente)
-        } else {
-            row.innerHTML = `
-                <td>${item.codigo_sap}</td>
-                <td>${item.item}</td>
-                <td>${item.grupo}</td>
-                
-                <td class="editable-cell" data-id="${item.id}" data-field="pedido_loja" data-old-value="${item.pedido_loja}">${item.pedido_loja}</td>
-                <td class="editable-cell" data-id="${item.id}" data-field="pedido_vd" data-old-value="${item.pedido_vd}">${item.pedido_vd}</td>
-                
-                <td>${item.total_caixa}</td>
-                <td style="font-weight: bold; color: #d9534f;">${a_receber}</td>
-                <td>
-                    <div class="progress-container" title="Recebido: ${recebido} de ${total_caixa}">
-                        <div class="progress-bar" style="width: ${percentage}%;"></div>
-                        <div class="progress-text">${recebido} (${percentage.toFixed(0)}%)</div>
-                    </div>
-                </td>
-                <td>
-                    <button class="action-btn edit-btn" data-id="${item.id}" title="Editar">✏️</button>
-                    <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
-                </td>
-            `;
-            if(tbodyToReceive) tbodyToReceive.appendChild(row);
-        }
-    });
-
-    // Controla a visibilidade do botão da aba "Verificar"
-    if (btnVerifyTab) {
-        if (hasVerifyItems) {
-            btnVerifyTab.style.display = 'block';
-        } else {
-            btnVerifyTab.style.display = 'none';
-            // Se a aba ativa sumiu, volta para a primeira
-            if (btnVerifyTab.classList.contains('active')) {
-                // Simula clique na primeira aba disponível
-                const firstTab = document.querySelector('.tab-btn');
-                if(firstTab) firstTab.click();
-            }
-        }
+                updateSortIcons(key, currentSort.direction);
+                sortData(); // Ordena o array globalData
+                renderTable(globalData); // Redesenha a tabela
+            });
+        });
     }
 
-    // Reaplica os listeners para os novos botões criados
-    attachTableListeners();
-}
+    function updateSortIcons(activeKey, direction) {
+        document.querySelectorAll('th.sortable').forEach(th => {
+            th.classList.remove('asc', 'desc'); // Limpa estilos anteriores
+            if (th.getAttribute('data-key') === activeKey) {
+                th.classList.add(direction); // Adiciona classe visual (asc/desc)
+            }
+        });
+    }
+
+    function sortData() {
+        if (!currentSort.key) return;
+
+        globalData.sort((a, b) => {
+            let valA = a[currentSort.key];
+            let valB = b[currentSort.key];
+
+            // Tratamento especial para números (Código SAP)
+            if (currentSort.key === 'codigo_sap') {
+                valA = parseInt(valA, 10) || 0;
+                valB = parseInt(valB, 10) || 0;
+            } else {
+                // Tratamento para texto (Item, Grupo, etc.)
+                valA = valA ? valA.toString().toLowerCase() : '';
+                valB = valB ? valB.toString().toLowerCase() : '';
+            }
+
+            if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+            if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+
     // ===============================================
-    // 4. EDIÇÃO E EXCLUSÃO
+    // 4. FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO
+    // ===============================================
+    function renderTable(data) {
+        const tbodyToReceive = document.getElementById('table-body-to-receive');
+        const tbodyReceived = document.getElementById('table-body-received');
+        const tbodyVerify = document.getElementById('table-body-verify'); 
+        const btnVerifyTab = document.getElementById('btn-verify-tab');
+
+        // Limpa tabelas
+        if(tbodyToReceive) tbodyToReceive.innerHTML = '';
+        if(tbodyReceived) tbodyReceived.innerHTML = '';
+        if(tbodyVerify) tbodyVerify.innerHTML = '';
+
+        let hasVerifyItems = false; 
+
+        data.forEach(item => {
+            const recebido = parseInt(item.recebido, 10) || 0;
+            const total_caixa = parseInt(item.total_caixa, 10) || 0;
+            const a_receber = Math.max(0, total_caixa - recebido);
+            const excesso = Math.max(0, recebido - total_caixa);
+
+            // Barra de progresso (apenas visual)
+            let percentage = 0;
+            if (total_caixa > 0) {
+                percentage = (recebido / total_caixa) * 100;
+                if (percentage > 100) percentage = 100;
+            }
+
+            const row = document.createElement('tr');
+
+            // --- LÓGICA DE DISTRIBUIÇÃO ---
+
+            // 1. CASO: ITENS A VERIFICAR (Excesso)
+            if (recebido > total_caixa) {
+                hasVerifyItems = true;
+                row.classList.add('over-received'); // Deixa vermelho claro
+                
+                row.innerHTML = `
+                    <td>${item.codigo_sap}</td>
+                    <td>${item.item}</td>
+                    <td>${item.grupo}</td>
+                    
+                    <td class="editable-cell" data-id="${item.id}" data-field="pedido_loja" data-old-value="${item.pedido_loja}">${item.pedido_loja}</td>
+                    <td class="editable-cell" data-id="${item.id}" data-field="pedido_vd" data-old-value="${item.pedido_vd}">${item.pedido_vd}</td>
+                    
+                    <td>${item.total_caixa}</td>
+                    <td>${item.recebido}</td>
+                    <td style="color: red; font-weight: bold;">+${excesso} (Excesso)</td>
+                    
+                    <td>
+                        <button class="action-btn edit-btn" data-id="${item.id}" title="Editar Pedido">✏️</button>
+                        <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
+                    </td>
+                `;
+                if(tbodyVerify) tbodyVerify.appendChild(row);
+
+            // 2. CASO: CONCLUÍDO (Exatamente igual)
+            } else if (recebido === total_caixa && total_caixa > 0) {
+                row.classList.add('fully-received');
+                row.innerHTML = `
+                    <td>${item.codigo_sap}</td>
+                    <td>${item.item}</td>
+                    <td>${item.grupo}</td>
+                    <td>${item.total_caixa}</td>
+                    <td>${item.recebido}</td>
+                    <td style="color: green; font-weight: bold;">CONCLUÍDO</td>
+                    <td>
+                        <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
+                    </td>
+                `;
+                if(tbodyReceived) tbodyReceived.appendChild(row);
+
+            // 3. CASO: A RECEBER (Pendente)
+            } else {
+                row.innerHTML = `
+                    <td>${item.codigo_sap}</td>
+                    <td>${item.item}</td>
+                    <td>${item.grupo}</td>
+                    
+                    <td class="editable-cell" data-id="${item.id}" data-field="pedido_loja" data-old-value="${item.pedido_loja}">${item.pedido_loja}</td>
+                    <td class="editable-cell" data-id="${item.id}" data-field="pedido_vd" data-old-value="${item.pedido_vd}">${item.pedido_vd}</td>
+                    
+                    <td>${item.total_caixa}</td>
+                    <td style="font-weight: bold; color: #d9534f;">${a_receber}</td>
+                    <td>
+                        <div class="progress-container" title="Recebido: ${recebido} de ${total_caixa}">
+                            <div class="progress-bar" style="width: ${percentage}%;"></div>
+                            <div class="progress-text">${recebido} (${percentage.toFixed(0)}%)</div>
+                        </div>
+                    </td>
+                    <td>
+                        <button class="action-btn edit-btn" data-id="${item.id}" title="Editar">✏️</button>
+                        <button class="action-btn delete-btn" data-id="${item.id}" title="Excluir">🗑️</button>
+                    </td>
+                `;
+                if(tbodyToReceive) tbodyToReceive.appendChild(row);
+            }
+        });
+
+        // Controla a visibilidade do botão da aba "Verificar"
+        if (btnVerifyTab) {
+            if (hasVerifyItems) {
+                btnVerifyTab.style.display = 'block';
+            } else {
+                btnVerifyTab.style.display = 'none';
+                // Se a aba ativa sumiu, volta para a primeira
+                if (btnVerifyTab.classList.contains('active')) {
+                    const firstTab = document.querySelector('.tab-btn');
+                    if(firstTab) firstTab.click();
+                }
+            }
+        }
+
+        // Reaplica os listeners para os botões das tabelas renderizadas
+        attachTableListeners();
+    }
+
+    // ===============================================
+    // 5. EDIÇÃO E EXCLUSÃO
     // ===============================================
     function attachTableListeners() {
         
@@ -259,7 +312,7 @@ function renderTable(data) {
     }
 
     // ===============================================
-    // 5. RESUMO E LOAD DE DADOS
+    // 6. RESUMO E LOAD DE DADOS
     // ===============================================
     function calculateGroupSummary(data) {
         const summary = {};
@@ -312,8 +365,14 @@ function renderTable(data) {
 
             const data = await response.json();
             
-            renderTable(data); // Renderiza as 3 tabelas
-            const groupSummary = calculateGroupSummary(data);
+            // ATUALIZAÇÃO: Salva dados no escopo global e aplica ordenação se houver
+            globalData = data; 
+            if (currentSort.key) {
+                sortData();
+            }
+
+            renderTable(globalData); // Usa globalData
+            const groupSummary = calculateGroupSummary(globalData);
             renderGroupSummary(groupSummary);
             
         } catch (error) {
@@ -323,11 +382,13 @@ function renderTable(data) {
     }
 
     // ===============================================
-    // 6. BUSCA / IMPORTAÇÃO / UTILITÁRIOS (MANTIDOS)
+    // 7. BUSCA / IMPORTAÇÃO / UTILITÁRIOS
     // ===============================================
     
-    // (Apenas resumindo esta parte pois não muda, mas ela deve estar no seu arquivo final)
-    // BUSCA
+    // SETUP ORDENAÇÃO
+    setupSorting();
+
+    // SETUP BUSCA
     if (searchInput) {
         searchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
@@ -375,7 +436,7 @@ function renderTable(data) {
         filteredResultsContainer.style.display = 'block';
     }
 
-    // XML/CSV Upload e Feedback (Mantidos iguais ao anterior)
+    // XML/CSV Upload e Feedback
     setupUploads();
     
     function setupUploads() {
@@ -416,4 +477,7 @@ function renderTable(data) {
     
     function showLoading() { const s = document.getElementById('loading-spinner'); if(s) s.style.display = 'block'; }
     function hideLoading() { const s = document.getElementById('loading-spinner'); if(s) s.style.display = 'none'; }
+
+    // Inicialização
+    loadDataAndRenderTables();
 });

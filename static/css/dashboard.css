@@ -315,6 +315,109 @@ button:active { transform: scale(0.98); }
     animation: spin 1s linear infinite;
     margin: 30px auto;
 }
+
+/* =================================== */
+/* 4. LAYOUT DO DASHBOARD (GRID)       */
+/* =================================== */
+
+.dashboard-container {
+    display: grid;
+    /* Define 3 colunas de largura igual */
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 20px; /* Espaço entre os cards */
+    
+    /* Centralização e largura máxima (similar ao main) */
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+/* Estilo para os cards (caso .card não esteja definido em outro lugar) */
+.card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    
+    /* Importante para Chart.js: impede que o gráfico estoure o tamanho do grid */
+    min-width: 0; 
+    display: flex;
+    flex-direction: column;
+}
+
+/* =================================== */
+/* 5. ESTILOS DO TOTALIZADOR (VERTICAL) */
+/* =================================== */
+
+.totalizer-items-container {
+    display: flex;
+    flex-direction: column; /* AQUI: Coloca os blocos um embaixo do outro */
+    align-items: center;    /* Centraliza tudo horizontalmente */
+    justify-content: center;
+    width: 100%;
+    gap: 25px; /* Espaço vertical entre o Total, Recebido e A Receber */
+    margin-top: 10px;
+}
+
+.totalizer-item {
+    display: flex;
+    flex-direction: column; /* Garante que Título, Valor e % fiquem empilhados */
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Remove a linha do último item para ficar mais limpo */
+.totalizer-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* --- ESTILOS DE TEXTO --- */
+
+/* Títulos (TOTAL PEDIDO...) */
+.totalizer-item .label {
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: #555;
+    margin: 0 0 5px 0;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+/* Valores (Números) */
+.totalizer-item .value {
+    display: block;
+    font-weight: bold;
+    font-size: 3.5rem; /* Fonte Grande mantida */
+    line-height: 1.1;
+    text-align: center;
+}
+
+/* Porcentagens */
+.percentual-a-receber {
+    display: block;
+    font-size: 1.5rem; /* Fonte Grande para % */
+    font-weight: 700;
+    color: #777;
+    text-align: center;
+    margin-top: 5px;
+}
+
+/* Cores */
+#total-pedido-val { color: #000; }
+.totalizer-item .value.received { color: #28a745; }
+.totalizer-item .value.to-receive { color: #dc3545; }
+
+
+/* --- RESPONSIVIDADE PARA TELAS MENORES --- */
+/* Se a tela for pequena, diminui a fonte para não estourar */
+@media (max-width: 1400px) {
+    .totalizer-item .value { font-size: 1.6rem; }
+    .percentual-a-receber { font-size: 1rem; }
+}
+
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 /* Pesquisa */
