@@ -40,4 +40,4 @@ try {
 } catch (PDOException $e) {
     die("Erro fatal na conexão com uma das bases de dados: " . $e->getMessage());
 }
-?>
+
