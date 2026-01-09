@@ -19,14 +19,14 @@ require '../auth/auth_check.php'; // 2. Protege a página
 
 <body>
 
- <nav class="navbar">
+    <nav class="navbar">
         <div class="nav-brand">
             <h1>Controle de Entregas</h1>
         </div>
         <ul class="nav-links">
             <li><a href="../Recebimentos/recebimentos.php">Entregas</a></li>
             <li><a href="../Recebimentos/historico.php">Histórico</a></li>
-            <li><a href="../Recebimentos/dashboard.php">Dashboard</a></li>    
+            <li><a href="../Recebimentos/dashboard.php">Dashboard</a></li>
             <li><a href="../selecao_ferramentas.php">Ferramentas</a></li>
 
             <?php if (isset($_SESSION['user_id'])): ?>
@@ -34,7 +34,7 @@ require '../auth/auth_check.php'; // 2. Protege a página
             <?php else: ?>
                 <li><a href="../auth/login.php">Login</a></li>
             <?php endif; ?>
-            
+
         </ul>
     </nav>
 
@@ -69,6 +69,22 @@ require '../auth/auth_check.php'; // 2. Protege a página
         <div class="card">
             <h2>Status de Entrega por SKU</h2>
             <canvas id="sku-status-chart"></canvas>
+        </div>
+
+        <div class="card">
+            <h2>⚠️ Top 5 Pendências</h2>
+            <div class="table-container">
+                <table id="top-pendencias-table" style="min-width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 8px; font-size: 0.9rem;">Item</th>
+                            <th style="padding: 8px; font-size: 0.9rem;">Faltam cx</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="card" style="grid-column: 1 / -1;">

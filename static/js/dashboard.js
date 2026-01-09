@@ -2,18 +2,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     /**
      * Função para obter dados do back-end para os gráficos.
+     * Adiciona timestamp para evitar cache.
      */
     async function getDashboardData() {
         try {
-            // MUDANÇA AQUI: Adiciona cache-busting para evitar cache antigo
             const response = await fetch('../api/get_dashboard_data.php?t=' + new Date().getTime());
             
-            if (response.status === 401) { // 401 = Não Autorizado
-                window.location.href = '../auth/login.php'; // Redireciona para o login
+            if (response.status === 401) { 
+                window.location.href = '../auth/login.php'; 
                 return null;
             }
             if (!response.ok) {
-                const errorText = await response.text(); // Vê o erro do PHP
+                const errorText = await response.text(); 
                 console.error("Erro do servidor (get_dashboard_data.php):", errorText);
                 throw new Error('Erro ao buscar dados do dashboard.');
             }
@@ -25,19 +25,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /**
-     * Função para renderizar os totalizadores com porcentagem.
+     * Renderiza os cartões de totais (Pedido, Recebido, A Receber)
      */
     function renderTotalizers(data) {
         const totalPedido = parseInt(data.total_pedido, 10) || 0;
         const totalRecebido = parseInt(data.total_recebido, 10) || 0;
         const totalAReceber = totalPedido - totalRecebido;
 
-        // Atualiza os valores absolutos
+        // Atualiza valores numéricos
         document.getElementById('total-pedido-val').textContent = totalPedido.toFixed(0);
         document.getElementById('recebido-val').textContent = totalRecebido.toFixed(0);
         document.getElementById('a-receber-val').textContent = totalAReceber.toFixed(0);
 
-        // -- NOVO: Cálculo das porcentagens --
+        // Calcula porcentagens
         let pctRecebido = 0;
         let pctAReceber = 0;
 
@@ -46,8 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             pctAReceber = (totalAReceber / totalPedido) * 100;
         }
 
-        // Atualiza os elementos de porcentagem (formatando com vírgula e 1 casa decimal)
-        // Certifique-se de ter adicionado os elementos <small id="recebido-pct"> e <small id="a-receber-pct"> no HTML
+        // Atualiza textos de porcentagem
         const elRecebidoPct = document.getElementById('recebido-pct');
         const elAReceberPct = document.getElementById('a-receber-pct');
 
@@ -61,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /**
-     * Função para renderizar o gráfico de progresso geral.
+     * Gráfico Rosca: Progresso Geral
      */
     function renderProgressChart(data) {
         const ctx = document.getElementById('progress-chart').getContext('2d');
@@ -81,19 +80,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             options: {
                 responsive: true,
                 plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    tooltip: {
-                        enabled: false,
-                    }
+                    legend: { position: 'top' },
+                    tooltip: { enabled: false }
                 }
             }
         });
     }
 
     /**
-     * Função para renderizar o gráfico de pizza de status de SKU.
+     * Gráfico Pizza: Status por SKU
      */
     function renderSkuStatusChart(data) {
         const ctx = document.getElementById('sku-status-chart').getContext('2d');
@@ -110,31 +105,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed !== null) {
-                                    label += context.parsed;
-                                }
-                                return label;
-                            }
-                        }
-                    }
-                }
+                plugins: { legend: { position: 'top' } }
             }
         });
     }
 
     /**
-     * Função para renderizar o gráfico de barras de status por grupo.
+     * Gráfico Barras: Status por Grupo
      */
     function renderGroupStatusChart(data) {
         const ctx = document.getElementById('group-status-chart').getContext('2d');
@@ -150,43 +127,70 @@ document.addEventListener('DOMContentLoaded', async () => {
             data: {
                 labels: labels,
                 datasets: [
-                    {
-                        label: 'Não Entregues',
-                        data: naoEntregues,
-                        backgroundColor: '#dc3545',
-                    },
-                    {
-                        label: 'Parcialmente Entregues',
-                        data: parcialmenteEntregues,
-                        backgroundColor: '#ffc107',
-                    },
-                    {
-                        label: 'Totalmente Entregues',
-                        data: totalmenteEntregues,
-                        backgroundColor: '#28a745',
-                    }
+                    { label: 'Não Entregues', data: naoEntregues, backgroundColor: '#dc3545' },
+                    { label: 'Parcialmente Entregues', data: parcialmenteEntregues, backgroundColor: '#ffc107' },
+                    { label: 'Totalmente Entregues', data: totalmenteEntregues, backgroundColor: '#28a745' }
                 ]
             },
             options: {
                 responsive: true,
                 scales: {
-                    x: {
-                        stacked: true,
-                    },
-                    y: {
-                        stacked: true,
-                    }
+                    x: { stacked: true },
+                    y: { stacked: true }
                 }
             }
         });
     }
 
-    // Carrega e renderiza os gráficos e totalizadores quando a página é carregada
+    /**
+     * Tabela: Top 5 Pendências (Layout Fixo e Travado)
+     */
+    function renderTopPendencias(data) {
+        const tbody = document.querySelector('#top-pendencias-table tbody');
+        
+        // AJUSTE CRUCIAL: Define a largura das colunas via JS para garantir o layout fixo
+        // Isso impede que a tabela cresça além do container
+        const thead = document.querySelector('#top-pendencias-table thead tr');
+        if (thead && thead.cells.length === 2) {
+            thead.cells[0].style.width = '75%'; // Coluna Item (ocupa a maior parte)
+            thead.cells[1].style.width = '25%'; // Coluna Falta (ocupa o final)
+        }
+
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        const lista = data.top_pendencias || [];
+
+        if (lista.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:10px;">Nenhuma pendência crítica! 🎉</td></tr>';
+            return;
+        }
+
+        lista.forEach(item => {
+            const tr = document.createElement('tr');
+            
+            // O atributo 'title' permite ler o nome completo ao passar o mouse, caso seja cortado
+            tr.innerHTML = `
+                <td title="${item.codigo_sap} - ${item.item}" style="text-align: left; padding: 8px; font-size: 0.9rem; border-bottom: 1px solid #eee;">
+                    <strong>${item.codigo_sap}</strong> - ${item.item}
+                </td>
+                <td style="color: #dc3545; font-weight: bold; padding: 8px; text-align: center; border-bottom: 1px solid #eee;">
+                    ${item.falta}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ===============================================
+    // INICIALIZAÇÃO
+    // ===============================================
     const dashboardData = await getDashboardData();
     if (dashboardData) {
         renderTotalizers(dashboardData);
         renderProgressChart(dashboardData);
         renderSkuStatusChart(dashboardData);
+        renderTopPendencias(dashboardData); // Chama a nova função
         renderGroupStatusChart(dashboardData);
     }
 });

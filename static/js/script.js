@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.innerHTML = `
                     <td>${item.codigo_sap}</td>
                     <td>${item.item}</td>
-                    <td>${item.grupo}</td>
+                    <td class="editable-cell" data-id="${item.id}" data-field="grupo" data-old-value="${item.grupo}">${item.grupo}</td>
                     
                     <td class="editable-cell" data-id="${item.id}" data-field="pedido_loja" data-old-value="${item.pedido_loja}">${item.pedido_loja}</td>
                     <td class="editable-cell" data-id="${item.id}" data-field="pedido_vd" data-old-value="${item.pedido_vd}">${item.pedido_vd}</td>
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.innerHTML = `
                     <td>${item.codigo_sap}</td>
                     <td>${item.item}</td>
-                    <td>${item.grupo}</td>
+                    <td class="editable-cell" data-id="${item.id}" data-field="grupo" data-old-value="${item.grupo}">${item.grupo}</td>
                     <td>${item.total_caixa}</td>
                     <td>${item.recebido}</td>
                     <td style="color: green; font-weight: bold;">CONCLUÍDO</td>
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.innerHTML = `
                     <td>${item.codigo_sap}</td>
                     <td>${item.item}</td>
-                    <td>${item.grupo}</td>
+                    <td class="editable-cell" data-id="${item.id}" data-field="grupo" data-old-value="${item.grupo}">${item.grupo}</td>
                     
                     <td class="editable-cell" data-id="${item.id}" data-field="pedido_loja" data-old-value="${item.pedido_loja}">${item.pedido_loja}</td>
                     <td class="editable-cell" data-id="${item.id}" data-field="pedido_vd" data-old-value="${item.pedido_vd}">${item.pedido_vd}</td>
@@ -210,8 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
         attachTableListeners();
     }
 
-    // ===============================================
-    // 5. EDIÇÃO E EXCLUSÃO
+  // ===============================================
+    // 5. EDIÇÃO E EXCLUSÃO (ATUALIZADO PARA TEXTO)
     // ===============================================
     function attachTableListeners() {
         
@@ -222,6 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const editableCells = row.querySelectorAll('.editable-cell');
                 const editBtn = e.target;
                 
+                // Esconde botões normais e mostra Salvar/Cancelar
                 editBtn.style.display = 'none';
                 const delBtn = row.querySelector('.delete-btn');
                 if(delBtn) delBtn.style.display = 'none';
@@ -238,12 +239,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 editBtn.parentNode.appendChild(saveBtn);
                 editBtn.parentNode.appendChild(cancelBtn);
 
+                // Transforma células em Inputs
                 editableCells.forEach(cell => {
                     const oldValue = cell.textContent;
-                    cell.innerHTML = `<input type="number" value="${oldValue}" min="0" style="width: 70px;">`;
+                    const field = cell.dataset.field;
+                    
+                    // LÓGICA NOVA: Verifica se é o campo 'grupo' para usar texto
+                    if (field === 'grupo' || field === 'item' || field === 'codigo_sap') {
+                        cell.innerHTML = `<input type="text" value="${oldValue}" style="width: 100%;">`;
+                    } else {
+                        // Se for pedido (número)
+                        cell.innerHTML = `<input type="number" value="${oldValue}" min="0" style="width: 70px;">`;
+                    }
                 });
                 
-                // Salvar
+                // --- AÇÃO DE SALVAR ---
                 saveBtn.addEventListener('click', async () => {
                     const firstCell = row.querySelector('.editable-cell');
                     const id = firstCell.dataset.id;
@@ -256,8 +266,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         const oldValue = cell.dataset.oldValue;
                         const newValue = input.value;
                         
-                        updatedData[field] = parseInt(newValue, 10);
-                        if (oldValue !== newValue) hasChanged = true;
+                        // LÓGICA NOVA: Salva como texto ou número dependendo do campo
+                        if (field === 'grupo' || field === 'item' || field === 'codigo_sap') {
+                            updatedData[field] = newValue; // Salva como String
+                        } else {
+                            updatedData[field] = parseInt(newValue, 10); // Salva como Inteiro
+                        }
+
+                        if (oldValue != newValue) hasChanged = true;
                     });
 
                     if (hasChanged) {
@@ -278,18 +294,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             showFeedback('Erro ao salvar edição.', 'error');
                         }
                     } else {
-                        loadDataAndRenderTables();
+                        loadDataAndRenderTables(); // Se nada mudou, só recarrega
                     }
                 });
 
-                // Cancelar
+                // --- AÇÃO DE CANCELAR ---
                 cancelBtn.addEventListener('click', () => {
                     loadDataAndRenderTables();
                 });
             });
         });
 
-        // --- EXCLUSÃO ---
+        // --- EXCLUSÃO (MANTIDO IGUAL) ---
         document.querySelectorAll('.delete-btn').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const id = e.target.dataset.id;
@@ -310,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
     // ===============================================
     // 6. RESUMO E LOAD DE DADOS
     // ===============================================

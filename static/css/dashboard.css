@@ -322,86 +322,80 @@ button:active { transform: scale(0.98); }
 
 .dashboard-container {
     display: grid;
-    /* Define 3 colunas de largura igual */
+    /* 3 Colunas iguais para a linha do meio */
     grid-template-columns: repeat(3, 1fr); 
-    gap: 20px; /* Espaço entre os cards */
-    
-    /* Centralização e largura máxima (similar ao main) */
+    gap: 20px;
     max-width: 1200px;
     margin: 40px auto;
     padding: 0 20px;
     width: 100%;
     box-sizing: border-box;
 }
-/* Estilo para os cards (caso .card não esteja definido em outro lugar) */
+
 .card {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    
-    /* Importante para Chart.js: impede que o gráfico estoure o tamanho do grid */
-    min-width: 0; 
     display: flex;
     flex-direction: column;
+    min-width: 0; /* Evita que tabelas/gráficos estourem o card */
 }
 
+/* --- NOVO: Faz o Totalizador (1º Card) ocupar a linha inteira --- */
+.totalizer-card {
+    grid-column: 1 / -1; /* Começa na 1ª coluna e vai até a última */
+}
+
+/* O último card (Grupos) também ocupa a linha inteira */
+/* (Certifique-se que no HTML o card de grupos tenha style="grid-column: 1 / -1;" ou adicione uma classe aqui) */
+
+
 /* =================================== */
-/* 5. ESTILOS DO TOTALIZADOR (VERTICAL) */
+/* 5. ESTILOS DO TOTALIZADOR (FINAL)   */
 /* =================================== */
 
 .totalizer-items-container {
     display: flex;
-    flex-direction: column; /* AQUI: Coloca os blocos um embaixo do outro */
-    align-items: center;    /* Centraliza tudo horizontalmente */
-    justify-content: center;
+    /* MUDANÇA: Volta para ROW (Horizontal) pois agora temos espaço na tela toda */
+    flex-direction: row; 
+    justify-content: space-around; /* Espalha bem os itens */
+    align-items: center;
     width: 100%;
-    gap: 25px; /* Espaço vertical entre o Total, Recebido e A Receber */
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
 .totalizer-item {
     display: flex;
-    flex-direction: column; /* Garante que Título, Valor e % fiquem empilhados */
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 100%;
+    text-align: center;
+    /* Removemos bordas ou espaçamentos verticais antigos se houver */
+    border: none; 
 }
 
-/* Remove a linha do último item para ficar mais limpo */
-.totalizer-item:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-}
-
-/* --- ESTILOS DE TEXTO --- */
-
-/* Títulos (TOTAL PEDIDO...) */
+/* Estilos de Texto do Totalizador */
 .totalizer-item .label {
     font-weight: 800;
-    font-size: 1.5rem;
+    font-size: 1rem;
     color: #555;
-    margin: 0 0 5px 0;
+    margin-bottom: 5px;
     text-transform: uppercase;
-    text-align: center;
 }
 
-/* Valores (Números) */
 .totalizer-item .value {
     display: block;
     font-weight: bold;
-    font-size: 3.5rem; /* Fonte Grande mantida */
-    line-height: 1.1;
-    text-align: center;
+    font-size: 2.5rem;
+    line-height: 1;
 }
 
-/* Porcentagens */
 .percentual-a-receber {
     display: block;
-    font-size: 1.5rem; /* Fonte Grande para % */
+    font-size: 1.2rem;
     font-weight: 700;
     color: #777;
-    text-align: center;
     margin-top: 5px;
 }
 
@@ -410,12 +404,32 @@ button:active { transform: scale(0.98); }
 .totalizer-item .value.received { color: #28a745; }
 .totalizer-item .value.to-receive { color: #dc3545; }
 
+/* Responsividade: Em telas pequenas, volta tudo para 1 coluna */
+@media (max-width: 992px) {
+    .dashboard-container {
+        grid-template-columns: 1fr; /* Tudo em 1 coluna */
+    }
+    .totalizer-items-container {
+        flex-direction: column; /* Totalizador volta a ficar vertical no celular */
+        gap: 20px;
+    }
+}
 
-/* --- RESPONSIVIDADE PARA TELAS MENORES --- */
-/* Se a tela for pequena, diminui a fonte para não estourar */
-@media (max-width: 1400px) {
-    .totalizer-item .value { font-size: 1.6rem; }
-    .percentual-a-receber { font-size: 1rem; }
+/* =================================== */
+/* 6. AJUSTE TABELA TOP 5 (NOVO)       */
+/* =================================== */
+
+#top-pendencias-table {
+    min-width: 0 !important; /* Anula o limite global de 800px */
+    width: 100%;
+    table-layout: fixed; /* Essencial para travar a largura das colunas */
+}
+
+/* Garante que o texto longo não estoure */
+#top-pendencias-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
