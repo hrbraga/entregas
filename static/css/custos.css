@@ -1,0 +1,55 @@
+  .col-campanha {
+      font-weight: bold;
+      color: #4a2c2a;
+  }
+
+  /* Ajustes para os inputs de cálculo na tabela */
+  .input-calc {
+      width: 60px;
+      padding: 5px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9em;
+  }
+
+  .col-total {
+      font-weight: bold;
+      color: #27ae60;
+  }
+
+  #filterCampanha option {
+      font-size: 1.2rem;
+      padding: 5px;
+  }
+
+  .lojas label,
+  .valores-transferencia p {
+      margin-right: 15px;
+      font-weight: bold;
+      font-size: 0.9em;
+      color: #000000;
+  }
+
+  .lojas input {
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-left: 5px;
+  }
+
+  .valores-transferencia {
+      text-align: center;
+  }
+
+  .total-transferencia {
+      font-size: 0.9em;
+      margin-bottom: 5px;
+      color: #666;
+  }
+
+  .vlr-transferencia {
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #4a2c2a;
+  }
