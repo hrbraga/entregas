@@ -4,6 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof produtos_db !== 'undefined') {
         renderizarTabela(produtos_db);
     }
+    
+    // Ativa o botão limpar se ele existir na página
+    const btnLimpar = document.getElementById('btn-limpar');
+    if (btnLimpar) {
+        btnLimpar.addEventListener('click', limparTudo);
+    }
 });
 
 function renderizarTabela(dados) {
@@ -154,13 +160,39 @@ function filtrarTabela() {
     });
 }
 
+// --- FUNÇÃO LIMPAR TUDO ---
+function limparTudo() {
+    if (!confirm("Tem certeza que deseja limpar todos os valores inseridos?")) {
+        return;
+    }
+
+    // Limpa os inputs de caixas e unidades
+    const inputs = document.querySelectorAll('.input-calc');
+    inputs.forEach(input => {
+        input.value = ""; 
+    });
+
+    // Zera visualmente as colunas de total por linha
+    const totaisLinha = document.querySelectorAll('.col-total');
+    totaisLinha.forEach(td => {
+        td.innerText = "0.00";
+        td.dataset.valorRaw = "0"; 
+    });
+
+    // Zera o Total Geral da transferência
+    calcularTotalGeral();
+}
+
+// --- FUNÇÕES DE EXPORTAÇÃO CORRIGIDAS ---
+
 function exportToPDF() {
-  // ---- Lógica de Validação ----
   const lojaRemetente = document.querySelector("#remetente").value || "";
   const lojaDestino = document.querySelector("#destino").value || "";
   const dataTransferenciaInput = document.querySelector("#date").value || "";
   const totalTransferenciaElement = document.querySelector("#vlr-transferencia");
-  const totalTransferencia = parseFloat(totalTransferenciaElement.textContent.trim().replace('.', '').replace(',', '.')) || 0;
+  
+  // Tratamento seguro para converter o total para float
+  const totalTransferencia = parseFloat(totalTransferenciaElement.textContent.trim().replace(/\./g, '').replace(',', '.')) || 0;
 
   if (lojaRemetente === "" || lojaDestino === "" || dataTransferenciaInput === "") {
     alert("Por favor, preencha todos os campos do formulário (Loja Remetente, Loja Destino e Data da Transferência).");
@@ -171,11 +203,9 @@ function exportToPDF() {
     alert("O valor total da transferência é zero. Adicione caixas ou unidades para exportar.");
     return;
   }
-  // ---- Fim da Lógica de Validação ----
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  const tituloPagina = document.querySelector("h1").textContent.trim();
 
   const dataArray = dataTransferenciaInput.split('-');
   const dataCorreta = new Date(dataArray[0], dataArray[1] - 1, dataArray[2]);
@@ -195,11 +225,15 @@ function exportToPDF() {
   const table = document.querySelector(".tableizer-table tbody");
 
   table.querySelectorAll("tr").forEach(row => {
-    const codigo = row.children[0].textContent.trim();
-    const descricao = row.children[1].textContent.trim();
-    const caixasInput = row.querySelector("input.caixas");
-    const unidadesInput = row.querySelector("input.unidades");
-    const total = row.querySelector(".total-item").textContent.trim();
+    // CORREÇÃO: Índices e classes corretos para a tabela custos_produtos
+    const codigo = row.children[1].textContent.trim(); 
+    const descricao = row.children[2].textContent.trim();
+    
+    const caixasInput = row.querySelector("input.qtd-caixas");
+    const unidadesInput = row.querySelector("input.qtd-unidades");
+    
+    const totalElement = row.querySelector(".col-total");
+    const total = totalElement ? totalElement.textContent.trim() : "0,00";
 
     const caixas = caixasInput ? caixasInput.value.trim() || "0" : "0";
     const unidades = unidadesInput ? unidadesInput.value.trim() || "0" : "0";
@@ -222,19 +256,17 @@ function exportToPDF() {
     });
   }
 
-  // CRIA UM NOME DE ARQUIVO PADRÃO E O USA NO PROMPT
   const defaultFileName = `Trasf para ${lojaDestino} - ${dataTransferencia}`;
   const fileName = prompt("Digite o nome do arquivo para exportação:", defaultFileName) || defaultFileName;
   doc.save(`${fileName}.pdf`);
 }
 
 function exportToXLS() {
-  // ---- Lógica de Validação ----
   const lojaRemetente = document.querySelector("#remetente").value || "";
   const lojaDestino = document.querySelector("#destino").value || "";
   const dataTransferenciaInput = document.querySelector("#date").value || "";
   const totalTransferenciaElement = document.querySelector("#vlr-transferencia");
-  const totalTransferencia = parseFloat(totalTransferenciaElement.textContent.trim().replace('.', '').replace(',', '.')) || 0;
+  const totalTransferencia = parseFloat(totalTransferenciaElement.textContent.trim().replace(/\./g, '').replace(',', '.')) || 0;
 
   if (lojaRemetente === "" || lojaDestino === "" || dataTransferenciaInput === "") {
     alert("Por favor, preencha todos os campos do formulário (Loja Remetente, Loja Destino e Data da Transferência).");
@@ -245,10 +277,9 @@ function exportToXLS() {
     alert("O valor total da transferência é zero. Adicione caixas ou unidades para exportar.");
     return;
   }
-  // ---- Fim da Lógica de Validação ----
 
   const wb = XLSX.utils.book_new();
-  const tituloPagina = document.querySelector("h1").textContent.trim();
+  const tituloPagina = "Custos de Produtos";
 
   const dataArray = dataTransferenciaInput.split('-');
   const dataCorreta = new Date(dataArray[0], dataArray[1] - 1, dataArray[2]);
@@ -269,11 +300,15 @@ function exportToXLS() {
   const table = document.querySelector(".tableizer-table tbody");
 
   table.querySelectorAll("tr").forEach(row => {
-    const codigo = row.children[0].textContent.trim();
-    const descricao = row.children[1].textContent.trim();
-    const caixasInput = row.querySelector("input.caixas");
-    const unidadesInput = row.querySelector("input.unidades");
-    const total = row.querySelector(".total-item").textContent.trim();
+    // CORREÇÃO: Índices e classes corretos
+    const codigo = row.children[1].textContent.trim();
+    const descricao = row.children[2].textContent.trim();
+    
+    const caixasInput = row.querySelector("input.qtd-caixas");
+    const unidadesInput = row.querySelector("input.qtd-unidades");
+    
+    const totalElement = row.querySelector(".col-total");
+    const total = totalElement ? totalElement.textContent.trim() : "0,00";
 
     const caixas = caixasInput ? caixasInput.value.trim() || "0" : "0";
     const unidades = unidadesInput ? unidadesInput.value.trim() || "0" : "0";
@@ -291,7 +326,6 @@ function exportToXLS() {
   const sheet = XLSX.utils.aoa_to_sheet(lojaInfo);
   XLSX.utils.book_append_sheet(wb, sheet, tituloPagina);
 
-  // CRIA UM NOME DE ARQUIVO PADRÃO E O USA NO PROMPT
   const defaultFileName = `Trasf para ${lojaDestino} - ${dataTransferencia}`;
   const fileName = prompt("Digite o nome do arquivo para exportação:", defaultFileName) || defaultFileName;
   XLSX.writeFile(wb, `${fileName}.xlsx`);

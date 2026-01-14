@@ -50,3 +50,10 @@ footer {
 footer a{
     font-size: 2rem;
 }
+
+.linkModelo {
+    font-size: 0.9rem;
+    color: rgb(211, 47, 47);
+    text-decoration: underline;
+    cursor: pointer;
+}

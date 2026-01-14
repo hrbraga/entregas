@@ -26,20 +26,23 @@ try {
 
 <body>
     <header>
-        <h1>Custos de Produtos</h1>
-
-
+        <h1>Custos dos Produtos</h1>
         <div class="botoes">
-
             <div class="btn-importar botoesImportacaoEExportacao">
                 <p>IMPORTAR ARQUIVO</p>
                 <button id="btn-importar">IMPORTAR</button>
                 <input type="file" id="importXLS" accept=".xlsx, .xls" style="display: none;">
+                <a href="https://drive.google.com/file/d/1z3fh-socUbmj4j-MFcwHl1exzMA_2lgI/view?usp=drive_link" target="_blank">
+                <p class="linkModelo">Planilha modelo</p></a>
             </div>
             <div class="btn-exportar botoesImportacaoEExportacao">
                 <p>EXPORTAR</p>
                 <button onclick="exportToPDF()">PDF</button>
                 <button onclick="exportToXLS()">XLS</button>
+            </div>
+                <div class="btn-limpar botoesImportacaoEExportacao">
+                <p>LIMPAR TUDO</p>
+                <button id="btn-limpar">LIMPAR</button>
             </div>
             <div class="btn-importar botoesImportacaoEExportacao">
                 <p>SELEÇÃO</p>

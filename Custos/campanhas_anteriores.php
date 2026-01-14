@@ -24,25 +24,25 @@
         <section class="custos">
             <div class="campanhas">                
                 <div class="campanha-2 campanha">
-                    <a href="custos_maes.php">
+                    <a href="antigos/custos_maes.php">
                         <img src="../static/img/mamaes.png" alt="Banner Campanha de Mães 2025">
                         <p>Mães e Namorados</p>
                     </a>
                 </div>
                 <div class="campanha-1 campanha">
-                    <a href="custos_pascoa.php">
+                    <a href="antigos/custos_pascoa.php">
                         <img src="../static/img/pascoa.webp" alt="Banner Campanha de Páscoa">
                         <p>Páscoa 2025</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
-                    <a href="custos_canecas.php">
+                    <a href="antigos/custos_canecas.php">
                         <img src="../static/img/canecas.jpg" alt="Banner Canecas">
                         <p>Canecas Oxford</p>
                     </a>
                 </div>
                 <div class="campanha-1 campanha">
-                    <a href="custos_natal.php">
+                    <a href="antigos/custos_natal.php">
                         <img src="../static/img/magia-do-cacau.jpg" alt="Banner Campanha de Natal">
                         <p>Natal 2024</p>
                     </a>

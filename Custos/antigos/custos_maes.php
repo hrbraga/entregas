@@ -519,7 +519,7 @@
     </main>
     
     <footer>
-        <a href="custos_selecao.php">
+      <a href="../Custos/campanhas_anteriores.php">
             <p>Voltar ao Início</p>
         </a>
     </footer>
