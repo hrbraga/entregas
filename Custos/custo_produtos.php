@@ -41,6 +41,10 @@ try {
                 <button onclick="exportToPDF()">PDF</button>
                 <button onclick="exportToXLS()">XLS</button>
             </div>
+            <div class="btn-importar botoesImportacaoEExportacao">
+                <p>SELEÇÃO</p>
+                <a href="custos_selecao.php"><button id="btn-voltar">Voltar</button></a>
+            </div>
         </div>
     </header>
 

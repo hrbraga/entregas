@@ -97,6 +97,7 @@ try {
 
         $db_produtos->beginTransaction();
         
+        // Prepara query de Inserção
         $sql = "INSERT INTO custos_produtos (
                 codigo, descricao, campanha, qtCaixa, valorUn, royalties, st, ipi, 
                 txsAdicionais, txMidia, custoCaixa, custoUn, preco, mbLiquida, mbBruta
@@ -108,21 +109,31 @@ try {
 
         $count = 0;
         foreach ($listaProdutos as $p) {
+            // Conversão segura de tipos
             $qtCaixa = floatval($p['qtCaixa'] ?? 0);
-            $valorUn = floatval($p['valorUn'] ?? 0);
-            $preco = floatval($p['preco'] ?? 0);
+            $valorUn = floatval($p['valorUn'] ?? 0); // Valor CX
+            $preco = floatval($p['preco'] ?? 0);     // Preço (CL)
             
+            // --- CÁLCULOS AUTOMÁTICOS (Regra de Negócio) ---
+            // Royalties sempre 50% do Valor CX
             $royalties = $valorUn * 0.50;
+            
+            // Impostos vindos da planilha
             $st = floatval($p['st'] ?? 0);
             $ipi = floatval($p['ipi'] ?? 0);
             $txs = floatval($p['txsAdicionais'] ?? 0);
             $midia = floatval($p['txMidia'] ?? 0);
             
+            // Custo Caixa Total
             $custoCaixa = $valorUn + $royalties + $st + $ipi + $txs + $midia;
+            
+            // Custo Unitário
             $custoUn = ($qtCaixa > 0) ? ($custoCaixa / $qtCaixa) : 0;
             
-            // Margens
+            // Margem Bruta
             $mbBruta = ($preco > 0) ? (1 - ($custoUn / $preco)) * 100 : 0;
+            
+            // Margem Líquida
             $baseLiq = $valorUn + $royalties;
             $custoBaseUn = ($qtCaixa > 0) ? ($baseLiq / $qtCaixa) : 0;
             $mbLiquida = ($preco > 0) ? (1 - ($custoBaseUn / $preco)) * 100 : 0;
@@ -148,11 +159,8 @@ try {
         }
 
         $db_produtos->commit();
-        echo json_encode(['status' => 'success', 'message' => "$count produtos importados!"]);
-    } else {
-        throw new Exception("Ação inválida.");
+        echo json_encode(['status' => 'success', 'message' => "$count produtos importados com sucesso!"]);
     }
-
 } catch (Exception $e) {
     if ($db_produtos->inTransaction()) $db_produtos->rollBack();
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);

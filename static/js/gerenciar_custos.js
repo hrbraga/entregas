@@ -160,35 +160,61 @@ async function excluirProduto(id) {
         alert('Erro ao excluir.');
     }
 }
+// --- IMPORTAÇÃO DE ARQUIVO (Excel/CSV) ---
 
-// Importação Excel
 function processarImportacao() {
     const fileInput = document.getElementById('arquivoImportacao');
-    if (!fileInput.files.length) { alert("Selecione um arquivo!"); return; }
+    if (!fileInput.files.length) {
+        alert("Selecione um arquivo!");
+        return;
+    }
 
     const file = fileInput.files[0];
     const reader = new FileReader();
+    
     document.getElementById('loading').style.display = 'block';
 
     reader.onload = function(e) {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        
+        // Converte para JSON
         const jsonData = XLSX.utils.sheet_to_json(firstSheet);
         
+        // Mapeamento Flexível (Aceita variações nos nomes das colunas)
         const produtosFormatados = jsonData.map(row => {
             return {
+                // Mapeia "Campanha"
                 campanha: row['Campanha'] || 'Importado',
-                codigo: row['Codigo'] || row['Código'] || '',
-                descricao: row['Descricao'] || row['Descrição'] || '',
-                qtCaixa: row['QtCaixa'] || row['Qtd'] || 0,
-                valorUn: row['ValorCX'] || row['Valor'] || 0,
-                preco: row['Preco'] || row['Preço'] || 0,
-                // Opcionais
+                
+                // Mapeia "Código" ou "Codigo"
+                codigo: row['Código'] || row['Codigo'] || '',
+                
+                // Mapeia "Descrição do Material" ou "Descrição" ou "Descricao"
+                descricao: row['Descrição do Material'] || row['Descrição'] || row['Descricao'] || '',
+                
+                // Mapeia "Preço (CL)" ou "Preço" ou "Preco"
+                preco: row['Preço (CL)'] || row['Preço'] || row['Preco'] || 0,
+                
+                // Mapeia "QT caixa" ou "QtCaixa"
+                qtCaixa: row['QT caixa'] || row['QtCaixa'] || row['Qtd'] || 0,
+                
+                // Mapeia "Valor CX" ou "ValorCX"
+                valorUn: row['Valor CX'] || row['ValorCX'] || row['Valor'] || 0,
+                
+                // Impostos e Taxas
                 st: row['ST'] || 0,
                 ipi: row['IPI'] || 0,
-                txsAdicionais: row['Taxas'] || 0,
-                txMidia: row['Midia'] || 0
+                
+                // Mapeia "Taxas" ou "Taxas Adicionais"
+                txsAdicionais: row['Taxas'] || row['Taxas Adicionais'] || 0,
+                
+                // Mapeia "Mídia" ou "Midia"
+                txMidia: row['Mídia'] || row['Midia'] || 0
+                
+                // Obs: Royalties, Custo Caixa e Margens serão calculados automaticamente pelo PHP
+                // para garantir que a matemática esteja sempre correta.
             };
         });
 
@@ -196,6 +222,8 @@ function processarImportacao() {
     };
     reader.readAsArrayBuffer(file);
 }
+
+
 
 async function enviarImportacaoPHP(dados) {
     const formData = new FormData();
