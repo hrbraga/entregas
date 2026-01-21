@@ -1,6 +1,6 @@
-<?php 
-    require '../config.php'; 
-    require '../auth/custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
+<?php
+require '../../config.php'; // Volta duas pastas (sai de antigos, sai de Custos)
+require '../../auth/custos_auth_check.php'; // Mesma coisa para o auth
 ?>
 
 <!DOCTYPE html>
@@ -9,28 +9,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../static/img/coelho.png" type="image/x-icon">
-    <link rel="stylesheet" href="../static/css/planilhas.css">
-    <link rel="stylesheet" href="../static/css/global.css">
+    <link rel="shortcut icon" href="../../static/img/coelho.png" type="image/x-icon">
+    <link rel="stylesheet" href="../../static/css/planilhas.css">
+    <link rel="stylesheet" href="../../static/css/global.css">
     <title>Mães e Namorados</title>
 </head>
 
 <body>
     <header>
         <h1>Mães e Namorados</h1>
-          <div class="botoes">
+        <div class="botoes">
             <div class="btn-importar botoesImportacaoEExportacao">
                 <p>IMPORTAR ARQUIVO</p>
                 <button id="btn-importar">IMPORTAR</button>
                 <input type="file" id="importXLS" accept=".xlsx, .xls" style="display: none;">
             </div>
-          
+
             <div class="btn-exportar botoesImportacaoEExportacao">
                 <p>EXPORTAR</p>
                 <button onclick="exportToPDF()">PDF</button>
                 <button onclick="exportToXLS()">XLS</button>
             </div>
-            
+
             <div class="btn-limpar botoesImportacaoEExportacao">
                 <p>LIMPAR TUDO</p>
                 <button id="btn-limpar">LIMPAR</button>
@@ -95,8 +95,8 @@
                             <td>7,00</td>
                             <td>499,39</td>
                             <td>35,67</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1002105</td>
                             <td>DISPLAY CORAÇÃO AMOR 160G</td>
@@ -111,8 +111,8 @@
                             <td>3,60</td>
                             <td>306,59</td>
                             <td>25,55</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1002121</td>
                             <td>CUBO AMOR MÃES 145G</td>
@@ -127,8 +127,8 @@
                             <td>12,00</td>
                             <td>430,87</td>
                             <td>17,95</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1002333</td>
                             <td>BOTAO DE ROSA ANGEL 13,3GX72UN</td>
@@ -143,8 +143,8 @@
                             <td>36,00</td>
                             <td>879,44</td>
                             <td>12,21</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1002554</td>
                             <td>LATA TRUFINHAS LACREME M&N 100GX12UN</td>
@@ -159,8 +159,8 @@
                             <td>0,00</td>
                             <td>262,59</td>
                             <td>21,88</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1002987</td>
                             <td>CX TABLETES 120GX12UN</td>
@@ -175,8 +175,8 @@
                             <td>0,00</td>
                             <td>286,40</td>
                             <td>23,87</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003009</td>
                             <td>CX BBS LACREME MAES 108GX16UN</td>
@@ -191,8 +191,8 @@
                             <td>14,40</td>
                             <td>374,91</td>
                             <td>23,43</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003011</td>
                             <td>DRAGEADOS MINI CUBO MEZZO 70GX24UN</td>
@@ -207,8 +207,8 @@
                             <td>4,80</td>
                             <td>309,17</td>
                             <td>12,88</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003044</td>
                             <td>CHOCOARTE VERTICAL TE AMO MAES 40GX24UN</td>
@@ -223,8 +223,8 @@
                             <td>4,80</td>
                             <td>217,20</td>
                             <td>9,05</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003290</td>
                             <td>CAIXA ANGEL COLECAO SORTIDOS 290GX10UN</td>
@@ -239,8 +239,8 @@
                             <td>0,00</td>
                             <td>590,90</td>
                             <td>59,09</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003328</td>
                             <td>CX BOMBONS SORTIDOS NAMORADOS 80GX20UN</td>
@@ -255,8 +255,8 @@
                             <td>6,00</td>
                             <td>298,37</td>
                             <td>14,92</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003329</td>
                             <td>GRANEL BB BRIGADEIRO 1KG</td>
@@ -271,8 +271,8 @@
                             <td>0,00</td>
                             <td>68,18</td>
                             <td>68,18</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003351</td>
                             <td>CX LACREME BBS SORTIDOS 310G</td>
@@ -287,8 +287,8 @@
                             <td>2,00</td>
                             <td>532,66</td>
                             <td>53,27</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003352</td>
                             <td>LATA BISCOITERIA SORTIDOS MAES 280GX8UN</td>
@@ -303,8 +303,8 @@
                             <td>0,00</td>
                             <td>334,22</td>
                             <td>41,78</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003530</td>
                             <td>CX ANGEL PORTA JOIAS SORT 185GX12UN</td>
@@ -319,8 +319,8 @@
                             <td>6,00</td>
                             <td>526,86</td>
                             <td>43,90</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003531</td>
                             <td>CX ANG CORACAO BOMBONS SORTIDOS 225GX8UN</td>
@@ -335,8 +335,8 @@
                             <td>0,00</td>
                             <td>372,87</td>
                             <td>46,61</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003608</td>
                             <td>TRUFA LACREME MEZZO 13,5GX150UN</td>
@@ -351,8 +351,8 @@
                             <td>0,00</td>
                             <td>344,81</td>
                             <td>2,30</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003675</td>
                             <td>PORTA JOIAS LC MEZZO 162G</td>
@@ -367,8 +367,8 @@
                             <td>0,00</td>
                             <td>699,02</td>
                             <td>58,25</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>1003684</td>
                             <td>CX URSINHOS NECESSAIRE 160GX8UN</td>
@@ -383,8 +383,8 @@
                             <td>0,00</td>
                             <td>419,45</td>
                             <td>52,43</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>2003417</td>
                             <td>URSO DE PELÚCIA LAÇO CETIM MISTO</td>
@@ -399,8 +399,8 @@
                             <td>0,00</td>
                             <td>713,09</td>
                             <td>47,54</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                         <tr>
                             <td>2005370</td>
                             <td>CAIXA M&N P/M 6UN CH 2025</td>
@@ -415,9 +415,9 @@
                             <td>0,00</td>
                             <td>263,42</td>
                             <td>43,90</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
-                       <tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
+                        <tr>
                             <td>1003605</td>
                             <td>DRAGEADOS MINI CUBO AVELA 70G</td>
                             <td>24</td>
@@ -431,9 +431,9 @@
                             <td>4,80</td>
                             <td>313,58</td>
                             <td>13,07</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
-                       <tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
+                        <tr>
                             <td>1003598</td>
                             <td>DRAGEADOS MINI CUBO LEITE EM PÓ 70G</td>
                             <td>24</td>
@@ -447,9 +447,9 @@
                             <td>4,80</td>
                             <td>313,58</td>
                             <td>13,07</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
-                       <tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
+                        <tr>
                             <td>1003531</td>
                             <td>CX ANG CORACAO BOMBONS SORTIDOS 225G</td>
                             <td>8</td>
@@ -463,9 +463,9 @@
                             <td>0,00</td>
                             <td>590,71</td>
                             <td>73,84</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
-                       <tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
+                        <tr>
                             <td>1003354</td>
                             <td>CAIXA BBS COMBINACAO PERFEITA 168G</td>
                             <td>16</td>
@@ -479,9 +479,9 @@
                             <td>4,80</td>
                             <td>480,27</td>
                             <td>29,27</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
-                       <tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
+                        <tr>
                             <td>1001054</td>
                             <td>CHOCOARTE TE AMO NAMORADOS 40G</td>
                             <td>24</td>
@@ -495,9 +495,9 @@
                             <td>4,80</td>
                             <td>217,19</td>
                             <td>9,05</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
-                       <tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
+                        <tr>
                             <td>1002122</td>
                             <td>CUBO AMOR NAMORADOS 145G</td>
                             <td>24</td>
@@ -511,27 +511,87 @@
                             <td>12,00</td>
                             <td>430,87</td>
                             <td>17,95</td>
-                           <td><span class="total-item" id="total-valor">0.00</span></td>
-                </tr>
+                            <td><span class="total-item" >0.00</span></td>
+                        </tr>
                     </tbody>
                 </table>
 
     </main>
-    
+
     <footer>
-      <a href="../Custos/campanhas_anteriores.php">
+        <a href="../campanhas_anteriores.php">
             <p>Voltar ao Início</p>
         </a>
     </footer>
-    
-    <script src="../static/js/gerador.js"></script>
-    <script src="../static/js/btn-export.js"></script>
-    <script src="../static/js/filtro.js"></script>
-    <script src="../static/js/import-xls.js"></script>
+
+    <script src="../../static/js/dados.js"></script>
+    <script src="../../static/js/gerador.js"></script>
+    <script src="../../static/js/btn-export.js"></script>
+    <script src="../../static/js/filtro.js"></script>
+    <script src="../../static/js/import-xls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/shim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Seleciona todas as linhas da tabela (ignorando o cabeçalho)
+            const rows = document.querySelectorAll('.tableizer-table tbody tr');
+            const totalGeralSpan = document.getElementById('vlr-transferencia');
+
+            function calcularTotal() {
+                let totalGeral = 0;
+
+                rows.forEach(row => {
+                    // Pega os inputs de cada linha
+                    const cxInput = row.querySelector('.caixas');
+                    const unInput = row.querySelector('.unidades');
+
+                    // Se não tiver inputs nessa linha (ex: cabeçalho), pula
+                    if (!cxInput || !unInput) return;
+
+                    const qtdCx = parseFloat(cxInput.value) || 0;
+                    const qtdUn = parseFloat(unInput.value) || 0;
+
+                    // Pega os custos das colunas 11 e 12 (Baseado na sua estrutura atual)
+                    // Custo Caixa está na coluna 11 (índice começa em 0)
+                    // Custo UN está na coluna 12
+
+                    // Função para limpar o texto (tirar R$, pontos e trocar vírgula por ponto)
+                    const limparValor = (texto) => {
+                        return parseFloat(texto.replace('R$', '').trim().replace(/\./g, '').replace(',', '.')) || 0;
+                    };
+
+                    const custoCx = limparValor(row.cells[11].innerText);
+                    const custoUn = limparValor(row.cells[12].innerText);
+
+                    // Cálculo
+                    const totalLinha = (qtdCx * custoCx) + (qtdUn * custoUn);
+
+                    // Atualiza o total da linha
+                    const spanTotal = row.querySelector('.total-item');
+                    if (spanTotal) {
+                        spanTotal.innerText = totalLinha.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }
+
+                    totalGeral += totalLinha;
+                });
+
+                // Atualiza o Total Geral lá em cima
+                if (totalGeralSpan) {
+                    totalGeralSpan.innerText = totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+            }
+
+            // Adiciona o evento de 'input' (digitação) em todos os campos
+            const inputs = document.querySelectorAll('.caixas, .unidades');
+            inputs.forEach(input => {
+                input.addEventListener('input', calcularTotal);
+            });
+        });
+    </script>
+
 
 </body>
 

@@ -1,6 +1,6 @@
 <?php 
-    require '../config.php'; 
-    require '../auth/custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
+    require '../../config.php'; // Volta duas pastas (sai de antigos, sai de Custos)
+    require '../../auth/custos_auth_check.php'; // Mesma coisa para o auth
 ?>
 
 <!DOCTYPE html>
@@ -9,9 +9,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="../static/img/natal.ico" type="image/x-icon">
-    <link rel="stylesheet" href="../static/css/planilhas.css">
-    <link rel="stylesheet" href="../static/css/global.css">
+  <link rel="shortcut icon" href="../../static/img/natal.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../../static/css/planilhas.css">
+    <link rel="stylesheet" href="../../static/css/global.css">
   <title>Custos Natal</title>
 </head>
 
@@ -91,7 +91,7 @@
           <td>12,00</td>
           <td>272,13</td>
           <td>11,34</td>
-          <td><span class="total-item" id="total-valor">0.00</span></td>
+          <td><span class="total-item" >0.00</span></td>
         </tr>
         <tr>
           <td>1003449</td>
@@ -107,7 +107,7 @@
           <td>0,00</td>
           <td>56,09</td>
           <td>56,09</td>
-          <td><span class="total-item" id="total-valor">0.00</span></td>
+          <td><span class="total-item" >0.00</span></td>
         </tr>
         <tr>
           <td>1002837</td>
@@ -123,7 +123,7 @@
           <td>6,00</td>
           <td>120,90</td>
           <td>10,07</td>
-          <td><span class="total-item" id="total-valor">0.00</span></td>
+          <td><span class="total-item" >0.00</span></td>
         </tr>
         <tr>
           <td>1003194</td>
@@ -139,7 +139,7 @@
           <td>18,00</td>
           <td>209,71</td>
           <td>5,83</td>
-          <td><span class="total-item" id="total-valor">0.00</span></td>
+          <td><span class="total-item" >0.00</span></td>
         </tr>
     <tr>
         <td>1001963</td>
@@ -155,7 +155,7 @@
         <td>21,00</td>
         <td>269,69</td>
         <td>19,26</td>
-        <td><span class="total-item" id="total-valor">0.00</span></td>
+        <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1001964</td>
@@ -171,7 +171,7 @@
         <td>6,00</td>
         <td>462,34</td>
         <td>38,53</td>
-        <td><span class="total-item" id="total-valor">0.00</span></td>
+        <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>2004784</td>
@@ -187,7 +187,7 @@
         <td>0,00</td>
         <td>294,40</td>
         <td>24,53</td>
-        <td><span class="total-item" id="total-valor">0.00</span></td>
+        <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>2004782</td>
@@ -203,7 +203,7 @@
         <td>0,00</td>
         <td>230,48</td>
         <td>19,21</td>
-        <td><span class="total-item" id="total-valor">0.00</span></td>
+        <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1000339</td>
@@ -219,7 +219,7 @@
         <td>0,00</td>
         <td>202,39</td>
         <td>8,43</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1000650</td>
@@ -235,7 +235,7 @@
         <td>24,00</td>
         <td>479,40</td>
         <td>19,98</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003072</td>
@@ -251,7 +251,7 @@
         <td>0,00</td>
         <td>173,60</td>
         <td>43,40</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003200</td>
@@ -267,7 +267,7 @@
         <td>4,50</td>
         <td>186,53</td>
         <td>20,73</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1002208</td>
@@ -283,7 +283,7 @@
         <td>12,00</td>
         <td>590,96</td>
         <td>49,25</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003480</td>
@@ -299,7 +299,7 @@
         <td>10,00</td>
         <td>722,02</td>
         <td>72,20</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1000690</td>
@@ -315,7 +315,7 @@
         <td>12,00</td>
         <td>523,11</td>
         <td>43,59</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003180</td>
@@ -331,7 +331,7 @@
         <td>16,00</td>
         <td>280,16</td>
         <td>17,51</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003227</td>
@@ -347,7 +347,7 @@
         <td>5,00</td>
         <td>155,89</td>
         <td>31,18</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1002488</td>
@@ -363,7 +363,7 @@
         <td>0,00</td>
         <td>360,36</td>
         <td>15,02</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003170</td>
@@ -379,7 +379,7 @@
         <td>0,00</td>
         <td>427,23</td>
         <td>17,80</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003141</td>
@@ -395,7 +395,7 @@
         <td>0,00</td>
         <td>427,23</td>
         <td>17,80</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003444</td>
@@ -411,7 +411,7 @@
         <td>0,00</td>
         <td>310,55</td>
         <td>12,94</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1002204</td>
@@ -427,7 +427,7 @@
         <td>6,00</td>
         <td>124,28</td>
         <td>10,36</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003222</td>
@@ -443,7 +443,7 @@
         <td>0,00</td>
         <td>566,75</td>
         <td>70,84</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003197</td>
@@ -459,7 +459,7 @@
         <td>0,00</td>
         <td>699,38</td>
         <td>87,42</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1002205</td>
@@ -475,7 +475,7 @@
         <td>12,00</td>
         <td>483,95</td>
         <td>40,33</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003189</td>
@@ -491,7 +491,7 @@
         <td>0,00</td>
         <td>655,44</td>
         <td>36,41</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1002214</td>
@@ -507,7 +507,7 @@
         <td>16,00</td>
         <td>422,26</td>
         <td>52,78</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1001256</td>
@@ -523,7 +523,7 @@
         <td>0,00</td>
         <td>399,20</td>
         <td>49,90</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003486</td>
@@ -539,7 +539,7 @@
         <td>0,00</td>
         <td>544,50</td>
         <td>68,06</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1000326</td>
@@ -555,7 +555,7 @@
         <td>12,00</td>
         <td>549,51</td>
         <td>68,69</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003470</td>
@@ -571,7 +571,7 @@
         <td>0,00</td>
         <td>378,74</td>
         <td>21,04</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003469</td>
@@ -587,7 +587,7 @@
         <td>0,00</td>
         <td>404,18</td>
         <td>22,45</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003464</td>
@@ -603,7 +603,7 @@
         <td>0,00</td>
         <td>394,05</td>
         <td>49,26</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003489</td>
@@ -619,7 +619,7 @@
         <td>12,00</td>
         <td>622,28</td>
         <td>51,86</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003461</td>
@@ -635,7 +635,7 @@
         <td>0,00</td>
         <td>679,11</td>
         <td>84,89</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1002476</td>
@@ -651,7 +651,7 @@
         <td>12,00</td>
         <td>742,52</td>
         <td>61,88</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003490</td>
@@ -667,7 +667,7 @@
         <td>0,00</td>
         <td>471,95</td>
         <td>39,33</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003186</td>
@@ -683,7 +683,7 @@
         <td>0,00</td>
         <td>268,67</td>
         <td>14,93</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1000668</td>
@@ -699,7 +699,7 @@
         <td>12,00</td>
         <td>597,24</td>
         <td>74,66</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003185</td>
@@ -715,7 +715,7 @@
         <td>24,00</td>
         <td>495,95</td>
         <td>41,33</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1002482</td>
@@ -731,7 +731,7 @@
         <td>0,00</td>
         <td>336,17</td>
         <td>14,01</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1001957</td>
@@ -747,7 +747,7 @@
         <td>6,00</td>
         <td>189,92</td>
         <td>31,65</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>2004802</td>
@@ -763,7 +763,7 @@
         <td>0,00</td>
         <td>377,08</td>
         <td>25,14</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003201</td>
@@ -779,7 +779,7 @@
         <td>12,00</td>
         <td>242,09</td>
         <td>20,17</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1001216</td>
@@ -795,7 +795,7 @@
         <td>36,00</td>
         <td>325,21</td>
         <td>9,03</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003439</td>
@@ -811,7 +811,7 @@
         <td>19,00</td>
         <td>509,05</td>
         <td>13,40</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003457</td>
@@ -827,7 +827,7 @@
         <td>19,00</td>
         <td>509,05</td>
         <td>13,40</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003456</td>
@@ -843,7 +843,7 @@
         <td>19,00</td>
         <td>509,05</td>
         <td>13,40</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1003142</td>
@@ -859,7 +859,7 @@
         <td>9,00</td>
         <td>323,13</td>
         <td>3,59</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
       <tr>
         <td>1002842</td>
@@ -875,14 +875,14 @@
         <td>9,00</td>
         <td>286,08</td>
         <td>3,18</td>
-       <td><span class="total-item" id="total-valor">0.00</span></td>
+       <td><span class="total-item" >0.00</span></td>
       </tr>
     </tbody>
   </table>
 </main>
 
   <footer>
-  <a href="../Custos/campanhas_anteriores.php">
+               <a href="../campanhas_anteriores.php">
       <p>Voltar ao Início</p>
     </a>
   </footer>

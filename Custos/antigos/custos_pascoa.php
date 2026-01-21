@@ -1,6 +1,6 @@
 <?php 
-    require '../config.php'; 
-    require '../auth/custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
+    require '../../config.php'; // Volta duas pastas (sai de antigos, sai de Custos)
+    require '../../auth/custos_auth_check.php'; // Mesma coisa para o auth
 ?>
 
 <!DOCTYPE html>
@@ -10,9 +10,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <link rel="shortcut icon" href="static/img/coelho.png" type="image/x-icon">
-    <link rel="stylesheet" href="../static/css/planilhas.css">
-    <link rel="stylesheet" href="../static/css/global.css">
+    <link rel="shortcut icon" href="../../static/img/coelho.png" type="image/x-icon">
+    <link rel="stylesheet" href="../../static/css/planilhas.css">
+    <link rel="stylesheet" href="../../static/css/global.css">
     
     <title>Transferência de Páscoa</title>
 </head>
@@ -117,7 +117,7 @@
     </main>
     
     <footer>
-       <a href="../Custos/campanhas_anteriores.php">
+             <a href="../campanhas_anteriores.php">
             <p>Voltar ao Início</p>
         </a>
     </footer>
