@@ -32,7 +32,7 @@ try {
                 <p>IMPORTAR ARQUIVO</p>
                 <button id="btn-importar">IMPORTAR</button>
                 <input type="file" id="importXLS" accept=".xlsx, .xls" style="display: none;">
-                <a href="https://drive.google.com/file/d/1z3fh-socUbmj4j-MFcwHl1exzMA_2lgI/view?usp=drive_link" target="_blank">
+                <a href="https://docs.google.com/spreadsheets/d/1xpEn91Vu-0s0lmoKg6iQZJbc54TPWSQ_/edit?usp=sharing&ouid=103820571681106693375&rtpof=true&sd=true" target="_blank">
                 <p class="linkModelo">Planilha modelo</p></a>
             </div>
             <div class="btn-exportar botoesImportacaoEExportacao">

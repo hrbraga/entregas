@@ -38,7 +38,7 @@ function preencherTabela(dadosImportados) {
 
     const linhasDeDados = dadosImportados.slice(1);
     const codigosNaoEncontrados = [];
-    const linhasDaTabela = document.querySelectorAll('.tableizer-table tbody tr');
+    const linhasDaTabela = document.querySelectorAll('#corpo-tabela tr'); // Melhor usar #corpo-tabela tr
 
     linhasDeDados.forEach(linha => {
         const codigo = String(linha[0] || '').trim();
@@ -48,14 +48,16 @@ function preencherTabela(dadosImportados) {
         let linhaEncontrada = false;
 
         for (const linhaTabela of linhasDaTabela) {
-            const codigoDaLinha = String(linhaTabela.querySelector('td:first-child').textContent).trim();
+            // AJUSTE: O código está na 2ª coluna (índice 1 no DOM, mas nth-child(2) no CSS)
+            const codigoDaLinha = String(linhaTabela.querySelector('td:nth-child(2)').textContent).trim();
+            
             if (codigoDaLinha === codigo) {
-                const inputCaixas = linhaTabela.querySelector('input.caixas');
-                const inputUnidades = linhaTabela.querySelector('input.unidades');
+                // AJUSTE: Classes corretas conforme calculo_custos.js
+                const inputCaixas = linhaTabela.querySelector('input.qtd-caixas');
+                const inputUnidades = linhaTabela.querySelector('input.qtd-unidades');
                 
-                // AQUI: Usa a nova variável global com o array de produtos ativos
-                const itemDados = window.activeProducts.find(item => String(item.codigo) === codigo);
-                const totalSpan = linhaTabela.querySelector('.total-item');
+                // Agora activeProducts existe
+                const itemDados = window.activeProducts ? window.activeProducts.find(item => String(item.codigo) === codigo) : null;
 
                 if (inputCaixas) {
                     inputCaixas.value = caixasImportadas;
@@ -64,8 +66,9 @@ function preencherTabela(dadosImportados) {
                     inputUnidades.value = unidadesImportadas;
                 }
                 
-                if (window.calcularTotalLinha && itemDados && totalSpan) {
-                    window.calcularTotalLinha(itemDados, inputCaixas, inputUnidades, totalSpan);
+                // AJUSTE: Chama a função de cálculo correta do calculo_custos.js
+                if (typeof calcularLinha === 'function' && inputCaixas) {
+                    calcularLinha(inputCaixas); // Recalcula a linha
                 }
 
                 linhaEncontrada = true;
@@ -79,8 +82,7 @@ function preencherTabela(dadosImportados) {
     });
 
     if (codigosNaoEncontrados.length > 0) {
-        const mensagemErro = `Os seguintes códigos não foram importados porque não existem na planilha: \n\n${codigosNaoEncontrados.join('\n')}`;
-        alert(mensagemErro);
+        alert(`Os seguintes códigos não foram importados:\n\n${codigosNaoEncontrados.join('\n')}`);
     } else {
         alert("Arquivo importado com sucesso!");
     }

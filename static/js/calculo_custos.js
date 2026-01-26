@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function renderizarTabela(dados) {
+    window.activeProducts = dados;
     const tbody = document.getElementById('corpo-tabela');
     tbody.innerHTML = '';
 

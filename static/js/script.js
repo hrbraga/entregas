@@ -452,9 +452,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // XML/CSV Upload e Feedback
-    setupUploads();
-    
-    function setupUploads() {
+   function setupUploads() {
+
         const importXmlBtn = document.getElementById('import-xml-btn');
         const xmlFileInput = document.getElementById('xml-file-input');
         if (importXmlBtn) importXmlBtn.addEventListener('click', () => xmlFileInput.click());
@@ -462,7 +461,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const importCsvBtn = document.getElementById('import-csv-btn');
         const csvFileInput = document.getElementById('csv-file-input');
-        if (importCsvBtn) importCsvBtn.addEventListener('click', () => csvFileInput.click());
+        
+        if (importCsvBtn) {
+            importCsvBtn.addEventListener('click', () => {
+                const desejaPlanilha = confirm("Você precisa baixar da planilha de importação de pedido?\n\n• Clique em OK para BAIXAR O MODELO.\n• Clique em CANCELAR para fazer a importação do seu pedido.");
+
+                if (desejaPlanilha) {
+                    window.open('https://drive.google.com/file/d/1Z4O2hqluoFJtQgdZGnf5Sszj-7QUzQox/view?usp=sharing', '_blank');
+                } else {
+                    csvFileInput.click();
+                }
+            });
+        }
+
         if (csvFileInput) csvFileInput.addEventListener('change', async (e) => uploadFiles(e.target.files, '../api/import_csv.php', 'file'));
     }
 
@@ -492,6 +503,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function showLoading() { const s = document.getElementById('loading-spinner'); if(s) s.style.display = 'block'; }
     function hideLoading() { const s = document.getElementById('loading-spinner'); if(s) s.style.display = 'none'; }
+
+    setupUploads();
 
     // Inicialização
     loadDataAndRenderTables();
