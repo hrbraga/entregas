@@ -18,6 +18,7 @@
 
 <div class="login-container">
     <form class="login-form" method="POST" action="login_action.php">
+        <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($_GET['redirect'] ?? ''); ?>">
         <h2>Login - Controle de Entregas</h2>
         
         <?php if (isset($_GET['erro'])): ?>

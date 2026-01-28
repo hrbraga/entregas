@@ -1,0 +1,549 @@
+/* static/css/validades.css */
+
+/* =========================================
+   1. ESTRUTURA GERAL
+   ========================================= */
+.container {
+    max-width: 1200px;
+    /* Limita a largura para telas muito grandes */
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Garante que os blocos principais ocupem a largura correta */
+.input-section,
+.tabs-container {
+    display: block;
+    width: 100%;
+    clear: both;
+    margin-bottom: 25px;
+    box-sizing: border-box;
+}
+
+/* =========================================
+   2. CABEÇALHO (NOVO LAYOUT)
+   ========================================= */
+.top-header-container {
+    position: relative;
+    /* Permite posicionar itens de forma absoluta */
+    display: flex;
+    justify-content: center;
+    /* Centraliza o título */
+    align-items: center;
+    margin-bottom: 35px;
+    min-height: 60px;
+}
+
+/* Título Centralizado */
+.page-title {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #333;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: -0.5px;
+}
+
+/* Grupo da Direita (Botão + Data) */
+.header-actions {
+    position: absolute;
+    /* Sai do fluxo normal e vai para o canto */
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    /* Centraliza verticalmente exato */
+    display: flex;
+    flex-direction: column;
+    /* Botão em cima, data embaixo */
+    align-items: flex-end;
+    /* Alinha à direita */
+    gap: 5px;
+}
+
+/* Botão de Relatório */
+.btn-report {
+    background-color: #5c6bc0;
+    /* Indigo */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-report:hover {
+    background-color: #3f51b5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Badge de Última Atualização */
+.last-update-badge {
+    font-size: 0.75rem;
+    color: #888;
+    background-color: #f1f1f1;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.last-update-badge span {
+    color: #555;
+    font-weight: bold;
+}
+
+/* Responsividade do Cabeçalho (Celular) */
+@media (max-width: 768px) {
+    .top-header-container {
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .header-actions {
+        position: static;
+        /* Volta para o fluxo normal */
+        transform: none;
+        align-items: center;
+        width: 100%;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+}
+
+
+/* =========================================
+   3. SEÇÃO DE INPUT (LINHA ÚNICA)
+   ========================================= */
+.input-section {
+    background: #fff;
+    padding: 20px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid #d32f2f;
+    /* Detalhe vermelho */
+}
+
+.input-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #444;
+    font-size: 1.1rem;
+}
+
+/* Layout Flex para Linha Única */
+.form-row.single-line {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    /* Alinha inputs e botão pela base */
+    flex-wrap: nowrap;
+    /* Força linha única no Desktop */
+}
+
+@media (max-width: 768px) {
+    .form-row.single-line {
+        flex-wrap: wrap;
+    }
+
+    .input-group {
+        min-width: 100% !important;
+    }
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.input-group label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #666;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.input-group input {
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.input-group input:read-only {
+    background-color: #f5f5f5;
+    color: #777;
+}
+
+.input-group input:focus {
+    border-color: #d32f2f;
+    outline: none;
+}
+
+.btn-primary {
+    height: 38px;
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 20px;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #b71c1c;
+}
+
+/* Dropdown de Busca */
+.dropdown-results {
+    position: absolute;
+    top: 39px;
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    border-radius: 0 0 4px 4px;
+}
+
+.dropdown-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.dropdown-item:hover {
+    background-color: #ffebee;
+    color: #d32f2f;
+}
+
+
+/* =========================================
+   4. ABAS E TABELA (SEM GAP)
+   ========================================= */
+.tabs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    /* Zero espaço entre header e content */
+}
+
+.tabs-header {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    padding-left: 0;
+    align-items: flex-end;
+    border-bottom: 1px solid #ccc;
+    /* Linha Guia */
+    margin-bottom: 0;
+}
+
+.tab-btn {
+    padding: 10px 25px;
+    background: #e0e0e0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    color: #666;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    position: relative;
+
+    /* O SEGREDO: Puxa o botão 1px pra baixo */
+    margin-bottom: -1px;
+    z-index: 1;
+    transition: all 0.1s;
+}
+
+.tab-btn:hover {
+    background: #eaeaea;
+    color: #333;
+}
+
+.tab-btn.active {
+    background: #fff;
+    color: #d32f2f;
+    border: 1px solid #ccc;
+
+    /* Apaga a linha cinza do header com uma borda branca */
+    border-bottom: 1px solid #fff;
+    border-top: 3px solid #d32f2f;
+    z-index: 2;
+}
+
+/* Caixa de Conteúdo (Tabela) */
+.tabs-content {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-top: none;
+    /* Já tem a linha do header */
+    border-radius: 0 0 8px 8px;
+    min-height: 200px;
+    padding: 0;
+    margin-top: 0;
+}
+
+.tab-pane {
+    display: none;
+    width: 100%;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Tabela */
+.table-responsive {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+th {
+    background-color: #f9f9f9;
+    color: #555;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+td {
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+/* Inputs dentro da tabela */
+.estoque-input {
+    width: 60px;
+    text-align: center;
+    border: 1px solid transparent;
+    background: transparent;
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.estoque-input:enabled {
+    background: #fff;
+    border: 1px solid #2196F3;
+}
+
+/* Botões de Ação */
+.btn-update,
+.btn-delete {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: 0.2s;
+}
+
+.btn-update {
+    background: #e3f2fd;
+    color: #1565c0;
+    margin-right: 5px;
+}
+
+.btn-update:hover {
+    background: #bbdefb;
+}
+
+.btn-delete {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.btn-delete:hover {
+    background: #ffcdd2;
+}
+
+.btn-saving {
+    background-color: #4CAF50 !important;
+    color: white !important;
+}
+
+/* Status de Vencimento */
+.alert-vencendo {
+    color: #d32f2f;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.meta-valor {
+    color: #1565c0;
+    font-weight: bold;
+}
+
+
+/* =========================================
+   5. MODAL (LIGHTBOX RELATÓRIO)
+   ========================================= */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    animation: fadeInModal 0.3s;
+}
+
+.modal-box {
+    background: white;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    transform: translateY(0);
+    animation: slideDown 0.3s;
+}
+
+.modal-header {
+    background: #f5f5f5;
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.modal-close {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #999;
+}
+
+.modal-close:hover {
+    color: #d32f2f;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-body select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    background: white;
+    margin-bottom: 10px;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    background: #f9f9f9;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-cancel {
+    background: #e0e0e0;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #555;
+    font-weight: bold;
+}
+
+.btn-cancel:hover {
+    background: #d5d5d5;
+}
+
+.btn-print-action {
+    background: #333;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #fff;
+    font-weight: bold;
+}
+
+.btn-print-action:hover {
+    background: #000;
+}
+
+/* Animações */
+@keyframes fadeInModal {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

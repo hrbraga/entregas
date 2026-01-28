@@ -2,6 +2,8 @@
 
 session_start();
 
+date_default_timezone_set('America/Sao_Paulo');
+
 $db_entregas_path = __DIR__ . '/db/entregas.db';
 $db_users_path = __DIR__ . '/db/users.db';
 $db_portal_path = __DIR__ . '/db/portal_access.db'; // BD Novo
@@ -37,6 +39,15 @@ try {
     // ==========================================================
 
 
+
+// ==========================================================
+// DB 5: Validades (NOVO - Controle de Short Date)
+$db_validades_path = __DIR__ . '/db/validades.db';
+$db_validades = new PDO('sqlite:' . $db_validades_path);
+$db_validades->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$db_validades->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+$db_validades->exec("PRAGMA journal_mode = WAL;");
+// ==========================================================
 } catch (PDOException $e) {
     die("Erro fatal na conexão com uma das bases de dados: " . $e->getMessage());
 }
