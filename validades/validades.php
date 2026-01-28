@@ -10,12 +10,26 @@ require '../auth/auth_check.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Validades</title>
     <link rel="stylesheet" href="../static/css/global.css">
+        <link rel="stylesheet" href="../static/css/style.css">
     <link rel="stylesheet" href="../static/css/validades.css">
 </head>
 
 <body>
 
-    <?php include '../includes/header.php'; ?>
+<nav class="navbar">
+        <div class="nav-brand">
+            <h1>Controle de Validades</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../selecao_ferramentas.php">Voltar para Ferramentas</a></li>
+
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <li><a href="../auth/logout.php">Sair (<?= htmlspecialchars($_SESSION['username']); ?>)</a></li>
+            <?php else: ?>
+                <li><a href="../auth/login.php">Login</a></li>
+            <?php endif; ?>
+        </ul>
+    </nav>
 
     <main class="container">
        <main class="container">

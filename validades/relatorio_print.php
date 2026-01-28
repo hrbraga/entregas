@@ -62,7 +62,7 @@ $meses = [1=>'Janeiro', 2=>'Fevereiro', 3=>'Março', 4=>'Abril', 5=>'Maio', 6=>'
 
     <a href="#" onclick="window.print()" class="btn-print no-print">🖨️ Imprimir</a>
 
-    <h1>Relatório de Validades (Short Date)</h1>
+    <h1>Relatório de Validades</h1>
     <p class="sub">Período: <strong><?php echo $meses[$mes] . ' / ' . $ano; ?></strong></p>
     <p class="sub">Gerado em: <?php echo date('d/m/Y H:i'); ?></p>
 

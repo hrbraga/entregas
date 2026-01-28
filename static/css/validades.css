@@ -1,5 +1,67 @@
 /* static/css/validades.css */
 
+navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    
+    /* Puxando estilos do global.css */
+    background-image: url(../img/bg__header--desk.png);
+    background-color: rgb(100, 18, 18);
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.nav-brand h1 {
+    font-size: 2.5rem; /* Tamanho grande conforme global */
+    margin: 0;
+    font-weight: 700;
+    text-transform: uppercase; /* Opcional: deixa mais imponente */
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 25px;
+    align-items: center;
+}
+
+.nav-links li a {
+    font-size: 1.2rem; /* Tamanho legível (lembrando que 1rem = 10px no global) */
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    transition: opacity 0.2s;
+    border-bottom: 2px solid transparent; /* Prepara para hover */
+}
+
+.nav-links li a:hover {
+    opacity: 0.9;
+    border-bottom: 2px solid rgba(255,255,255,0.5); /* Efeito sutil ao passar o mouse */
+}
+
+/* Responsividade da Navbar (Celular) */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .nav-brand h1 {
+        font-size: 2.2rem;
+    }
+}
+
 /* =========================================
    1. ESTRUTURA GERAL
    ========================================= */
@@ -87,7 +149,7 @@
 
 /* Badge de Última Atualização */
 .last-update-badge {
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     color: #888;
     background-color: #f1f1f1;
     padding: 3px 8px;
@@ -98,6 +160,7 @@
 .last-update-badge span {
     color: #555;
     font-weight: bold;
+    font-size: 1rem;
 }
 
 /* Responsividade do Cabeçalho (Celular) */
@@ -344,7 +407,7 @@ td {
     border-bottom: 1px solid #eee;
     vertical-align: middle;
     color: #333;
-    font-size: 0.95rem;
+    font-size: 1.4rem;
 }
 
 tr:last-child td {
@@ -360,6 +423,7 @@ tr:last-child td {
     font-weight: bold;
     padding: 5px;
     border-radius: 4px;
+    font-size: 1.4rem;
 }
 
 .estoque-input:enabled {
@@ -416,6 +480,7 @@ tr:last-child td {
 }
 
 .meta-valor {
+    font-size: 1.4rem;
     color: #1565c0;
     font-weight: bold;
 }

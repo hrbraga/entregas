@@ -69,7 +69,7 @@ function carregarAbas() {
                     </thead>
                     <tbody id="tbody-${tabId}"></tbody>
                 </table>
-                <div id="empty-${tabId}" style="display:none; text-align:center; padding: 20px; color: #999;">
+                <div id="empty-${tabId}" style="display:none; font-size: 1.4rem; text-align:center; padding: 20px; color: #999;">
                     Nenhum produto vencendo neste mês.
                 </div>
             </div>
@@ -112,7 +112,7 @@ searchInput.addEventListener('input', async (e) => {
 });
 
 document.addEventListener('click', (e) => {
-    if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+    if (searchInput && resultsBox && !searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
         resultsBox.style.display = 'none';
     }
 });
@@ -157,7 +157,8 @@ document.getElementById('form-add').addEventListener('submit', async (e) => {
 // === 4. CARREGAR ITENS ===
 async function carregarItens() {
     try {
-        let res = await fetch('../api/validades_actions.php?action=list');
+        // Usa timestamp para evitar cache
+        let res = await fetch('../api/validades_actions.php?action=list&t=' + Date.now());
         let itens = await res.json();
 
         // 1. Atualiza a Data Geral do Sistema
@@ -213,21 +214,13 @@ function atualizarDataCabecalho(itens) {
         display.innerText = "Nenhuma informação registrada.";
         return;
     }
-
-    // Procura a maior data_atualizacao no array
-    // O banco retorna string "YYYY-MM-DD HH:MM:SS" (UTC ou Local)
-    // Vamos converter para Date e ordenar
     
     let datas = itens
-        .map(i => i.data_atualizacao ? new Date(i.data_atualizacao.replace(" ", "T")) : new Date(0)) // O replace ajuda no Safari/Mobile se vier SQL padrão
-        .sort((a, b) => b - a); // Ordena decrescente
+        .map(i => i.data_atualizacao ? new Date(i.data_atualizacao.replace(" ", "T")) : new Date(0))
+        .sort((a, b) => b - a);
 
     if (datas.length > 0 && datas[0].getTime() > 0) {
         let ultima = datas[0];
-        
-        // Ajuste de Fuso Horário se necessário (O SQLite salva UTC por padrão)
-        // Se o seu servidor PHP estiver salvando UTC, subtraímos 3h (ou usamos toLocaleString)
-        // Geralmente toLocaleString resolve se o navegador estiver no BR
         
         let formatada = ultima.toLocaleDateString('pt-BR', {
             day: '2-digit', month: '2-digit', year: 'numeric',
@@ -277,8 +270,9 @@ window.atualizar = async function(id) {
     formData.append('qtd', novaQtd);
 
     try {
-        let res = await fetch('../api/validades_actions.php?action=list&t=' + Date.now());
-        let itens = await res.json();
+        // CORREÇÃO: POST correto para API
+        let res = await fetch('../api/validades_actions.php', { method: 'POST', body: formData });
+        let json = await res.json();
 
         if (json.success) {
             if (json.deleted) {
@@ -293,11 +287,16 @@ window.atualizar = async function(id) {
                 input.style.borderColor = 'green';
                 setTimeout(() => input.style.borderColor = '#ddd', 1000);
                 
-                // Recalcula meta na tela sem recarregar tudo (opcional, mas mais rápido)
+                // Recalcula meta e atualiza a lista
                 carregarItens(); 
             }
+        } else {
+            alert('Erro: O servidor não confirmou a atualização.');
         }
-    } catch (err) { alert('Erro ao atualizar'); }
+    } catch (err) { 
+        console.error(err);
+        alert('Erro ao atualizar. Verifique o console.'); 
+    }
 };
 
 window.excluir = async function(id) {
@@ -309,18 +308,16 @@ window.excluir = async function(id) {
     carregarItens();
 };
 
-/* ... (Todo o código anterior) ... */
-
 // =========================================
 // 7. LÓGICA DO RELATÓRIO (MODAL)
 // =========================================
 
-function abrirModalRelatorio() {
+window.abrirModalRelatorio = function() {
     const modal = document.getElementById('modal-relatorio');
     const selectAno = document.getElementById('rel-ano');
     const selectMes = document.getElementById('rel-mes');
     
-    // Preenche o Select de Ano dinamicamente (Ano atual - 1 até Ano atual + 5)
+    // Preenche o Select de Ano dinamicamente
     if (selectAno.options.length === 0) {
         const anoAtual = new Date().getFullYear();
         for (let i = anoAtual - 1; i <= anoAtual + 5; i++) {
@@ -335,15 +332,15 @@ function abrirModalRelatorio() {
     // Seleciona o mês atual automaticamente
     selectMes.value = new Date().getMonth() + 1;
 
-    // Mostra o modal (Flex para centralizar)
+    // Mostra o modal
     modal.style.display = 'flex';
 }
 
-function fecharModalRelatorio() {
+window.fecharModalRelatorio = function() {
     document.getElementById('modal-relatorio').style.display = 'none';
 }
 
-function gerarRelatorio() {
+window.gerarRelatorio = function() {
     const mes = document.getElementById('rel-mes').value;
     const ano = document.getElementById('rel-ano').value;
 
@@ -351,13 +348,15 @@ function gerarRelatorio() {
     const url = `relatorio_print.php?mes=${mes}&ano=${ano}`;
     window.open(url, '_blank');
     
-    // Opcional: fechar o modal após clicar
     fecharModalRelatorio();
 }
 
-// Fechar modal se clicar fora da caixa (no fundo escuro)
-document.getElementById('modal-relatorio').addEventListener('click', function(e) {
-    if (e.target === this) {
-        fecharModalRelatorio();
-    }
-});
+// Fechar modal se clicar fora da caixa
+const modalRel = document.getElementById('modal-relatorio');
+if(modalRel){
+    modalRel.addEventListener('click', function(e) {
+        if (e.target === this) {
+            fecharModalRelatorio();
+        }
+    });
+}
