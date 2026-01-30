@@ -19,7 +19,7 @@
 <div class="login-container">
     <form class="login-form" method="POST" action="login_action.php">
         <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($_GET['redirect'] ?? ''); ?>">
-        <h2>Login - Controle de Entregas</h2>
+        <h2>Faça o login</h2>
         
         <?php if (isset($_GET['erro'])): ?>
             <div class="flash-error">
@@ -42,6 +42,7 @@
         </div>
         <button type="submit" class="login-btn">Entrar</button>
         <p class="toggle-link">Não tem uma conta? <a href="register.php">Cadastre-se</a></p>
+        <p class="toggle-link">Faça um cadastro para cada loja que queira gerenciar.</p>
     </form>
 </div>
 

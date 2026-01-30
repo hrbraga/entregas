@@ -46,6 +46,12 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
+                    <a href="validades/validades.php">
+                        <img src="static/img/trufas.webp" alt="Controle de Validades">
+                        <p>Controle de Validades</p>
+                    </a>
+                </div>
+                <div class="campanha-2 campanha">
                     <a href="delivery/gerador_delivery.php">
                         <img src="static/img/delivery.jfif" alt="Delivery">
                         <p>Etiqueta Delivery</p>

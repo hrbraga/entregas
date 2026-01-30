@@ -9,17 +9,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // === 0. CONFIGURAÇÕES GERAIS ===
 function configurarDataMinima() {
     const hoje = new Date();
-    // Formata para YYYY-MM-DD
     const dataFormatada = hoje.toISOString().split('T')[0];
     
-    // Define o mínimo no input de data
     const inputDate = document.getElementById('prod-date');
     if(inputDate) {
         inputDate.setAttribute('min', dataFormatada);
     }
 }
 
-// === 1. CONFIGURAÇÃO DAS ABAS ===
+// === 1. CONFIGURAÇÃO DAS ABAS (Modificado) ===
 function carregarAbas() {
     const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     const hoje = new Date();
@@ -62,7 +60,9 @@ function carregarAbas() {
                             <th width="15%">Cód.</th>
                             <th width="30%">Produto</th>
                             <th width="15%">Validade</th>
-                            <th width="15%">Estoque</th>
+                            <th width="15%" style="cursor: pointer; user-select: none;" onclick="ordenarPorEstoque('${tabId}')" title="Clique para ordenar">
+                                Estoque <span id="seta-${tabId}" style="margin-left: 5px; font-size: 0.8rem;">⇅</span>
+                            </th>
                             <th width="15%">Meta Diária</th>
                             <th width="10%">Ações</th>
                         </tr>
@@ -78,7 +78,7 @@ function carregarAbas() {
     }
 }
 
-// === 2. BUSCA INTELIGENTE ===
+// === 2. BUSCA INTELIGENTE (COM AJUSTE DE CÓDIGO) ===
 const searchInput = document.getElementById('search-input');
 const resultsBox = document.getElementById('search-results');
 
@@ -97,12 +97,21 @@ searchInput.addEventListener('input', async (e) => {
             data.forEach(prod => {
                 let div = document.createElement('div');
                 div.className = 'dropdown-item';
-                let codigo = prod.codigo_barras || prod.codigo_interno;
-                div.innerHTML = `<strong>${codigo}</strong> - ${prod.nome_produto}`;
+                
+                // --- ALTERAÇÃO AQUI ---
+                // Preferência visual: Mostra o código interno se tiver, senão o de barras
+                let codigoDisplay = prod.codigo_interno || prod.codigo_barras;
+                
+                div.innerHTML = `<strong>${codigoDisplay}</strong> - ${prod.nome_produto}`;
                 div.onclick = () => {
                     document.getElementById('prod-name').value = prod.nome_produto;
-                    document.getElementById('prod-code').value = codigo;
-                    searchInput.value = codigo;
+                    
+                    // --- ALTERAÇÃO AQUI ---
+                    // Define o código interno (menor) como valor principal para salvar
+                    let codigoParaSalvar = prod.codigo_interno || prod.codigo_barras;
+                    
+                    document.getElementById('prod-code').value = codigoParaSalvar;
+                    searchInput.value = codigoParaSalvar; // Mostra o código curto no input também
                     resultsBox.style.display = 'none';
                 };
                 resultsBox.appendChild(div);
@@ -121,7 +130,6 @@ document.addEventListener('click', (e) => {
 document.getElementById('form-add').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Validação extra JS para garantir data
     let inputDate = document.getElementById('prod-date').value;
     let hoje = new Date().toISOString().split('T')[0];
     if (inputDate < hoje) {
@@ -147,7 +155,7 @@ document.getElementById('form-add').addEventListener('submit', async (e) => {
         if (json.success) {
             document.getElementById('form-add').reset();
             document.getElementById('prod-code').value = '';
-            configurarDataMinima(); // Reseta o min da data
+            configurarDataMinima(); 
             alert('Produto adicionado!');
             carregarItens();
         }
@@ -157,18 +165,14 @@ document.getElementById('form-add').addEventListener('submit', async (e) => {
 // === 4. CARREGAR ITENS ===
 async function carregarItens() {
     try {
-        // Usa timestamp para evitar cache
         let res = await fetch('../api/validades_actions.php?action=list&t=' + Date.now());
         let itens = await res.json();
 
-        // 1. Atualiza a Data Geral do Sistema
         atualizarDataCabecalho(itens);
 
-        // 2. Limpa e Prepara Tabelas
         document.querySelectorAll('tbody').forEach(tb => tb.innerHTML = '');
         document.querySelectorAll('[id^="empty-"]').forEach(el => el.style.display = 'block');
 
-        // 3. Distribui os itens
         itens.forEach(item => {
             let validade = new Date(item.data_validade + "T00:00:00");
             let targetTabId = `tab-${validade.getMonth()}-${validade.getFullYear()}`;
@@ -250,17 +254,15 @@ window.atualizar = async function(id) {
     let input = document.getElementById(`qtd-${id}`);
     let btn = document.getElementById(`btn-${id}`);
 
-    // ESTADO 1: Se está bloqueado, destrava para edição
     if (input.disabled) {
-        input.disabled = false;  // Habilita
-        input.focus();           // Foca no campo
-        btn.innerHTML = "💾";    // Muda ícone para Salvar (Disk)
+        input.disabled = false;
+        input.focus();
+        btn.innerHTML = "💾";
         btn.title = "Salvar Alteração";
-        btn.classList.add('btn-saving'); // Muda cor (definido no CSS)
-        return; // Para por aqui, espera usuário digitar e clicar de novo
+        btn.classList.add('btn-saving');
+        return;
     }
 
-    // ESTADO 2: Se já estava habilitado, o clique significa SALVAR
     let novaQtd = input.value;
     if(novaQtd === "") return;
 
@@ -270,24 +272,21 @@ window.atualizar = async function(id) {
     formData.append('qtd', novaQtd);
 
     try {
-        // CORREÇÃO: POST correto para API
         let res = await fetch('../api/validades_actions.php', { method: 'POST', body: formData });
         let json = await res.json();
 
         if (json.success) {
             if (json.deleted) {
-                carregarItens(); // Se zerou, recarrega tudo
+                carregarItens();
             } else {
-                // Sucesso visual
-                input.disabled = true;       // Trava de novo
-                btn.innerHTML = "✏️";        // Volta ícone editar
+                input.disabled = true;
+                btn.innerHTML = "✏️";
                 btn.title = "Editar Estoque";
                 btn.classList.remove('btn-saving');
                 
                 input.style.borderColor = 'green';
                 setTimeout(() => input.style.borderColor = '#ddd', 1000);
                 
-                // Recalcula meta e atualiza a lista
                 carregarItens(); 
             }
         } else {
@@ -308,16 +307,12 @@ window.excluir = async function(id) {
     carregarItens();
 };
 
-// =========================================
-// 7. LÓGICA DO RELATÓRIO (MODAL)
-// =========================================
-
+// === 7. RELATÓRIO ===
 window.abrirModalRelatorio = function() {
     const modal = document.getElementById('modal-relatorio');
     const selectAno = document.getElementById('rel-ano');
     const selectMes = document.getElementById('rel-mes');
     
-    // Preenche o Select de Ano dinamicamente
     if (selectAno.options.length === 0) {
         const anoAtual = new Date().getFullYear();
         for (let i = anoAtual - 1; i <= anoAtual + 5; i++) {
@@ -329,10 +324,7 @@ window.abrirModalRelatorio = function() {
         }
     }
 
-    // Seleciona o mês atual automaticamente
     selectMes.value = new Date().getMonth() + 1;
-
-    // Mostra o modal
     modal.style.display = 'flex';
 }
 
@@ -343,15 +335,11 @@ window.fecharModalRelatorio = function() {
 window.gerarRelatorio = function() {
     const mes = document.getElementById('rel-mes').value;
     const ano = document.getElementById('rel-ano').value;
-
-    // Abre a página de impressão em nova aba
     const url = `relatorio_print.php?mes=${mes}&ano=${ano}`;
     window.open(url, '_blank');
-    
     fecharModalRelatorio();
 }
 
-// Fechar modal se clicar fora da caixa
 const modalRel = document.getElementById('modal-relatorio');
 if(modalRel){
     modalRel.addEventListener('click', function(e) {
@@ -360,3 +348,44 @@ if(modalRel){
         }
     });
 }
+
+// === NOVA FUNÇÃO: ORDENAÇÃO POR ESTOQUE ===
+const estadoOrdenacao = {}; // Guarda o estado (asc/desc) de cada aba
+
+window.ordenarPorEstoque = function(tabId) {
+    const tbody = document.getElementById(`tbody-${tabId}`);
+    const seta = document.getElementById(`seta-${tabId}`);
+    
+    if (!tbody || !seta) return;
+
+    // Verifica o estado atual e inverte
+    // Padrão inicial: começa ordenando do MAIOR para o MENOR ('desc')
+    let ordemAtual = estadoOrdenacao[tabId];
+    let novaOrdem = (ordemAtual === 'desc') ? 'asc' : 'desc';
+    estadoOrdenacao[tabId] = novaOrdem;
+
+    // Atualiza o ícone visual
+    seta.innerHTML = novaOrdem === 'asc' ? '↑' : '↓'; // ↑ (Crescente), ↓ (Decrescente)
+
+    // Pega todas as linhas da tabela
+    const linhas = Array.from(tbody.querySelectorAll('tr'));
+
+    // Ordena as linhas baseando-se no valor do input de estoque
+    linhas.sort((a, b) => {
+        // Busca o input dentro da linha e pega o valor numérico
+        const inputA = a.querySelector('.estoque-input');
+        const inputB = b.querySelector('.estoque-input');
+
+        const valA = inputA ? parseFloat(inputA.value) : 0;
+        const valB = inputB ? parseFloat(inputB.value) : 0;
+
+        if (novaOrdem === 'asc') {
+            return valA - valB; // Menor -> Maior
+        } else {
+            return valB - valA; // Maior -> Menor
+        }
+    });
+
+    // Reinsere as linhas na tabela na nova ordem
+    linhas.forEach(linha => tbody.appendChild(linha));
+};

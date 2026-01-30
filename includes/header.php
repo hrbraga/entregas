@@ -21,7 +21,7 @@
 <body>
     <nav class="navbar">
         <div class="nav-brand">
-            <h1>Controle de Entregas</h1>
+            <h1>Controle</h1>
         </div>
         <ul class="nav-links">
             <li><a href="../Recebimentos/recebimentos.php">Entregas</a></li>
