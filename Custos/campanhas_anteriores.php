@@ -22,11 +22,16 @@
 
     <main>
         <section class="custos">
-            <div class="campanhas">                
+            <div class="campanhas">
+                 <div class="campanha-2 campanha">
+                    <a href="antigos/custos_natal_2025.php">
+                        <img src="../static/img/natalCacauShow.jpg" alt="Banner Campanha de Natal">
+                        <p>Natal 2025</p>
+                    </a>                
                 <div class="campanha-2 campanha">
                     <a href="antigos/custos_maes.php">
                         <img src="../static/img/mamaes.png" alt="Banner Campanha de Mães 2025">
-                        <p>Mães e Namorados</p>
+                        <p>Mães e Namorados 2025</p>
                     </a>
                 </div>
                 <div class="campanha-1 campanha">

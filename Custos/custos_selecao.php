@@ -71,9 +71,9 @@
                     </a>
                 </div>
                 <div class="campanha-3 campanha">
-                    <a href="custos_natal_2025.php">
-                        <img src="../static/img/natalCacauShow.jpg" alt="Banner Campanha de Natal">
-                        <p>Natal 2025</p>
+                    <a href="custos_pascoa_2026.php">
+                        <img src="../static/img/pascoa2026.jpg" alt="Banner Campanha de Páscoa 2026">
+                        <p>Páscoa 2026</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
