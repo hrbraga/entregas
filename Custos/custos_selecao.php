@@ -72,7 +72,7 @@
                 </div>
                 <div class="campanha-3 campanha">
                     <a href="custos_pascoa_2026.php">
-                        <img src="../static/img/pascoa2026.jpg" alt="Banner Campanha de Páscoa 2026">
+                        <img src="../static/img/Pascoa2026.JPG" alt="Campanha de Páscoa 2026">
                         <p>Páscoa 2026</p>
                     </a>
                 </div>
