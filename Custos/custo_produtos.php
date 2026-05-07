@@ -3,7 +3,32 @@ require '../config.php';
 require '../auth/custos_auth_check.php';
 
 try {
-    $stmt = $db_produtos->query("SELECT * FROM custos_produtos ORDER BY campanha, descricao");
+    // A MÁGICA ACONTECE AQUI: 
+    // 1. Lemos da nova tabela
+    // 2. Apelidamos os campos para bater com o que a página de Custos espera
+    // 3. Filtramos: WHERE campanha IS NOT NULL AND TRIM(campanha) != ''
+    $sql = "SELECT 
+                id,
+                COALESCE(codigo_interno, codigo_barras) AS codigo, 
+                nome_produto AS descricao, 
+                campanha, 
+                qtCaixa, 
+                valorUn, 
+                royalties, 
+                st, 
+                ipi, 
+                txsAdicionais, 
+                txMidia, 
+                custoCaixa, 
+                custoUn, 
+                preco_venda AS preco, 
+                mbLiquida, 
+                mbBruta 
+            FROM produtos_unificados 
+            WHERE campanha IS NOT NULL AND TRIM(campanha) != '' 
+            ORDER BY campanha, nome_produto";
+            
+    $stmt = $db_produtos->query($sql);
     $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $produtos = [];
