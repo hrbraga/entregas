@@ -38,37 +38,47 @@ function preencherTabela(dadosImportados) {
 
     const linhasDeDados = dadosImportados.slice(1);
     const codigosNaoEncontrados = [];
-    const linhasDaTabela = document.querySelectorAll('#corpo-tabela tr'); // Melhor usar #corpo-tabela tr
+    const linhasDaTabela = document.querySelectorAll('#corpo-tabela tr');
 
     linhasDeDados.forEach(linha => {
-        const codigo = String(linha[0] || '').trim();
-        const caixasImportadas = linha[1] || 0;
-        const unidadesImportadas = linha[2] || 0;
+        // Recupera os valores originais lidos pela biblioteca
+        let codigo = String(linha[0] || '').trim();
+        let caixasImportadas = parseFloat(linha[1]) || 0;
+        let unidadesImportadas = parseFloat(linha[2]) || 0;
+
+        // CORREÇÃO DE SEGURANÇA: Se o arquivo for um CSV salvo no Brasil (separado por ; ou ,) 
+        // e a biblioteca leu tudo junto na primeira coluna, nós forçamos a separação aqui:
+        if (codigo.includes(';') || codigo.includes(',')) {
+            const separador = codigo.includes(';') ? ';' : ',';
+            const partes = codigo.split(separador);
+            codigo = String(partes[0] || '').trim();
+            caixasImportadas = parseFloat(partes[1]) || 0;
+            unidadesImportadas = parseFloat(partes[2]) || 0;
+        }
+
+        // Ignora linhas totalmente vazias
+        if (!codigo) return;
 
         let linhaEncontrada = false;
 
         for (const linhaTabela of linhasDaTabela) {
-            // AJUSTE: O código está na 2ª coluna (índice 1 no DOM, mas nth-child(2) no CSS)
-            const codigoDaLinha = String(linhaTabela.querySelector('td:nth-child(2)').textContent).trim();
+            // Pega o código da 1ª coluna da tabela gerada pelo gerador.js
+            const codigoDaLinha = String(linhaTabela.querySelector('td:nth-child(1)').textContent).trim();
             
             if (codigoDaLinha === codigo) {
-                // AJUSTE: Classes corretas conforme calculo_custos.js
-                const inputCaixas = linhaTabela.querySelector('input.qtd-caixas');
-                const inputUnidades = linhaTabela.querySelector('input.qtd-unidades');
-                
-                // Agora activeProducts existe
-                const itemDados = window.activeProducts ? window.activeProducts.find(item => String(item.codigo) === codigo) : null;
+                const inputCaixas = linhaTabela.querySelector('input.caixas');
+                const inputUnidades = linhaTabela.querySelector('input.unidades');
+                const totalSpan = linhaTabela.querySelector('.total-item');
 
-                if (inputCaixas) {
-                    inputCaixas.value = caixasImportadas;
-                }
-                if (inputUnidades) {
-                    inputUnidades.value = unidadesImportadas;
-                }
+                if (inputCaixas) inputCaixas.value = caixasImportadas;
+                if (inputUnidades) inputUnidades.value = unidadesImportadas;
                 
-                // AJUSTE: Chama a função de cálculo correta do calculo_custos.js
-                if (typeof calcularLinha === 'function' && inputCaixas) {
-                    calcularLinha(inputCaixas); // Recalcula a linha
+                // Recalcula o total usando as lógicas ativas do gerador.js
+                if (typeof calcularTotalLinha === 'function' && window.activeProducts) {
+                    const itemDados = window.activeProducts.find(item => String(item.codigo) === codigo);
+                    if (itemDados) {
+                        calcularTotalLinha(itemDados, inputCaixas, inputUnidades, totalSpan);
+                    }
                 }
 
                 linhaEncontrada = true;
@@ -76,13 +86,13 @@ function preencherTabela(dadosImportados) {
             }
         }
 
-        if (!linhaEncontrada && codigo) {
+        if (!linhaEncontrada) {
             codigosNaoEncontrados.push(codigo);
         }
     });
 
     if (codigosNaoEncontrados.length > 0) {
-        alert(`Os seguintes códigos não foram importados:\n\n${codigosNaoEncontrados.join('\n')}`);
+        alert(`Os seguintes códigos não foram encontrados na tabela atual:\n\n${codigosNaoEncontrados.join('\n')}`);
     } else {
         alert("Arquivo importado com sucesso!");
     }
