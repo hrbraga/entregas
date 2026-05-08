@@ -1,6 +1,8 @@
 <?php
 require '../config.php';
 require '../auth/auth_check.php';
+$page_title = "Contas a Pagar";
+$sessao_nome = "Contas a Pagar"; // Isso 
 require '../includes/header.php';
 
 $id_usuario = $_SESSION['user_id'];

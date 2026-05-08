@@ -1,58 +1,74 @@
 <?php
 // auth/login_action.php
-
-// NÃO precisa de session_start() aqui porque o config.php já faz isso.
 require '../config.php';
 
-// Filtra os dados de entrada
-$username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING);
-$password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_STRING);
-$redirect = filter_input(INPUT_POST, 'redirect', FILTER_SANITIZE_URL);
+$username = $_POST['username'] ?? '';
+$password = $_POST['password'] ?? '';
+$redirect = $_POST['redirect'] ?? '';
 
-// Validação básica
-if (!$username || !$password) {
-    header("Location: login.php?erro=1");
-    exit;
+if (empty($username) || empty($password)) {
+    die("ERRO: Formulário vazio.");
 }
 
 try {
-    // CORREÇÃO AQUI: Tabela 'user' e coluna 'password_hash'
     $stmt = $db_users->prepare("SELECT id, username, password_hash FROM user WHERE username = :u LIMIT 1");
     $stmt->bindValue(':u', $username);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Verifica a senha usando o hash correto
     if ($user && password_verify($password, $user['password_hash'])) {
         
-        // --- LOGIN SUCESSO ---
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
+        $id_real = $user['id'];
+        $username_atual = $user['username'];
+        
+        // --- A MÁGICA DO VÍNCULO DE DADOS ---
+        if (strpos($username_atual, 'loja-') === 0) {
+            // É um funcionário! Vamos descobrir quem é o Franqueado Dono dele.
+            $username_dono = substr($username_atual, 5); // Remove o 'loja-' do texto (ex: fica só '1871')
+            
+            $stmt_dono = $db_users->prepare("SELECT id FROM user WHERE username = ?");
+            $stmt_dono->execute([$username_dono]);
+            $dono = $stmt_dono->fetch(PDO::FETCH_ASSOC);
+            
+            // Se encontrou o dono, o ID gravado na sessão será o do DONO!
+            // Assim as validades puxam os dados corretamente sem precisar mudar o código delas.
+            $id_sessao = $dono ? $dono['id'] : $id_real; 
+        } else {
+            // É o Franqueado ou o Admin. O ID é o dele mesmo.
+            $id_sessao = $id_real;
+        }
 
-        // Redirecionamento Inteligente
-        if (!empty($redirect)) {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        
+        // As variáveis que controlam o sistema inteiro
+        $_SESSION['user_id'] = $id_sessao; // Variável de DADOS (Gravar/Ler no banco)
+        $_SESSION['username'] = $username_atual; // Variável de SEGURANÇA (Verifica se tem 'loja-')
+
+        // --- REDIRECIONAMENTO ---
+        $redirect_memoria = $_SESSION['redirect_apos_login'] ?? '';
+        
+        if (!empty($redirect_memoria)) {
+            unset($_SESSION['redirect_apos_login']);
+            header("Location: " . $redirect_memoria);
+        } elseif (!empty($redirect)) {
             header("Location: $redirect");
         } else {
-            // Caminho padrão (ajuste se necessário)
-            header("Location: ../Recebimentos/recebimentos.php");
+            if (strpos($username_atual, 'loja-') === 0) {
+                header("Location: ../selecao_ferramentas.php"); // Funcionário vai para a vitrine
+            } else {
+                header("Location: ../Recebimentos/recebimentos.php"); // Franqueado vai para o financeiro
+            }
         }
         exit;
 
     } else {
-        // --- LOGIN FALHA ---
-        // Mantém o redirect na URL para tentar de novo
         $url_volta = "login.php?erro=1";
-        if (!empty($redirect)) {
-            $url_volta .= "&redirect=" . urlencode($redirect);
-        }
-        
+        if (!empty($redirect)) $url_volta .= "&redirect=" . urlencode($redirect);
         header("Location: $url_volta");
         exit;
     }
 
-} catch (PDOException $e) {
-    // Em caso de erro no banco
-    header("Location: login.php?erro=1");
-    exit;
+} catch (Exception $e) {
+    die("Erro Interno: " . $e->getMessage());
 }
 ?>

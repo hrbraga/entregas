@@ -1,27 +1,24 @@
 <?php
 // auth/auth_check.php
-
-if (session_status() == PHP_SESSION_NONE) {
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Se não houver sessão, descobre o caminho e manda pro login
 if (!isset($_SESSION['user_id'])) {
     
-    // Se for uma requisição AJAX, retorna erro 401
-    if (!headers_sent()) {
-        // Verifica se é ajax (opcional, mas boa prática)
-        if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            http_response_code(401);
-            exit;
-        }
-    }
-
-    // --- AQUI ESTÁ A MUDANÇA ---
-    // Pega a URL que o usuário tentou acessar
-    $pagina_atual = $_SERVER['REQUEST_URI'];
+    // A MÁGICA: Guarda na memória a página exata que você tentou acessar
+    $_SESSION['redirect_apos_login'] = $_SERVER['REQUEST_URI'];
     
-    // Manda para o login levando a URL junto
-    header('Location: ../auth/login.php?redirect=' . urlencode($pagina_atual));
+    if (file_exists('login.php')) {
+        $caminho = 'login.php'; 
+    } elseif (file_exists('../auth/login.php')) {
+        $caminho = '../auth/login.php'; 
+    } else {
+        $caminho = 'auth/login.php'; 
+    }
+    
+    header("Location: " . $caminho);
     exit;
 }
 ?>

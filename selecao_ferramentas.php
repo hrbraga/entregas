@@ -28,15 +28,9 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
 
         <section class="custos">
             <div class="campanhas">
-                <div class="campanha-2 campanha"><a href="Custos/custos_selecao.php"><img src="static/img/lojas.jfif"
+                <div class="campanha-2 campanha"><a href="auth/area_franqueado.php"><img src="static/img/franqueado.jfif"
                             alt="Loja">
-                        <p>Custo dos Produtos</p>
-                    </a>
-                </div>
-                <div class="campanha-2 campanha">
-                    <a href="Recebimentos/recebimentos.php">
-                        <img src="static/img/caminhoes.jfif" alt="Entregas">
-                        <p>Controle de Entregas</p>
+                        <p>Área do Franqueado</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">

@@ -367,6 +367,14 @@ th.sortable.asc::after {
     color: #28a745;
 }
 
+.titulo-paginas {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+}
+
 /* Quando estiver ordenado Decrescente */
 th.sortable.desc::after {
     content: ' ▼';

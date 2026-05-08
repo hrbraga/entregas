@@ -1,47 +1,9 @@
-<?php 
-    require '../config.php'; 
-    
-    // --- INÍCIO DA PROTEÇÃO POR SENHA SIMPLES --
-    $senha_da_pagina = "trufadebanana"; // <--- DEFINA SUA SENHA AQUI
-
-    // Verifica se a senha foi enviada via POST
-    if (isset($_POST['senha_acesso'])) {
-        if ($_POST['senha_acesso'] === $senha_da_pagina) {
-            $_SESSION['custos_acesso_liberado'] = true;
-        } else {
-            $erro_senha = "Senha incorreta!";
-        }
-    }
-
-    // Se não estiver logado, mostra o formulário de senha e interrompe o script
-    if (!isset($_SESSION['custos_acesso_liberado']) || $_SESSION['custos_acesso_liberado'] !== true) {
-?>
-
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acesso Restrito</title>
-    <link rel="stylesheet" href="../static/css/login.css"> </head>
-<body>
-    <div class="login-container">
-        <form class="login-form" method="POST">
-            <h2>Área Restrita</h2>
-            <?php if (isset($erro_senha)) echo "<p style='color:red;text-align:center'>$erro_senha</p>"; ?>
-            <div class="form-group">
-                <label>Digite a senha de acesso:</label>
-                <input type="password" name="senha_acesso" required autofocus>
-            </div>
-            <button type="submit" class="login-btn">Entrar</button>
-        </form>
-    </div>
-</body>
-</html>
 <?php
-        exit; // Impede que o restante da página carregue
-    }
-    // --- FIM DA PROTEÇÃO ---
+require '../config.php';
+require '../auth/restrito_check.php'; // Esta é a sua nova e única barreira de segurança
+$sessao_nome = "Custos de Produtos"; 
+$page_title = "Gerenciar Custos";
+require '../includes/header.php';
 ?>
 
 <!DOCTYPE html>
@@ -57,12 +19,7 @@
     <title>Custo dos Produtos</title>
 </head>
 <body>
-    <header>
-        <h1>Custo dos Produtos</h1>
-    </header>
-
-    <main>
-        <section class="custos">
+   <main>
             <div class="campanhas">
                 <div class="campanha-2 campanha">
                     <a href="custo_produtos.php">
@@ -84,13 +41,5 @@
                 </div>
                
             </div>
-        </section>
     </main>
-    <footer>
-        <a href="../selecao_ferramentas.php">
-            <p>Voltar a Caixa de Ferramentas</p>
-        </a>
-    </footer>
-    <script src="../static/js/campanha.js"></script>
-</body>
-</html>
+   <?php require '../includes/footer.php'; ?>

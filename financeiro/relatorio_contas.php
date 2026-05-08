@@ -1,6 +1,8 @@
 <?php
 require '../config.php';
 require '../auth/auth_check.php';
+$page_title = "Relatório de Contas a Pagar";
+$sessao_nome = "Relatório de Contas a Pagar"; // Isso vai aparecer na barra azul
 require '../includes/header.php';
 
 $id_usuario = $_SESSION['user_id'];
