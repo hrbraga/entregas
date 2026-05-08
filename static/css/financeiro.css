@@ -3,6 +3,15 @@ h1 {
     margin-bottom: 20px;
     color: #333;
 }
+
+.btn-secondary{
+    text-decoration: none;
+    display: flex;
+    font-size: 10px;
+    align-items: center;
+    background: #6c757d;
+}
+
 .financeiro-container {
     max-width: 900px;
     margin: 40px auto;
@@ -106,10 +115,12 @@ th {
     border-radius: 8px;
     width: 90%;
     max-width: 700px;
-    overflow: hidden;
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
-.modal-header {
+.o .modal-header {
     background: #f8f9fa;
     padding: 15px 20px;
     border-bottom: 1px solid #ddd;
@@ -127,7 +138,7 @@ th {
     border-bottom: 1px solid #cce5ff;
 }
 
-.import-xml-bar span{
+.import-xml-bar span {
     font-size: 14px;
 }
 
@@ -285,11 +296,15 @@ option {
 }
 
 .modal-md {
-    max-width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .modal-lg {
-    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* Cabeçalho do Modal */
@@ -479,21 +494,25 @@ option {
    SELECT / OPTGROUP CUSTOMIZATION
    ======================================================== */
 select.form-control {
-    font-size: 15px; /* Tamanho da fonte do campo fechado */
+    font-size: 15px;
+    /* Tamanho da fonte do campo fechado */
 }
 
-optgroup { 
-    font-weight: bold; 
-    color: #007bff; 
-    font-style: normal; 
+optgroup {
+    font-weight: bold;
+    color: #007bff;
+    font-style: normal;
     background-color: #f8f9fa;
-    font-size: 15px; /* Tamanho da Categoria Mãe */
+    font-size: 15px;
+    /* Tamanho da Categoria Mãe */
 }
 
-option { 
-    color: #333; 
-    font-weight: normal; 
+option {
+    color: #333;
+    font-weight: normal;
     background-color: #fff;
-    font-size: 14px; /* Tamanho das Sub-categorias */
-    padding: 5px; /* Dá um respiro para não ficar tudo colado */
+    font-size: 14px;
+    /* Tamanho das Sub-categorias */
+    padding: 5px;
+    /* Dá um respiro para não ficar tudo colado */
 }

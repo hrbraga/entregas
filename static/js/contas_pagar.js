@@ -65,15 +65,33 @@ function salvarBaixa(e) {
 }
 
 // --- FUNÇÕES DA TABELA E DO MODAL DE INCLUIR ---
-function abrirModalConta() { document.getElementById('modalConta').style.display = 'flex'; }
+function abrirModalConta() { 
+    document.getElementById('modalConta').style.display = 'flex'; 
+    
+    // Garante que o box de parcelamento apareça ao incluir uma nova conta
+    const boxParcelamento = document.getElementById('box_parcelamento');
+    if (boxParcelamento) boxParcelamento.style.display = 'block';
+}
+
 function fecharModal() { 
     document.getElementById('modalConta').style.display = 'none'; 
     document.getElementById('formConta').reset(); 
     document.getElementById('conta_id').value = ""; 
     document.getElementById('valor').value = "0,00"; // Reseta com máscara
     document.getElementById('tituloModal').innerText = "Incluir Conta a Pagar";
+    
+    // Resetar campos de parcelamento
+    const listParcelas = document.getElementById('lista_parcelas');
+    if (listParcelas) listParcelas.innerHTML = '';
+    const configParcelas = document.getElementById('config_parcelas');
+    if (configParcelas) configParcelas.style.display = 'none';
 }
-function toggleGrupo(id) { document.querySelectorAll('.'+id).forEach(row => { row.style.display = row.style.display === 'none' ? 'table-row' : 'none'; }); }
+
+function toggleGrupo(id) { 
+    document.querySelectorAll('.'+id).forEach(row => { 
+        row.style.display = row.style.display === 'none' ? 'table-row' : 'none'; 
+    }); 
+}
 
 function editarConta(c) {
     document.getElementById('conta_id').value = c.id;
@@ -90,7 +108,12 @@ function editarConta(c) {
     document.getElementById('descricao').value = c.descricao;
     document.getElementById('id_categoria').value = c.id_categoria;
     document.getElementById('tituloModal').innerText = "Editar Conta";
-    abrirModalConta();
+    
+    // Esconde o box de parcelamento ao editar uma conta existente
+    const boxParcelamento = document.getElementById('box_parcelamento');
+    if (boxParcelamento) boxParcelamento.style.display = 'none';
+
+    document.getElementById('modalConta').style.display = 'flex'; 
 }
 
 function excluirConta(id) {
@@ -149,11 +172,15 @@ function salvarConta(e) {
     const fd = new FormData(e.target);
     const fornecedor = document.getElementById('fornecedor').value.toLowerCase();
     
+    // Automação para Royalties, só ativa se o checkbox de parcelamento NÃO estiver marcado
+    const isParcelado = document.getElementById('is_parcelado');
     if(document.getElementById('conta_id').value === "" && (fornecedor.includes('cacau') || fornecedor.includes('ibac'))) {
-        if(confirm("🍫 Detectamos que é Cacau Show. Deseja gerar os Royalties automáticos?")) {
-            fd.append('gerar_royalties', '1');
-            const fXml = document.getElementById('import_xml_input');
-            if(fXml.files.length > 0) fd.append('arquivo_xml', fXml.files[0]);
+        if(!isParcelado || !isParcelado.checked) {
+            if(confirm("🍫 Detectamos que é Cacau Show. Deseja gerar os Royalties automáticos?")) {
+                fd.append('gerar_royalties', '1');
+                const fXml = document.getElementById('import_xml_input');
+                if(fXml.files.length > 0) fd.append('arquivo_xml', fXml.files[0]);
+            }
         }
     }
     
@@ -162,4 +189,67 @@ function salvarConta(e) {
         alert(d.message); 
         if(d.status === 'success') location.reload(); 
     });
+}
+
+// ==========================================
+// LÓGICA DE PARCELAMENTO MANUAL
+// ==========================================
+function toggleParcelamento() {
+    const isChecked = document.getElementById('is_parcelado').checked;
+    document.getElementById('config_parcelas').style.display = isChecked ? 'block' : 'none';
+    if (!isChecked) {
+        document.getElementById('lista_parcelas').innerHTML = ''; // Limpa se desmarcar
+    }
+}
+
+function gerarPreviewParcelas() {
+    const qtd = parseInt(document.getElementById('qtd_parcelas').value);
+    const intervalo = parseInt(document.getElementById('intervalo_parcelas').value);
+    const valorTotalStr = document.getElementById('valor').value;
+    const valorTotal = parseMoedaBR(valorTotalStr);
+    const dataInicialStr = document.getElementById('vencimento').value;
+
+    if (!dataInicialStr || valorTotal <= 0) {
+        alert("Atenção: Preencha o 'Vencimento Inicial' e o 'Valor Total' acima antes de gerar as parcelas.");
+        return;
+    }
+
+    // Calcula o valor base da parcela
+    const valorParcela = (valorTotal / qtd).toFixed(2);
+    let html = '<div style="max-height: 250px; overflow-y: auto; padding-right: 5px; border-top: 1px solid #ccc; padding-top: 15px;">';
+    
+    // Tratamento de data para evitar bug de fuso horário
+    let dataAtual = new Date(dataInicialStr + 'T12:00:00'); 
+
+    for (let i = 1; i <= qtd; i++) {
+        let dataInput = dataAtual.toISOString().split('T')[0];
+        
+        let valExibicao = parseFloat(valorParcela).toFixed(2).replace('.', ',');
+        valExibicao = valExibicao.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+
+        html += `
+            <div style="display:grid; grid-template-columns: 50px 1fr 1fr; gap:10px; margin-bottom:10px; align-items:center; background:#fff; padding:10px; border-radius:4px; border:1px solid #eee;">
+                <div style="font-weight:bold; text-align:center; font-size: 14px; color:#666;">${i}/${qtd}</div>
+                <div>
+                    <label style="font-size:11px; margin-bottom:2px;">Vencimento</label>
+                    <input type="date" name="parcela_vencimento[]" value="${dataInput}" class="form-control" required>
+                </div>
+                <div>
+                    <label style="font-size:11px; margin-bottom:2px;">Valor (R$)</label>
+                    <input type="text" name="parcela_valor[]" value="${valExibicao}" class="form-control text-right" required onkeyup="mascararMoeda(this)">
+                </div>
+            </div>
+        `;
+
+        // Adiciona dias para a próxima parcela
+        if (intervalo === 30) {
+            dataAtual.setMonth(dataAtual.getMonth() + 1);
+        } else {
+            dataAtual.setDate(dataAtual.getDate() + intervalo);
+        }
+    }
+    html += '</div>';
+    html += '<span style="color:#666; display:block; margin-top:10px; font-size: 10px">Você pode ajustar manualmente as datas ou os valores (ex: para arredondamentos) antes de salvar.</span>';
+    
+    document.getElementById('lista_parcelas').innerHTML = html;
 }

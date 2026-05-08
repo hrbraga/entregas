@@ -6,12 +6,9 @@ header('Content-Type: application/json');
 $action = $_POST['action'] ?? '';
 $id_usuario = $_SESSION['user_id'];
 
-// ==========================================
-// FUNÇÃO GLOBAL DE CONVERSÃO DE MOEDA (BR -> SQL)
-// ==========================================
+// Função Global de Conversão de Moeda
 function converterMoeda($valor_string) {
     if (empty($valor_string)) return 0;
-    // Remove pontos de milhar e troca vírgula por ponto
     $valor_string = str_replace('.', '', $valor_string); 
     $valor_string = str_replace(',', '.', $valor_string); 
     return (float)$valor_string;
@@ -24,11 +21,8 @@ try {
     $db_financeiro->exec("ALTER TABLE contas_pagar ADD COLUMN valor_pago REAL");
 } catch (Exception $e) { /* Colunas já existem */ }
 
-
 try {
-    // ==========================================
-    // 1. LEITURA DE XML (PRÉ-VISUALIZAÇÃO)
-    // ==========================================
+    // 1. LEITURA DE XML
     if ($action === 'parse_xml') {
         $xml = simplexml_load_file($_FILES['arquivo_xml']['tmp_name']);
         $nfe = $xml->NFe->infNFe;
@@ -43,9 +37,7 @@ try {
         exit;
     }
 
-    // ==========================================
     // 2. EXCLUIR CONTA
-    // ==========================================
     if ($action === 'excluir') {
         $stmt = $db_financeiro->prepare("DELETE FROM contas_pagar WHERE id = ? AND id_usuario = ?");
         $stmt->execute([$_POST['id'], $id_usuario]);
@@ -53,9 +45,7 @@ try {
         exit;
     }
 
-    // ==========================================
-    // 3. DAR BAIXA (COM RATEIO NO DRE)
-    // ==========================================
+    // 3. DAR BAIXA
     if ($action === 'baixa') {
         $data_pag = $_POST['data_pagamento'];
         $forma_pag = $_POST['forma_pagamento'];
@@ -82,17 +72,13 @@ try {
 
         try {
             if (!empty($_POST['vencimento_baixa'])) {
-                $sql = "UPDATE contas_pagar 
-                        SET status = 'Pago', data_pagamento = ?, forma_pagamento = ?, banco_pagamento = ?, valor_pago = valor 
-                        WHERE id_usuario = ? AND vencimento = ? AND (descricao LIKE '%Royalt%' OR descricao LIKE '%royalt%') AND status != 'Pago'";
+                $sql = "UPDATE contas_pagar SET status = 'Pago', data_pagamento = ?, forma_pagamento = ?, banco_pagamento = ?, valor_pago = valor WHERE id_usuario = ? AND vencimento = ? AND (descricao LIKE '%Royalt%' OR descricao LIKE '%royalt%') AND status != 'Pago'";
                 $stmt = $db_financeiro->prepare($sql);
                 $stmt->execute([$data_pag, $forma_pag, $banco_pag, $id_usuario, $_POST['vencimento_baixa']]);
                 $count = $stmt->rowCount();
                 $msg = "Todos os royalties do grupo ($count) foram baixados!";
             } else {
-                $sql = "UPDATE contas_pagar 
-                        SET status = 'Pago', data_pagamento = ?, forma_pagamento = ?, banco_pagamento = ?, valor_pago = valor 
-                        WHERE id = ? AND id_usuario = ?";
+                $sql = "UPDATE contas_pagar SET status = 'Pago', data_pagamento = ?, forma_pagamento = ?, banco_pagamento = ?, valor_pago = valor WHERE id = ? AND id_usuario = ?";
                 $stmt = $db_financeiro->prepare($sql);
                 $stmt->execute([$data_pag, $forma_pag, $banco_pag, $_POST['id_baixa'], $id_usuario]);
                 $msg = "Pagamento registado com sucesso!";
@@ -127,13 +113,9 @@ try {
         exit;
     }
 
-    // ==========================================
-    // 4. SALVAR / EDITAR / IMPORTAR XML
-    // ==========================================
+    // 4. SALVAR / EDITAR / IMPORTAR XML / PARCELAMENTO
     if ($action === 'salvar') {
         $id = $_POST['id'] ?? '';
-        
-        // Converte o valor preenchido na máscara para salvar no BD
         $valor_conta = converterMoeda($_POST['valor']);
         
         if (empty($id) && !empty($_POST['nota_fiscal'])) {
@@ -153,8 +135,9 @@ try {
         } 
         
         $msg_extra = "";
+        
+        // CÁLCULO DE XML (Cacau Show)
         if (isset($_POST['gerar_royalties']) && $_POST['gerar_royalties'] == '1' && isset($_FILES['arquivo_xml']) && $_FILES['arquivo_xml']['error'] === UPLOAD_ERR_OK) {
-            
             $xml = simplexml_load_file($_FILES['arquivo_xml']['tmp_name']);
             $nfe = $xml->NFe->infNFe;
             $emissao = explode('T', (string) $nfe->ide->dhEmi)[0];
@@ -167,9 +150,7 @@ try {
             $dados_campanha = null;
             
             $stmt_campanhas = $db_financeiro->query("SELECT id, nome_campanha FROM campanhas");
-            $lista_todas_campanhas = $stmt_campanhas->fetchAll();
-            
-            foreach ($lista_todas_campanhas as $camp) {
+            while ($camp = $stmt_campanhas->fetch()) {
                 if (strpos($infCpl, $camp['nome_campanha']) !== false) {
                     $eh_campanha = true;
                     $nome_campanha_ext = $camp['nome_campanha'];
@@ -185,12 +166,7 @@ try {
             while($row = $stmt_cat->fetch()) { $cat_ids[$row['nome']] = $row['id']; }
             
             $id_cat_merc = $cat_ids['Mercadoria para Revenda'] ?? $_POST['id_categoria'];
-            if (!isset($cat_ids['Royalties'])) {
-                $db_financeiro->exec("INSERT INTO categorias_financeiras (nome, tipo, grupo) VALUES ('Royalties', 'Despesa', 'Custos Operacionais')");
-                $id_cat_roy = $db_financeiro->lastInsertId();
-            } else {
-                $id_cat_roy = $cat_ids['Royalties'];
-            }
+            $id_cat_roy = $cat_ids['Royalties'] ?? 0;
 
             $duplicatas = [];
             if (isset($nfe->cobr->dup)) {
@@ -209,7 +185,7 @@ try {
 
             $inserir_royalty = $db_financeiro->prepare("INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, nota_fiscal, descricao, valor, id_categoria) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
-            if ($eh_campanha) {
+            if ($eh_campanha && $id_cat_roy > 0) {
                 $stmt_nivel = $db_financeiro->prepare("SELECT nivel, vencimento_royalties FROM campanhas_niveis WHERE id_campanha = ? AND vencimento_nf = ?");
                 $stmt_nivel->execute([$dados_campanha['id'], $data_parcela_base]);
                 $nivel = $stmt_nivel->fetch();
@@ -220,14 +196,38 @@ try {
                 } else {
                     $msg_extra = "\n⚠️ Campanha detetada, mas o cruzamento das datas de nível falhou.";
                 }
-            } else {
+            } elseif ($id_cat_roy > 0) {
                 $mes_seguinte = date('Y-m', strtotime("+1 month", strtotime($emissao)));
                 $metade = $valor_royalties_total / 2;
                 $inserir_royalty->execute([$id_usuario, 'Cacau Show (Royalties)', $emissao, $mes_seguinte . '-07', $numero_nota, "Royalties Linha - Parcela 1/2", $metade, $id_cat_roy]);
                 $inserir_royalty->execute([$id_usuario, 'Cacau Show (Royalties)', $emissao, $mes_seguinte . '-21', $numero_nota, "Royalties Linha - Parcela 2/2", $metade, $id_cat_roy]);
                 $msg_extra = "\n✅ Mercadorias e Royalties de Linha gerados!";
             }
-        } else {
+        } 
+        // LÓGICA DO PARCELAMENTO MANUAL
+        elseif (isset($_POST['is_parcelado']) && $_POST['is_parcelado'] == 'on' && isset($_POST['parcela_vencimento'])) {
+            $vencimentos = $_POST['parcela_vencimento'];
+            $valores = $_POST['parcela_valor'];
+            $qtd = count($vencimentos);
+            
+            $db_financeiro->beginTransaction();
+            try {
+                for ($i = 0; $i < $qtd; $i++) {
+                    $val_parcela = converterMoeda($valores[$i]);
+                    $desc_parcela = $_POST['descricao'] . " - Parcela " . ($i + 1) . "/" . $qtd;
+                    
+                    $sql = "INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, nota_fiscal, descricao, valor, id_categoria) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    $db_financeiro->prepare($sql)->execute([$id_usuario, $_POST['fornecedor'], $_POST['emissao'], $vencimentos[$i], $_POST['nota_fiscal'], $desc_parcela, $val_parcela, $_POST['id_categoria']]);
+                }
+                $db_financeiro->commit();
+                $msg_extra = " ($qtd parcelas cadastradas com sucesso!)";
+            } catch (Exception $e) {
+                $db_financeiro->rollBack();
+                throw $e;
+            }
+        } 
+        // LANÇAMENTO SIMPLES MANUAL
+        else {
             $sql = "INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, nota_fiscal, descricao, valor, id_categoria) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $db_financeiro->prepare($sql)->execute([$id_usuario, $_POST['fornecedor'], $_POST['emissao'], $_POST['vencimento'], $_POST['nota_fiscal'], $_POST['descricao'], $valor_conta, $_POST['id_categoria']]);
         }
@@ -235,19 +235,3 @@ try {
         echo json_encode(['status' => 'success', 'message' => 'Conta salva com sucesso!' . $msg_extra]);
     }
 } catch (Exception $e) { echo json_encode(['status' => 'error', 'message' => $e->getMessage()]); }
-
-// ==========================================
-// 5. AÇÕES DE CATEGORIA (Admin)
-// ==========================================
-if ($action === 'salvar_categoria') {
-    $stmt = $db_financeiro->prepare("INSERT INTO categorias_financeiras (nome, tipo, grupo) VALUES (?, ?, ?)");
-    $stmt->execute([$_POST['nome'], $_POST['tipo'], $_POST['grupo']]);
-    echo json_encode(['status' => 'success', 'message' => 'Categoria cadastrada!']);
-    exit;
-}
-if ($action === 'excluir_categoria') {
-    $stmt = $db_financeiro->prepare("DELETE FROM categorias_financeiras WHERE id = ?");
-    $stmt->execute([$_POST['id']]);
-    echo json_encode(['status' => 'success', 'message' => 'Categoria removida!']);
-    exit;
-}

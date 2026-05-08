@@ -18,9 +18,8 @@ try {
 
     $stmt_cat = $db_financeiro->query("SELECT * FROM categorias_financeiras WHERE tipo = 'Despesa' ORDER BY grupo ASC, nome ASC");
     $lista_categorias = $stmt_cat->fetchAll();
-} catch (Exception $e) {
-    $contas = [];
-    $lista_categorias = [];
+} catch (Exception $e) { 
+    $contas = []; $lista_categorias = []; 
 }
 
 $contas_finais = [];
@@ -30,7 +29,7 @@ foreach ($contas as $c) {
     if (strpos(strtolower($c['descricao']), 'royalt') !== false) {
         $data_venc = $c['vencimento'];
         if (!isset($grupos_royalties[$data_venc])) {
-            $grupos_royalties[$data_venc] = ['master' => $c, 'detalhes' => []];
+            $grupos_royalties[$data_venc] = [ 'master' => $c, 'detalhes' => [] ];
             $grupos_royalties[$data_venc]['master']['valor'] = 0;
             $grupos_royalties[$data_venc]['master']['descricao'] = "Royalties Agrupados - Vencimento " . date('d/m/Y', strtotime($data_venc));
             $grupos_royalties[$data_venc]['master']['is_group'] = true;
@@ -42,12 +41,8 @@ foreach ($contas as $c) {
         $contas_finais[] = $c;
     }
 }
-foreach ($grupos_royalties as $grupo) {
-    $contas_finais[] = $grupo['master'];
-}
-usort($contas_finais, function ($a, $b) {
-    return strtotime($a['vencimento']) - strtotime($b['vencimento']);
-});
+foreach ($grupos_royalties as $grupo) { $contas_finais[] = $grupo['master']; }
+usort($contas_finais, function($a, $b) { return strtotime($a['vencimento']) - strtotime($b['vencimento']); });
 ?>
 
 <link rel="stylesheet" href="../static/css/global.css">
@@ -55,10 +50,13 @@ usort($contas_finais, function ($a, $b) {
 <link rel="stylesheet" href="../static/css/financeiro.css">
 
 <div class="financeiro-container financeiro-wrapper">
-    <div class="header-actions">
-        <h1>Contas a Pagar</h1>
+   <div class="header-actions">
+    <h1>Contas a Pagar</h1>
+    <div style="display: flex; gap: 10px;">
+        <a href="relatorio_contas.php" class="btn btn-secondary">📊 RELATÓRIOS</a>
         <button class="btn btn-primary" onclick="abrirModalConta()">+ INCLUIR CONTA</button>
     </div>
+</div>
 
     <table class="table-financeiro">
         <thead>
@@ -73,12 +71,10 @@ usort($contas_finais, function ($a, $b) {
             </tr>
         </thead>
         <tbody>
-            <?php if (count($contas_finais) == 0): ?>
-                <tr>
-                    <td colspan="7" class="empty-state">Tudo limpo! Não há contas pendentes. 🎉</td>
-                </tr>
+            <?php if(count($contas_finais) == 0): ?>
+                <tr><td colspan="7" class="empty-state">Tudo limpo! Não há contas pendentes. 🎉</td></tr>
             <?php endif; ?>
-
+            
             <?php foreach ($contas_finais as $c): ?>
                 <tr class="<?= isset($c['is_group']) ? 'row-master' : '' ?>">
                     <td><?= date('d/m/Y', strtotime($c['vencimento'])) ?></td>
@@ -131,56 +127,28 @@ usort($contas_finais, function ($a, $b) {
             <h2>Dar Baixa na Conta</h2>
             <button onclick="fecharModalBaixa()" class="close-modal">&times;</button>
         </div>
-
+        
         <form id="formBaixa" class="form-body" onsubmit="salvarBaixa(event)">
             <input type="hidden" name="action" value="baixa">
             <input type="hidden" name="id_baixa" id="id_baixa">
             <input type="hidden" name="vencimento_baixa" id="vencimento_baixa">
-
             <input type="hidden" name="fornecedor_baixa" id="fornecedor_baixa">
             <input type="hidden" name="descricao_baixa" id="descricao_baixa">
             <input type="hidden" name="valor_base" id="valor_base_baixa">
 
             <div class="form-grid-3">
-                <div class="form-group">
-                    <label>Data do Pagamento</label>
-                    <input type="date" name="data_pagamento" id="data_pagamento" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Forma de Pagto</label>
-                    <select name="forma_pagamento" class="form-control" required>
-                        <option value="Boleto">Boleto</option>
-                        <option value="PIX">PIX</option>
-                        <option value="Transferência">Transferência</option>
-                        <option value="Dinheiro">Dinheiro</option>
-                        <option value="Cartão">Cartão</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Banco de Saída</label>
-                    <input type="text" name="banco_pagamento" placeholder="Ex: Itaú..." class="form-control" required>
-                </div>
+                <div class="form-group"><label>Data do Pagamento</label><input type="date" name="data_pagamento" id="data_pagamento" class="form-control" required></div>
+                <div class="form-group"><label>Forma de Pagto</label><select name="forma_pagamento" class="form-control" required><option value="Boleto">Boleto</option><option value="PIX">PIX</option><option value="Transferência">Transferência</option><option value="Dinheiro">Dinheiro</option><option value="Cartão">Cartão</option></select></div>
+                <div class="form-group"><label>Banco de Saída</label><input type="text" name="banco_pagamento" placeholder="Ex: Itaú..." class="form-control" required></div>
             </div>
 
             <div class="composicao-box">
                 <h4>Composição do Pagamento</h4>
                 <div class="composicao-grid">
-                    <div class="form-group">
-                        <label class="label-danger">+ Juros (R$)</label>
-                        <input type="text" name="juros" id="juros_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();">
-                    </div>
-                    <div class="form-group">
-                        <label class="label-danger">+ Multa (R$)</label>
-                        <input type="text" name="multa" id="multa_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();">
-                    </div>
-                    <div class="form-group">
-                        <label class="label-success">- Descontos (R$)</label>
-                        <input type="text" name="desconto" id="desconto_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();">
-                    </div>
-                    <div class="form-group">
-                        <label class="label-success">- Créditos Cacau Show (R$)</label>
-                        <input type="text" name="creditos_cs" id="creditos_cs_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();">
-                    </div>
+                    <div class="form-group"><label class="label-danger">+ Juros (R$)</label><input type="text" name="juros" id="juros_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();"></div>
+                    <div class="form-group"><label class="label-danger">+ Multa (R$)</label><input type="text" name="multa" id="multa_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();"></div>
+                    <div class="form-group"><label class="label-success">- Descontos (R$)</label><input type="text" name="desconto" id="desconto_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();"></div>
+                    <div class="form-group"><label class="label-success">- Créditos Cacau Show (R$)</label><input type="text" name="creditos_cs" id="creditos_cs_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();"></div>
                 </div>
             </div>
 
@@ -203,7 +171,7 @@ usort($contas_finais, function ($a, $b) {
             <h2 id="tituloModal">Incluir Conta a Pagar</h2>
             <button onclick="fecharModal()" class="close-modal">&times;</button>
         </div>
-
+        
         <div class="import-xml-bar">
             <span>Deseja importar os dados de um XML?</span>
             <input type="file" id="import_xml_input" accept=".xml" style="display: none;" onchange="importarDadosXML()">
@@ -213,39 +181,21 @@ usort($contas_finais, function ($a, $b) {
         <form id="formConta" class="form-body" onsubmit="salvarConta(event)">
             <input type="hidden" name="action" value="salvar">
             <input type="hidden" name="id" id="conta_id">
-
+            
             <div class="form-grid">
-                <div class="form-group span-2">
-                    <label>Fornecedor</label>
-                    <input type="text" name="fornecedor" id="fornecedor" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Data de Emissão</label>
-                    <input type="date" name="emissao" id="emissao" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Vencimento</label>
-                    <input type="date" name="vencimento" id="vencimento" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Nº Nota Fiscal</label>
-                    <input type="text" name="nota_fiscal" id="nota_fiscal" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label>Valor (R$)</label>
-                    <input type="text" name="valor" id="valor" value="0,00" class="form-control text-right" required onkeyup="mascararMoeda(this)">
-                </div>
-                <div class="form-group span-2">
-                    <label>Descrição</label>
-                    <input type="text" name="descricao" id="descricao" class="form-control" required>
-                </div>
+                <div class="form-group span-2"><label>Fornecedor</label><input type="text" name="fornecedor" id="fornecedor" class="form-control" required></div>
+                <div class="form-group"><label>Data de Emissão (Primeira Parcela)</label><input type="date" name="emissao" id="emissao" class="form-control" required></div>
+                <div class="form-group"><label>Vencimento Inicial</label><input type="date" name="vencimento" id="vencimento" class="form-control" required></div>
+                <div class="form-group"><label>Nº Nota Fiscal</label><input type="text" name="nota_fiscal" id="nota_fiscal" class="form-control"></div>
+                <div class="form-group"><label>Valor Total (R$)</label><input type="text" name="valor" id="valor" value="0,00" class="form-control text-right" required onkeyup="mascararMoeda(this)"></div>
+                <div class="form-group span-2"><label>Descrição</label><input type="text" name="descricao" id="descricao" class="form-control" required></div>
                 <div class="form-group span-2">
                     <label>Categoria (Apenas Despesas)</label>
                     <select name="id_categoria" id="id_categoria" class="form-control" required>
                         <option value="">Selecione a Sub-categoria...</option>
-                        <?php
+                        <?php 
                         $grupo_atual = null;
-                        foreach ($lista_categorias as $cat):
+                        foreach ($lista_categorias as $cat): 
                             if ($cat['grupo'] !== $grupo_atual):
                                 if ($grupo_atual !== null) echo '</optgroup>';
                                 $grupo_atual = $cat['grupo'];
@@ -258,6 +208,30 @@ usort($contas_finais, function ($a, $b) {
                         <?php if ($grupo_atual !== null) echo '</optgroup>'; ?>
                     </select>
                 </div>
+
+                <div class="form-group span-2" id="box_parcelamento" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+                    <label style="display:flex; align-items:center; cursor:pointer;">
+                        <input type="checkbox" name="is_parcelado" id="is_parcelado" onchange="toggleParcelamento()" style="margin-right: 10px; width: 20px; height: 20px;">
+                        <span style="font-weight:bold; color:#007bff; font-size: 15px;">Esta conta será parcelada?</span>
+                    </label>
+                    
+                    <div id="config_parcelas" style="display: none; margin-top: 15px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
+                            <div><label>Nº de Parcelas</label><input type="number" id="qtd_parcelas" min="2" max="120" value="2" class="form-control"></div>
+                            <div>
+                                <label>Intervalo</label>
+                                <select id="intervalo_parcelas" class="form-control">
+                                    <option value="30">Mensal</option>
+                                    <option value="15">Quinzenal</option>
+                                    <option value="7">Semanal</option>
+                                </select>
+                            </div>
+                            <div><button type="button" class="btn-import-xml" onclick="gerarPreviewParcelas()" style="margin:0; background:#28a745;">Gerar Lista</button></div>
+                        </div>
+                        <div id="lista_parcelas" style="margin-top: 15px;"></div>
+                    </div>
+                </div>
+
             </div>
 
             <div class="modal-footer">
