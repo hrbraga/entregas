@@ -38,8 +38,6 @@ try {
     $db_produtos->exec("PRAGMA journal_mode = WAL;");
     // ==========================================================
 
-
-
 // ==========================================================
 // DB 5: Validades (NOVO - Controle de Short Date)
 $db_validades_path = __DIR__ . '/db/validades.db';
@@ -48,6 +46,15 @@ $db_validades->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $db_validades->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $db_validades->exec("PRAGMA journal_mode = WAL;");
 // ==========================================================
+
+// ==========================================================
+    // DB 6: Financeiro (Contas a Pagar e DRE)
+    $db_financeiro_path = __DIR__ . '/db/financeiro.db';
+    $db_financeiro = new PDO('sqlite:' . $db_financeiro_path);
+    $db_financeiro->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db_financeiro->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $db_financeiro->exec("PRAGMA journal_mode = WAL;");
+    // ==========================================================
 } catch (PDOException $e) {
     die("Erro fatal na conexão com uma das bases de dados: " . $e->getMessage());
 }

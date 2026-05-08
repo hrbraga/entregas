@@ -1,0 +1,273 @@
+<?php
+require '../config.php';
+require '../auth/auth_check.php';
+require '../includes/header.php';
+
+$id_usuario = $_SESSION['user_id'];
+
+try {
+    $stmt = $db_financeiro->prepare("
+        SELECT cp.*, cat.nome as categoria_nome 
+        FROM contas_pagar cp 
+        LEFT JOIN categorias_financeiras cat ON cp.id_categoria = cat.id 
+        WHERE cp.id_usuario = ? AND cp.status != 'Pago'
+        ORDER BY cp.vencimento ASC
+    ");
+    $stmt->execute([$id_usuario]);
+    $contas = $stmt->fetchAll();
+
+    $stmt_cat = $db_financeiro->query("SELECT * FROM categorias_financeiras WHERE tipo = 'Despesa' ORDER BY grupo ASC, nome ASC");
+    $lista_categorias = $stmt_cat->fetchAll();
+} catch (Exception $e) {
+    $contas = [];
+    $lista_categorias = [];
+}
+
+$contas_finais = [];
+$grupos_royalties = [];
+
+foreach ($contas as $c) {
+    if (strpos(strtolower($c['descricao']), 'royalt') !== false) {
+        $data_venc = $c['vencimento'];
+        if (!isset($grupos_royalties[$data_venc])) {
+            $grupos_royalties[$data_venc] = ['master' => $c, 'detalhes' => []];
+            $grupos_royalties[$data_venc]['master']['valor'] = 0;
+            $grupos_royalties[$data_venc]['master']['descricao'] = "Royalties Agrupados - Vencimento " . date('d/m/Y', strtotime($data_venc));
+            $grupos_royalties[$data_venc]['master']['is_group'] = true;
+            $grupos_royalties[$data_venc]['master']['grupo_id'] = "g_" . str_replace('-', '', $data_venc);
+        }
+        $grupos_royalties[$data_venc]['master']['valor'] += $c['valor'];
+        $grupos_royalties[$data_venc]['detalhes'][] = $c;
+    } else {
+        $contas_finais[] = $c;
+    }
+}
+foreach ($grupos_royalties as $grupo) {
+    $contas_finais[] = $grupo['master'];
+}
+usort($contas_finais, function ($a, $b) {
+    return strtotime($a['vencimento']) - strtotime($b['vencimento']);
+});
+?>
+
+<link rel="stylesheet" href="../static/css/global.css">
+<link rel="stylesheet" href="../static/css/style.css">
+<link rel="stylesheet" href="../static/css/financeiro.css">
+
+<div class="financeiro-container financeiro-wrapper">
+    <div class="header-actions">
+        <h1>Contas a Pagar</h1>
+        <button class="btn btn-primary" onclick="abrirModalConta()">+ INCLUIR CONTA</button>
+    </div>
+
+    <table class="table-financeiro">
+        <thead>
+            <tr>
+                <th>Vencimento</th>
+                <th>Fornecedor</th>
+                <th>Descrição</th>
+                <th>Valor</th>
+                <th>Categoria</th>
+                <th>Status</th>
+                <th class="text-center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (count($contas_finais) == 0): ?>
+                <tr>
+                    <td colspan="7" class="empty-state">Tudo limpo! Não há contas pendentes. 🎉</td>
+                </tr>
+            <?php endif; ?>
+
+            <?php foreach ($contas_finais as $c): ?>
+                <tr class="<?= isset($c['is_group']) ? 'row-master' : '' ?>">
+                    <td><?= date('d/m/Y', strtotime($c['vencimento'])) ?></td>
+                    <td><?= htmlspecialchars($c['fornecedor']) ?></td>
+                    <td>
+                        <?= htmlspecialchars($c['descricao']) ?>
+                        <?php if (isset($c['is_group'])): ?>
+                            <br><small class="text-primary">(<?= count($grupos_royalties[$c['vencimento']]['detalhes']) ?> parcelas)</small>
+                        <?php endif; ?>
+                    </td>
+                    <td>R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
+                    <td><?= htmlspecialchars($c['categoria_nome']) ?></td>
+                    <td><span class="status-badge pendente">Pendente</span></td>
+                    <td class="text-center">
+                        <?php if (isset($c['is_group'])): ?>
+                            <button class="btn-acao" title="Baixar Grupo" onclick="abrirModalBaixa('', '<?= $c['vencimento'] ?>', <?= $c['valor'] ?>, 'Cacau Show', 'Royalties Agrupados - <?= date('d/m/Y', strtotime($c['vencimento'])) ?>')">✅</button>
+                            <button class="btn-acao" title="Ver Detalhes" onclick="toggleGrupo('<?= $c['grupo_id'] ?>')">🔍</button>
+                        <?php else: ?>
+                            <button class="btn-acao" title="Baixa" onclick="abrirModalBaixa(<?= $c['id'] ?>, '', <?= $c['valor'] ?>, '<?= htmlspecialchars($c['fornecedor'], ENT_QUOTES) ?>', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅</button>
+                            <button class="btn-acao" title="Editar" onclick='editarConta(<?= json_encode($c) ?>)'>✏️</button>
+                            <button class="btn-acao" title="Excluir" onclick="excluirConta(<?= $c['id'] ?>)">🗑️</button>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+
+                <?php if (isset($c['is_group'])): ?>
+                    <?php foreach ($grupos_royalties[$c['vencimento']]['detalhes'] as $filha): ?>
+                        <tr class="child-row <?= $c['grupo_id'] ?>" style="display:none;">
+                            <td class="child-row-indicator">↳ NF: <?= htmlspecialchars($filha['nota_fiscal']) ?></td>
+                            <td><?= htmlspecialchars($filha['fornecedor']) ?></td>
+                            <td><?= htmlspecialchars($filha['descricao']) ?></td>
+                            <td>R$ <?= number_format($filha['valor'], 2, ',', '.') ?></td>
+                            <td><?= htmlspecialchars($filha['categoria_nome']) ?></td>
+                            <td><span class="status-badge pendente">Pendente</span></td>
+                            <td class="text-center">
+                                <button class="btn-acao" onclick='editarConta(<?= json_encode($filha) ?>)'>✏️</button>
+                                <button class="btn-acao" onclick="excluirConta(<?= $filha['id'] ?>)">🗑️</button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+
+<div id="modalBaixa" class="modal-financeiro dark-overlay">
+    <div class="modal-content modal-md">
+        <div class="modal-header success">
+            <h2>Dar Baixa na Conta</h2>
+            <button onclick="fecharModalBaixa()" class="close-modal">&times;</button>
+        </div>
+
+        <form id="formBaixa" class="form-body" onsubmit="salvarBaixa(event)">
+            <input type="hidden" name="action" value="baixa">
+            <input type="hidden" name="id_baixa" id="id_baixa">
+            <input type="hidden" name="vencimento_baixa" id="vencimento_baixa">
+
+            <input type="hidden" name="fornecedor_baixa" id="fornecedor_baixa">
+            <input type="hidden" name="descricao_baixa" id="descricao_baixa">
+            <input type="hidden" name="valor_base" id="valor_base_baixa">
+
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label>Data do Pagamento</label>
+                    <input type="date" name="data_pagamento" id="data_pagamento" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Forma de Pagto</label>
+                    <select name="forma_pagamento" class="form-control" required>
+                        <option value="Boleto">Boleto</option>
+                        <option value="PIX">PIX</option>
+                        <option value="Transferência">Transferência</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Cartão">Cartão</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Banco de Saída</label>
+                    <input type="text" name="banco_pagamento" placeholder="Ex: Itaú..." class="form-control" required>
+                </div>
+            </div>
+
+            <div class="composicao-box">
+                <h4>Composição do Pagamento</h4>
+                <div class="composicao-grid">
+                    <div class="form-group">
+                        <label class="label-danger">+ Juros (R$)</label>
+                        <input type="text" name="juros" id="juros_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();">
+                    </div>
+                    <div class="form-group">
+                        <label class="label-danger">+ Multa (R$)</label>
+                        <input type="text" name="multa" id="multa_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();">
+                    </div>
+                    <div class="form-group">
+                        <label class="label-success">- Descontos (R$)</label>
+                        <input type="text" name="desconto" id="desconto_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();">
+                    </div>
+                    <div class="form-group">
+                        <label class="label-success">- Créditos Cacau Show (R$)</label>
+                        <input type="text" name="creditos_cs" id="creditos_cs_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorPago();">
+                    </div>
+                </div>
+            </div>
+
+            <div class="total-container">
+                <label>= VALOR TOTAL PAGO</label>
+                <input type="text" id="valor_pago_display" class="input-total-pago" readonly>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="fecharModalBaixa()" class="btn-cancel">Cancelar</button>
+                <button type="submit" class="btn-confirm">CONFIRMAR PAGAMENTO</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modalConta" class="modal-financeiro">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h2 id="tituloModal">Incluir Conta a Pagar</h2>
+            <button onclick="fecharModal()" class="close-modal">&times;</button>
+        </div>
+
+        <div class="import-xml-bar">
+            <span>Deseja importar os dados de um XML?</span>
+            <input type="file" id="import_xml_input" accept=".xml" style="display: none;" onchange="importarDadosXML()">
+            <button class="btn-import-xml" onclick="document.getElementById('import_xml_input').click()">📂 SELECIONAR XML</button>
+        </div>
+
+        <form id="formConta" class="form-body" onsubmit="salvarConta(event)">
+            <input type="hidden" name="action" value="salvar">
+            <input type="hidden" name="id" id="conta_id">
+
+            <div class="form-grid">
+                <div class="form-group span-2">
+                    <label>Fornecedor</label>
+                    <input type="text" name="fornecedor" id="fornecedor" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Data de Emissão</label>
+                    <input type="date" name="emissao" id="emissao" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Vencimento</label>
+                    <input type="date" name="vencimento" id="vencimento" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Nº Nota Fiscal</label>
+                    <input type="text" name="nota_fiscal" id="nota_fiscal" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Valor (R$)</label>
+                    <input type="text" name="valor" id="valor" value="0,00" class="form-control text-right" required onkeyup="mascararMoeda(this)">
+                </div>
+                <div class="form-group span-2">
+                    <label>Descrição</label>
+                    <input type="text" name="descricao" id="descricao" class="form-control" required>
+                </div>
+                <div class="form-group span-2">
+                    <label>Categoria (Apenas Despesas)</label>
+                    <select name="id_categoria" id="id_categoria" class="form-control" required>
+                        <option value="">Selecione a Sub-categoria...</option>
+                        <?php
+                        $grupo_atual = null;
+                        foreach ($lista_categorias as $cat):
+                            if ($cat['grupo'] !== $grupo_atual):
+                                if ($grupo_atual !== null) echo '</optgroup>';
+                                $grupo_atual = $cat['grupo'];
+                                $nome_grupo = empty($grupo_atual) ? 'Outras Despesas' : $grupo_atual;
+                                echo '<optgroup label="📂 ' . htmlspecialchars($nome_grupo) . '">';
+                            endif;
+                        ?>
+                            <option value="<?= $cat['id'] ?>">&nbsp;&nbsp;↳ <?= htmlspecialchars($cat['nome']) ?></option>
+                        <?php endforeach; ?>
+                        <?php if ($grupo_atual !== null) echo '</optgroup>'; ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="fecharModal()" class="btn-cancel">Cancelar</button>
+                <button type="submit" class="btn-confirm">SALVAR CONTA</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../static/js/contas_pagar.js"></script>
+
+<?php require '../includes/footer.php'; ?>

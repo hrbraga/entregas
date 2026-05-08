@@ -1,0 +1,499 @@
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+.financeiro-container {
+    max-width: 900px;
+    margin: 40px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.linha-nivel {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: flex-end;
+}
+
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.form-group input,
+.form-group select {
+    font-size: 1.4rem;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-primary {
+    background: #28a745;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #218838;
+}
+
+.btn-secondary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+    padding: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+    font-size: 14px;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
+.modal-financeiro {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 700px;
+    overflow: hidden;
+}
+
+.modal-header {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.import-xml-bar {
+    background: #e7f3ff;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #cce5ff;
+}
+
+.import-xml-bar span{
+    font-size: 14px;
+}
+
+.btn-import-xml {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 20px;
+}
+
+.span-2 {
+    grid-column: span 2;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    text-align: right;
+    border-top: 1px solid #ddd;
+}
+
+/* ========================================================
+   ESTILOS ESPECÍFICOS - CONTAS A PAGAR
+   ======================================================== */
+
+/* Container Principal */
+.financeiro-wrapper {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-badge.pendente {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.status-badge.pago {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* Linhas da Tabela */
+.row-master {
+    border-left: 4px solid #007bff;
+    font-weight: bold;
+    background-color: #f8fbff;
+}
+
+.row-paga {
+    opacity: 0.6;
+}
+
+.child-row {
+    background-color: #fdfdfd;
+    font-size: 0.9em;
+}
+
+.child-row-indicator {
+    padding-left: 25px;
+    color: #666;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 20px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* Botões de Ação na Tabela */
+.btn-acao {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 12px;
+    margin: 0 2px;
+    transition: transform 0.2s;
+}
+
+.btn-acao:hover {
+    transform: scale(1.2);
+}
+
+/* Select / Optgroup Customization */
+optgroup {
+    font-weight: bold;
+    color: #007bff;
+    font-style: normal;
+    background-color: #f8f9fa;
+}
+
+option {
+    color: #333;
+    font-weight: normal;
+    background-color: #fff;
+}
+
+/* ========================================================
+   MODAIS (INCLUSÃO E BAIXA)
+   ======================================================== */
+.modal-financeiro {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-financeiro.dark-overlay {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 8px;
+    width: 90%;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-md {
+    max-width: 650px;
+}
+
+.modal-lg {
+    max-width: 700px;
+}
+
+/* Cabeçalho do Modal */
+.modal-header {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header.success {
+    background: #28a745;
+    color: white;
+    border-radius: 8px 8px 0 0;
+    border-bottom: none;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.close-modal {
+    border: none;
+    background: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: inherit;
+}
+
+/* Barra de Importação XML */
+.import-xml-bar {
+    background: #e7f3ff;
+    padding: 15px 20px;
+    border-bottom: 1px solid #cce5ff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-import-xml {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Formulários Internos */
+.form-body {
+    padding: 20px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.span-2 {
+    grid-column: span 2;
+}
+
+.form-group label {
+    font-weight: bold;
+    font-size: 13px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.form-control.text-right {
+    text-align: right;
+}
+
+/* Rodapé do Modal */
+.modal-footer {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    text-align: right;
+    border-top: 1px solid #ddd;
+}
+
+.btn-cancel {
+    padding: 10px 20px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.btn-confirm {
+    padding: 10px 20px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Layout da Composição da Baixa (Matemática) */
+.composicao-box {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 20px;
+}
+
+.composicao-box h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+.composicao-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.label-danger {
+    color: #dc3545;
+    font-size: 12px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.label-success {
+    color: #28a745;
+    font-size: 12px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Exibição do Valor Total Pago */
+.total-container {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.total-container label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    font-size: 18px;
+}
+
+.input-total-pago {
+    width: 50%;
+    padding: 10px;
+    border: 2px solid #28a745;
+    border-radius: 4px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #28a745;
+    text-align: center;
+    background: #e8f5e9;
+    margin: 0 auto;
+    display: block;
+}
+
+/* ========================================================
+   SELECT / OPTGROUP CUSTOMIZATION
+   ======================================================== */
+select.form-control {
+    font-size: 15px; /* Tamanho da fonte do campo fechado */
+}
+
+optgroup { 
+    font-weight: bold; 
+    color: #007bff; 
+    font-style: normal; 
+    background-color: #f8f9fa;
+    font-size: 15px; /* Tamanho da Categoria Mãe */
+}
+
+option { 
+    color: #333; 
+    font-weight: normal; 
+    background-color: #fff;
+    font-size: 14px; /* Tamanho das Sub-categorias */
+    padding: 5px; /* Dá um respiro para não ficar tudo colado */
+}
