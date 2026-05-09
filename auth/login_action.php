@@ -24,14 +24,13 @@ try {
         // --- A MÁGICA DO VÍNCULO DE DADOS ---
         if (strpos($username_atual, 'loja-') === 0) {
             // É um funcionário! Vamos descobrir quem é o Franqueado Dono dele.
-            $username_dono = substr($username_atual, 5); // Remove o 'loja-' do texto (ex: fica só '1871')
+            $username_dono = substr($username_atual, 5); // Tira o 'loja-'
             
             $stmt_dono = $db_users->prepare("SELECT id FROM user WHERE username = ?");
             $stmt_dono->execute([$username_dono]);
             $dono = $stmt_dono->fetch(PDO::FETCH_ASSOC);
             
-            // Se encontrou o dono, o ID gravado na sessão será o do DONO!
-            // Assim as validades puxam os dados corretamente sem precisar mudar o código delas.
+            // O ID da sessão passa a ser o do DONO, para que o funcionário veja as mesmas Validades
             $id_sessao = $dono ? $dono['id'] : $id_real; 
         } else {
             // É o Franqueado ou o Admin. O ID é o dele mesmo.
@@ -41,10 +40,10 @@ try {
         if (session_status() === PHP_SESSION_NONE) session_start();
         
         // As variáveis que controlam o sistema inteiro
-        $_SESSION['user_id'] = $id_sessao; // Variável de DADOS (Gravar/Ler no banco)
-        $_SESSION['username'] = $username_atual; // Variável de SEGURANÇA (Verifica se tem 'loja-')
+        $_SESSION['user_id'] = $id_sessao; 
+        $_SESSION['username'] = $username_atual; 
 
-        // --- REDIRECIONAMENTO ---
+        // --- REDIRECIONAMENTO INTELIGENTE ---
         $redirect_memoria = $_SESSION['redirect_apos_login'] ?? '';
         
         if (!empty($redirect_memoria)) {
@@ -54,7 +53,7 @@ try {
             header("Location: $redirect");
         } else {
             if (strpos($username_atual, 'loja-') === 0) {
-                header("Location: ../selecao_ferramentas.php"); // Funcionário vai para a vitrine
+                header("Location: ../selecao_ferramentas.php"); // Loja vai para as ferramentas
             } else {
                 header("Location: ../Recebimentos/recebimentos.php"); // Franqueado vai para o financeiro
             }

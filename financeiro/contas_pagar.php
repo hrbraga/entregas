@@ -23,7 +23,6 @@ try {
 } catch (Exception $e) { 
     $contas = []; $lista_categorias = []; 
 }
-
 $contas_finais = [];
 $grupos_royalties = [];
 

@@ -180,7 +180,6 @@ try {
             labels: Object.keys(groups),
             values: Object.values(groups)
         };
-        groupByCategorias
     }
 
     function updateBarChart() {
