@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const etiqueta = document.createElement('div');
                 etiqueta.className = classeEtiqueta;
                 
-                // HTML com a imagem dinâmica
+                // HTML com a imagem dinâmica e OS PREÇOS INVERTIDOS!
                 etiqueta.innerHTML = `
                     <img src="${imagemSrc}" class="img-fundo" alt="">
                     

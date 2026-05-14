@@ -32,10 +32,11 @@ try {
         $custoCaixa = $valorUn + $royalties + $st + $ipi + $txs + $midia;
         $custoUn = ($qtCaixa > 0) ? ($custoCaixa / $qtCaixa) : 0;
         
-        $mbBruta = ($preco_venda > 0) ? (1 - ($custoUn / $preco_venda)) * 100 : 0;
+       // AQUI ESTÁ A MUDANÇA: Substituímos $preco_venda por $preco2 nos cálculos
+        $mbBruta = ($preco2 > 0) ? (1 - ($custoUn / $preco2)) * 100 : 0;
         $baseLiq = $valorUn + $royalties;
         $custoBaseUn = ($qtCaixa > 0) ? ($baseLiq / $qtCaixa) : 0;
-        $mbLiquida = ($preco_venda > 0) ? (1 - ($custoBaseUn / $preco_venda)) * 100 : 0;
+        $mbLiquida = ($preco2 > 0) ? (1 - ($custoBaseUn / $preco2)) * 100 : 0;
 
         $dados = [
             ':codigo_barras' => $codigo_barras,

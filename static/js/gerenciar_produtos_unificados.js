@@ -3,24 +3,23 @@ const modal = document.getElementById('modalProduto');
 const form = document.getElementById('formProduto');
 
 // Função para desenhar a tabela com os dados do banco
+// Função para desenhar a tabela com os dados do banco
 function renderizarTabela() {
-    // 1. Criamos uma variável de texto vazia para guardar as linhas
     let htmlLinhas = ''; 
     
     produtos.forEach(p => {
-        const precoVenda = parseFloat(p.preco_venda || 0).toFixed(2);
+        // AQUI ESTÁ A MUDANÇA: Puxamos o preco2 (Não Lovers) para exibir
+        const precoNaoLovers = parseFloat(p.preco2 || 0).toFixed(2);
         const custoUn = parseFloat(p.custoUn || 0).toFixed(2);
         const mbLiquida = parseFloat(p.mbLiquida || 0).toFixed(2);
 
-        // 2. Adicionamos o HTML de cada linha à nossa variável (sem tocar no ecrã)
         htmlLinhas += `
             <tr>
                 <td>${p.codigo_interno || '-'}</td>
                 <td>${p.codigo_barras || '-'}</td>
                 <td>${p.nome_produto}</td>
                 <td>${p.campanha || '-'}</td>
-                <td>R$ ${precoVenda}</td>
-                <td>R$ ${custoUn}</td>
+                <td>R$ ${precoNaoLovers}</td> <td>R$ ${custoUn}</td>
                 <td>${mbLiquida}%</td>
                 <td>
                     <button class="btn btn-edit" onclick='editarProduto(${JSON.stringify(p).replace(/'/g, "\\'")})'>Editar</button>
@@ -30,10 +29,9 @@ function renderizarTabela() {
         `;
     });
     
-    // 3. Injetamos tudo na tabela de uma só vez!
     tabela.innerHTML = htmlLinhas; 
 }
-
+    
 function abrirModal() {
     form.reset();
     document.getElementById('produto_id').value = '';

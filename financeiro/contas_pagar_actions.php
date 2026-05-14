@@ -118,14 +118,31 @@ try {
         $id = $_POST['id'] ?? '';
         $valor_conta = converterMoeda($_POST['valor']);
         
-        if (empty($id) && !empty($_POST['nota_fiscal'])) {
-            $check = $db_financeiro->prepare("SELECT id FROM contas_pagar WHERE id_usuario = ? AND nota_fiscal = ? AND fornecedor = ?");
-            $check->execute([$id_usuario, $_POST['nota_fiscal'], $_POST['fornecedor']]);
-            if ($check->fetch()) {
-                echo json_encode(['status' => 'error', 'message' => 'Esta Nota Fiscal já foi lançada para este fornecedor!']);
-                exit;
+        // --- INÍCIO DA BLINDAGEM CONTRA DUPLICIDADES ---
+        if (empty($id)) { // Só faz a checagem se for uma conta NOVA (não bloqueia edições)
+            
+            // Regra 1: Se a conta TEM Nota Fiscal (Bloqueia Fornecedor + NF idênticos)
+            if (!empty($_POST['nota_fiscal'])) {
+                // Usamos TRIM e UPPER para ignorar espaços extras e diferenças de maiúsculas/minúsculas
+                $check = $db_financeiro->prepare("SELECT id FROM contas_pagar WHERE id_usuario = ? AND TRIM(UPPER(nota_fiscal)) = TRIM(UPPER(?)) AND TRIM(UPPER(fornecedor)) = TRIM(UPPER(?))");
+                $check->execute([$id_usuario, $_POST['nota_fiscal'], $_POST['fornecedor']]);
+                if ($check->fetch()) {
+                    echo json_encode(['status' => 'error', 'message' => '⚠️ Bloqueio: A Nota Fiscal informada já foi lançada no sistema para o fornecedor ' . $_POST['fornecedor'] . '!']);
+                    exit;
+                }
+            } 
+            
+            else {
+                // Bloqueia se tentarem lançar o Mesmo Fornecedor + Exatamente o Mesmo Valor + Mesma Data de Vencimento
+                $check2 = $db_financeiro->prepare("SELECT id FROM contas_pagar WHERE id_usuario = ? AND TRIM(UPPER(fornecedor)) = TRIM(UPPER(?)) AND valor = ? AND vencimento = ?");
+                $check2->execute([$id_usuario, $_POST['fornecedor'], $valor_conta, $_POST['vencimento']]);
+                if ($check2->fetch()) {
+                    echo json_encode(['status' => 'error', 'message' => '⚠️ Bloqueio: Já existe uma conta sem NF de ' . $_POST['fornecedor'] . ' com este exato valor e vencimento! Verifique se não é duplicada.']);
+                    exit;
+                }
             }
         }
+        // --- FIM DA BLINDAGEM ---
 
         if (!empty($id)) {
             $sql = "UPDATE contas_pagar SET fornecedor=?, emissao=?, vencimento=?, nota_fiscal=?, descricao=?, valor=?, id_categoria=? WHERE id=? AND id_usuario=?";
