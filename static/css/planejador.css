@@ -1,0 +1,365 @@
+   .abas-container {
+       margin-bottom: 1px;
+       border-bottom: 2px solid #ccc;
+   }
+
+   .aba-btn {
+       background: #f4f4f4;
+       border: none;
+       padding: 10px 20px;
+       cursor: pointer;
+       border-radius: 5px 5px 0 0;
+       font-size: 14px;
+       margin-right: 4px;
+   }
+
+   .aba-btn.ativa {
+       background: #4CAF50;
+       color: white;
+       font-weight: bold;
+   }
+
+   .conteudo-aba {
+       display: none;
+       padding: 20px;
+       background: #fff;
+       border: 1px solid #ccc;
+       border-top: none;
+   }
+
+   .conteudo-aba.ativo {
+       display: block;
+   }
+
+   .tabela-pedidos {
+       width: 100%;
+       border-collapse: collapse;
+       font-size: 10px;
+       margin-top: 10px;
+   }
+
+   .tabela-pedidos th,
+   .tabela-pedidos td {
+       border: 1px solid #ddd;
+       padding: 8px;
+       text-align: center;
+       font-size: 12px;
+   }
+
+   .tabela-pedidos th {
+       background-color: #f8f9fa;
+       position: sticky;
+       top: 0;
+       z-index: 5;
+   }
+
+   .text-left {
+       text-align: left !important;
+   }
+
+   .input-editavel {
+       width: 65px;
+       text-align: center;
+       padding: 4px;
+       border: 1px solid #007bff;
+       border-radius: 4px;
+       font-weight: bold;
+   }
+
+   .alert-success {
+       color: green;
+       padding: 12px;
+       border: 1px solid green;
+       background: #e8f5e9;
+       margin-bottom: 15px;
+       border-radius: 4px;
+   }
+
+   .form-import {
+       background: #fafafa;
+       padding: 12px;
+       border: 1px dashed #bbb;
+       margin-bottom: 15px;
+   }
+
+   /* Barra de Totais Fixa no Rodapé */
+   .footer-totais {
+       position: fixed;
+       bottom: 0;
+       left: 0;
+       width: 100%;
+       background-color: #343a40;
+       color: white;
+       box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+       z-index: 1000;
+       padding: 8px 0;
+       transition: transform 0.3s ease;
+   }
+
+   .footer-totais-inner {
+       max-width: 1200px;
+       margin: 0 auto;
+       display: flex;
+       justify-content: space-around;
+       align-items: center;
+   }
+
+   .total-box {
+       display: flex;
+       flex-direction: column;
+       align-items: center;
+       font-size: 14px;
+   }
+
+   .total-box .total-label {
+       color: #adb5bd;
+       margin-bottom: 5px;
+       text-transform: uppercase;
+       font-weight: bold;
+       font-size: 12px;
+   }
+
+   .total-box .total-value {
+       font-size: 18px;
+       font-weight: bold;
+   }
+
+   .total-box.destaque .total-value {
+       color: #4CAF50;
+       /* Verde para destacar o faturamento real do pedido */
+       font-size: 20px;
+   }
+
+   .btn-processar {
+       background: #4CAF50;
+       color: white;
+       padding: 6px 15px;
+       border: none;
+       cursor: pointer;
+       border-radius: 4px;
+       font-weight: bold;
+   }
+
+   .btn-processar:hover {
+       background: #45a049;
+   }
+
+   .footer-cluster {
+       margin-top: 8px;
+       padding-top: 8px;
+       border-top: 1px solid rgba(255, 255, 255, 0.12);
+   }
+
+   .clusters-grid {
+       display: flex;
+       gap: 10px;
+       margin-top: 6px;
+   }
+
+   .cluster-box {
+       flex: 1;
+       padding: 8px 12px;
+       border-radius: 8px;
+       font-size: 12px;
+       line-height: 1.35;
+       background: rgba(255, 255, 255, 0.06);
+       min-height: 68px;
+   }
+
+   .cluster-box strong {
+       font-size: 13px;
+   }
+
+   .cluster-box.standard {
+       border-left: 4px solid #ffc107;
+   }
+
+   .cluster-box.vip {
+       border-left: 4px solid #17a2b8;
+   }
+
+   @media (max-width: 768px) {
+       .clusters-grid {
+           flex-direction: column;
+       }
+   }
+
+  .footer-toggle {
+    position: fixed;
+    bottom: 175px;
+    right: 20px;
+    background: #343a40;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 10px 10px 0 0;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 1001;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.25);
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.footer-toggle:hover {
+    background: #495057;
+}
+
+.footer-hidden {
+    transform: translateY(100%);
+}
+
+.footer-hidden + .footer-toggle,
+.footer-toggle.hidden-mode {
+    bottom: 0;
+}
+
+.top-actions {
+
+    display: flex;
+
+    gap: 12px;
+
+    margin-bottom: 20px;
+}
+
+.btn-dashboard,
+.btn-exportar {
+
+    border: none;
+
+    padding: 12px 18px;
+
+    border-radius: 10px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+    color: white;
+
+    transition: 0.2s;
+}
+
+.btn-dashboard {
+
+    background: #007bff;
+}
+
+.btn-dashboard:hover {
+
+    background: #0069d9;
+}
+
+.btn-exportar {
+
+    background: #28a745;
+}
+
+.btn-exportar:hover {
+
+    background: #218838;
+}
+
+.modal-exportacao {
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0,0,0,0.45);
+
+    display: none;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 9999;
+}
+
+.modal-content-export {
+
+    background: white;
+
+    padding: 30px;
+
+    border-radius: 14px;
+
+    width: 320px;
+
+    text-align: center;
+}
+
+.modal-buttons {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+    margin-top: 20px;
+}
+
+.btn-export-pdf,
+.btn-export-xlsx {
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    color: white;
+}
+
+.btn-export-pdf {
+    background: #dc3545;
+}
+
+.btn-export-xlsx {
+    background: #198754;
+}
+
+.btn-fechar-modal {
+    margin-top: 20px;
+    border: none;
+    background: #6c757d;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+@media print {
+
+    body * {
+        visibility: hidden;
+    }
+
+    .conteudo-aba.ativo,
+    .conteudo-aba.ativo *,
+    .footer-totais,
+    .footer-totais * {
+
+        visibility: visible;
+    }
+
+    .conteudo-aba.ativo {
+
+        position: absolute;
+
+        left: 0;
+
+        top: 0;
+
+        width: 100%;
+    }
+
+    .footer-toggle,
+    .top-actions,
+    .abas-container {
+
+        display: none !important;
+    }
+}

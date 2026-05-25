@@ -31,7 +31,7 @@ if (file_exists(__DIR__ . '/../config.php')) {
             </div>
         </div>
         <ul class="nav-links">
-            <li><a href="../selecao_ferramentas.php">Caixa de Ferramentas</a></li>
+            <li><a href="/selecao_ferramentas.php">Caixa de Ferramentas</a></li>
 
             <?php if (isset($_SESSION['user_id'])): ?>
                 <li><a href="../auth/logout.php">Sair (<?= htmlspecialchars($_SESSION['username']); ?>)</a></li>
