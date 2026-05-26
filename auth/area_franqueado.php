@@ -35,6 +35,12 @@ if (strpos($_SESSION['username'], 'loja-') === 0) {
             <p>Recebimentos</p>
         </a>
     </div>
+      <div class="campanha-2 campanha">
+        <a href="../planejador/planejador.php"><img src="../static/img/pascoa2027.JPG"
+                alt="Loja">
+            <p>Planejador Páscoa 2027</p>
+        </a>
+    </div>
     </div>
 </div>
 

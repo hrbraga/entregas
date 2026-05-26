@@ -42,8 +42,9 @@ include '../includes/header.php';
 
 </div>
 
-    <div class="kpi-grid">
+<h2>RESUMO DO PEDIDO</h2>
 
+    <div class="kpi-grid">
         <div class="kpi-card">
             <span class="kpi-title">SELL IN</span>
             <span class="kpi-value" id="kpi-selling">
@@ -79,6 +80,7 @@ include '../includes/header.php';
             </span>
         </div>
 
+
         <div class="campanha-card">
 
     <div class="campanha-topo">
@@ -106,6 +108,8 @@ include '../includes/header.php';
         </div>
 
     </div>
+
+        <div id="comparativo-container"></div>  
 
     <!-- Gráficos -->
     <div class="charts-grid">

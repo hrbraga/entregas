@@ -201,7 +201,7 @@ include '../includes/header.php';
             <span class="total-value" id="foot-sugestao">R$ 0,00</span>
         </div>
         <div class="total-box destaque">
-            <span class="total-label">Seu Pedido Total:</span>
+            <span class="total-label">Sell out Pedido:</span>
             <span class="total-value" id="foot-pedido">R$ 0,00</span>
         </div>
     </div>

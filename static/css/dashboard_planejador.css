@@ -37,7 +37,7 @@ body {
     background: white;
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 
     display: flex;
     flex-direction: column;
@@ -75,7 +75,7 @@ body {
     background: white;
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
 .chart-card h3 {
@@ -99,7 +99,7 @@ canvas {
     border-radius: 12px;
     padding: 10px;
     margin-bottom: 5px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
 .campanha-topo {
@@ -121,7 +121,7 @@ canvas {
 .condicao-box {
     background: #f8f9fa;
     border-radius: 10px;
-     overflow: hidden;
+    overflow: hidden;
     padding: 18px;
     border-left: 6px solid #4CAF50;
 }
@@ -153,7 +153,7 @@ canvas {
     border: 1px solid #e9ecef;
     flex: 1;
     min-width: 180px;
-     overflow: hidden;
+    overflow: hidden;
 }
 
 .condicao-item strong {
@@ -175,9 +175,7 @@ canvas {
 }
 
 #card-condicao {
-
     width: 100%;
-
     display: block;
 }
 
@@ -214,4 +212,116 @@ canvas {
 .btn-voltar:hover {
     background: #23272b;
     transform: translateY(-1px);
+}
+
+.comparativo-wrapper {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+    width: 100%;
+    overflow-x: auto;
+}
+
+#comparativo-container {
+    width: 100%;
+    grid-column: 1 / -1;
+}
+
+.comparativo-titulo {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 18px;
+    color: #343a40;
+}
+
+.comparativo-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.comparativo-bloco {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #f8f9fa;
+    width: 100%;
+    min-width: 0;
+}
+
+.comparativo-header {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #343a40;
+}
+
+.comparativo-tabela {
+    width: 100%;
+}
+
+.comparativo-tabela table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.comparativo-tabela td,
+.comparativo-tabela th {
+    white-space: nowrap;
+}
+
+.comparativo-tabela table td,
+.comparativo-tabela table th {
+    text-align: center;
+}
+
+.comparativo-tabela table td:first-child {
+    text-align: left;
+}
+
+.comparativo-tabela th {
+    font-size: 12px;
+    color: #6c757d;
+    padding-bottom: 8px;
+}
+
+.comparativo-tabela td {
+    padding: 6px 4px;
+    font-size: 13px;
+}
+
+.comparativo-tabela td:first-child {
+    font-weight: bold;
+    color: #343a40;
+}
+
+.valor-positivo {
+    color: #198754;
+    font-weight: bold;
+}
+
+.valor-negativo {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.percentual {
+    font-weight: bold;
+    text-align: right;
+}
+
+.comparativo-tabela {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.comparativo-tabela table {
+    width: 100%;
+    min-width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
 }

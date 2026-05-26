@@ -73,15 +73,10 @@ function renderizarTabelas() {
                     ${precoFormatado}
                 </td>
 
-                <td>
-                    <input
-                        type="number"
-                        class="input-editavel"
-                        data-sap="${prod.sap}"
-                        data-campo="un_vend_ant_loja"
-                        value="${dbInfo.un_vend_ant_loja}"
-                        onchange="atualizarLocal(this)"
-                    >
+               <td>
+                 <strong>
+        ${dbInfo.un_vend_ant_loja || 0}
+                </strong>
                 </td>
 
                 <td>
@@ -127,16 +122,11 @@ function renderizarTabelas() {
                     ${precoFormatado}
                 </td>
 
-                <td>
-                    <input
-                        type="number"
-                        class="input-editavel"
-                        data-sap="${prod.sap}"
-                        data-campo="un_vend_ant_vd"
-                        value="${dbInfo.un_vend_ant_vd}"
-                        onchange="atualizarLocal(this)"
-                    >
-                </td>
+              <td>
+                <strong>
+                    ${dbInfo.un_vend_ant_vd || 0}
+                </strong>
+              </td>
 
                 <td>
                     <strong>
@@ -352,14 +342,14 @@ function atualizarLocal(inputElement) {
             body: formData
         }
     )
-    .then(() =>
-        setTimeout(() => {
+        .then(() =>
+            setTimeout(() => {
 
-            inputElement.style.backgroundColor =
-                '#fff';
+                inputElement.style.backgroundColor =
+                    '#fff';
 
-        }, 400)
-    );
+            }, 400)
+        );
 }
 
 // ========================================
@@ -462,18 +452,18 @@ function calcularTotaisGlobais() {
                     dbInfo.sugestao_loja || 0
                 ) +
 
-                parseInt(
-                    dbInfo.sugestao_vd || 0
-                ));
+                    parseInt(
+                        dbInfo.sugestao_vd || 0
+                    ));
 
             const pedido =
                 (parseInt(
                     dbInfo.pedido_loja || 0
                 ) +
 
-                parseInt(
-                    dbInfo.pedido_vd || 0
-                ));
+                    parseInt(
+                        dbInfo.pedido_vd || 0
+                    ));
 
             sellInSugestao +=
                 sugestao *
@@ -543,13 +533,12 @@ function calcularTotaisGlobais() {
 
                 <br>
 
-                ${
-                    vip.falta > 0
+                ${vip.falta > 0
 
-                    ? `Faltam +${vip.falta}% para subir de nível`
+                ? `Faltam +${vip.falta}% para subir de nível`
 
-                    : 'Nível máximo atingido'
-                }
+                : 'Nível máximo atingido'
+            }
 
             </div>
         `;
@@ -588,13 +577,12 @@ function calcularTotaisGlobais() {
 
                     <br>
 
-                    ${
-                        standard.falta > 0
+                    ${standard.falta > 0
 
-                        ? `Faltam +${standard.falta}% para subir de nível`
+                ? `Faltam +${standard.falta}% para subir de nível`
 
-                        : 'Nível máximo atingido'
-                    }
+                : 'Nível máximo atingido'
+            }
 
                 </div>
 
@@ -613,13 +601,12 @@ function calcularTotaisGlobais() {
 
                     <br>
 
-                    ${
-                        vip.falta > 0
+                    ${vip.falta > 0
 
-                        ? `Faltam +${vip.falta}% para subir de nível`
+                ? `Faltam +${vip.falta}% para subir de nível`
 
-                        : 'Nível máximo atingido'
-                    }
+                : 'Nível máximo atingido'
+            }
 
                 </div>
 
@@ -629,19 +616,19 @@ function calcularTotaisGlobais() {
 
     else {
 
-    const standard =
-        calcularCluster(
-            percentual,
-            'standard'
-        );
+        const standard =
+            calcularCluster(
+                percentual,
+                'standard'
+            );
 
-    const vip =
-        calcularCluster(
-            percentual,
-            'vip'
-        );
+        const vip =
+            calcularCluster(
+                percentual,
+                'vip'
+            );
 
-    clusterInfo.innerHTML = `
+        clusterInfo.innerHTML = `
 
         <div class="clusters-grid">
 
@@ -660,13 +647,12 @@ function calcularTotaisGlobais() {
 
                 <br>
 
-                ${
-                    standard.falta > 0
+                ${standard.falta > 0
 
-                    ? `Faltam +${standard.falta}% para subir de nível`
+                ? `Faltam +${standard.falta}% para subir de nível`
 
-                    : 'Nível máximo atingido'
-                }
+                : 'Nível máximo atingido'
+            }
 
             </div>
 
@@ -685,19 +671,18 @@ function calcularTotaisGlobais() {
 
                 <br>
 
-                ${
-                    vip.falta > 0
+                ${vip.falta > 0
 
-                    ? `Faltam +${vip.falta}% para subir de nível`
+                ? `Faltam +${vip.falta}% para subir de nível`
 
-                    : 'Nível máximo atingido'
-                }
+                : 'Nível máximo atingido'
+            }
 
             </div>
 
         </div>
     `;
-}
+    }
 
     // ========================================
     // FOOTER

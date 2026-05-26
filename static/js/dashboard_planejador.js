@@ -434,6 +434,55 @@ ${config.segunda > 0 ? `
     ).innerHTML = html;
 }
 
+function gerarLinhaComparativo(
+    titulo,
+    sugestao,
+    pedido
+) {
+
+    const diferenca =
+        pedido - sugestao;
+
+    const percentual =
+        sugestao > 0
+            ? (diferenca / sugestao) * 100
+            : 0;
+
+    const classe =
+        diferenca >= 0
+            ? 'valor-positivo'
+            : 'valor-negativo';
+
+    return `
+        <tr>
+
+            <td>${titulo}</td>
+
+            <td>
+                ${formatR$(sugestao)}
+            </td>
+
+            <td>
+                ${formatR$(pedido)}
+            </td>
+
+            <td class="${classe}">
+                ${diferenca >= 0 ? '+' : '-'}
+                ${formatR$(Math.abs(diferenca))}
+            </td>
+
+            <td class="
+                percentual
+                ${classe}
+            ">
+                ${percentual >= 0 ? '+' : ''}
+                ${percentual.toFixed(2)}%
+            </td>
+
+        </tr>
+    `;
+}
+
 // ========================================
 // DASHBOARD
 // ========================================
@@ -446,6 +495,17 @@ function calcularDashboard() {
     let midia = 0;
     let riv = 0;
     let sugestaoTotal = 0;
+    let sellInSugestaoTotal = 0;
+    let sellOutSugestaoTotal = 0;
+    let sellInLoja = 0;
+    let sellOutLoja = 0;
+    let sellInVD = 0;
+    let sellOutVD = 0;
+    let sugestaoSellInLoja = 0;
+    let sugestaoSellOutLoja = 0;
+    let sugestaoSellInVD = 0;
+    let sugestaoSellOutVD = 0;
+    let totalPedidoVD = 0;
 
     const categorias = {};
 
@@ -529,11 +589,57 @@ function calcularDashboard() {
             totalSugestao *
             prod.custoCx;
 
+        const sellOutSugestao =
+            (totalSugestao * prod.qtdCx) *
+            prod.precoVenda;
+
+        // ========================================
+        // LOJA
+        // ========================================
+
+        sellInLoja +=
+            pedidoLoja * prod.custoCx;
+
+        sellOutLoja +=
+            (pedidoLoja * prod.qtdCx) *
+            prod.precoVenda;
+
+        sugestaoSellInLoja +=
+            sugestaoLoja * prod.custoCx;
+
+        sugestaoSellOutLoja +=
+            (sugestaoLoja * prod.qtdCx) *
+            prod.precoVenda;
+
+        // ========================================
+        // VD
+        // ========================================
+
+        sellInVD +=
+            pedidoVD * prod.custoCx;
+
+        sellOutVD +=
+            (pedidoVD * prod.qtdCx) *
+            prod.precoVenda;
+
+        sugestaoSellInVD +=
+            sugestaoVD * prod.custoCx;
+
+        sugestaoSellOutVD +=
+            (sugestaoVD * prod.qtdCx) *
+            prod.precoVenda;
+
+        totalPedidoVD += pedidoVD;
+
         selling += sellInProduto;
 
         sellout += sellOutProduto;
 
         sugestaoTotal += sellInSugestao;
+
+        sellInSugestaoTotal += sellInSugestao;
+
+        sellOutSugestaoTotal += sellOutSugestao;
 
         taxasAdd += taxaAddProduto;
 
@@ -588,6 +694,185 @@ function calcularDashboard() {
             });
         }
     });
+
+    // ========================================
+    // COMPARATIVO
+    // ========================================
+
+   const mostrarVD =
+    totalPedidoVD > 0;
+
+let htmlComparativo = `
+
+<div class="comparativo-wrapper">
+
+    <div class="comparativo-titulo">
+        SUGESTÃO X PEDIDO
+    </div>
+
+    <div class="comparativo-grid">
+
+        <!-- LOJA -->
+
+        <div class="comparativo-bloco">
+
+            <div class="comparativo-header">
+                LOJA
+            </div>
+
+            <div class="comparativo-tabela">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th></th>
+                            <th>SUGESTÃO</th>
+                            <th>PEDIDO</th>
+                            <th>R$</th>
+                            <th>%</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${gerarLinhaComparativo(
+                            'SELL IN',
+                            sugestaoSellInLoja,
+                            sellInLoja
+                        )}
+
+                        ${gerarLinhaComparativo(
+                            'SELL OUT',
+                            sugestaoSellOutLoja,
+                            sellOutLoja
+                        )}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+`;
+
+if (mostrarVD) {
+
+    htmlComparativo += `
+
+        <!-- VD -->
+
+        <div class="comparativo-bloco">
+
+            <div class="comparativo-header">
+                VD
+            </div>
+
+            <div class="comparativo-tabela">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th></th>
+                            <th>SUGESTÃO</th>
+                            <th>PEDIDO</th>
+                            <th>R$</th>
+                            <th>%</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${gerarLinhaComparativo(
+                            'SELL IN',
+                            sugestaoSellInVD,
+                            sellInVD
+                        )}
+
+                        ${gerarLinhaComparativo(
+                            'SELL OUT',
+                            sugestaoSellOutVD,
+                            sellOutVD
+                        )}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+    `;
+}
+
+htmlComparativo += `
+
+        <!-- TOTAL -->
+
+        <div class="comparativo-bloco">
+
+            <div class="comparativo-header">
+                TOTAL
+            </div>
+
+            <div class="comparativo-tabela">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th></th>
+                            <th>SUGESTÃO</th>
+                            <th>PEDIDO</th>
+                            <th>R$</th>
+                            <th>%</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${gerarLinhaComparativo(
+                            'SELL IN',
+                            sellInSugestaoTotal,
+                            selling
+                        )}
+
+                        ${gerarLinhaComparativo(
+                            'SELL OUT',
+                            sellOutSugestaoTotal,
+                            sellout
+                        )}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+`;
+
+document.getElementById(
+    'comparativo-container'
+).innerHTML = htmlComparativo;
 
     // ========================================
     // KPI
