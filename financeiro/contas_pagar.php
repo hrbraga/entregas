@@ -54,17 +54,19 @@ usort($contas_finais, function ($a, $b) {
 <link rel="stylesheet" href="../static/css/global.css">
 <link rel="stylesheet" href="../static/css/style.css">
 <link rel="stylesheet" href="../static/css/financeiro.css">
-
+<div style="display: flex; gap: 10px;">
+    <a href="relatorio_contas.php" class="btn btn-secondary">📊 RELATÓRIOS</a>
+    <button class="btn btn-primary" onclick="abrirModalConta()">+ INCLUIR CONTA</button>
+</div>
 <div class="financeiro-container financeiro-wrapper">
+
+
     <div class="header-actions">
         <button class="btn-column-filter" onclick="toggleColumnSidebar()">
             ⚙ Filtrar Colunas
         </button>
-        <h1>Contas a Pagar</h1>
-        <div style="display: flex; gap: 10px;">
-            <a href="relatorio_contas.php" class="btn btn-secondary">📊 RELATÓRIOS</a>
-            <button class="btn btn-primary" onclick="abrirModalConta()">+ INCLUIR CONTA</button>
-        </div>
+
+
     </div>
 
     <table class="table-financeiro">
@@ -73,6 +75,7 @@ usort($contas_finais, function ($a, $b) {
                 <th class="text-center">
                     <input type="checkbox" id="selecionar_todos">
                 </th>
+                <th class="text-center">Ações</th>
                 <th>Vencimento</th>
                 <th class="col-fornecedor">Fornecedor</th>
                 <th class="col-nf">NF</th>
@@ -80,7 +83,7 @@ usort($contas_finais, function ($a, $b) {
                 <th>Valor</th>
                 <th class="col-categoria">Categoria</th>
                 <th class="col-status">Status</th>
-                <th class="text-center">Ações</th>
+
 
             </tr>
         </thead>
@@ -119,6 +122,16 @@ usort($contas_finais, function ($a, $b) {
 
                             data-valor="<?= $c['valor'] ?>">
                     </td>
+                    <td class="text-center">
+                        <?php if (isset($c['is_group'])): ?>
+                            <button class="btn-acao" title="Baixar Grupo" onclick="abrirModalBaixa('', '<?= $c['vencimento'] ?>', <?= $c['valor'] ?>, 'Cacau Show', 'Royalties Agrupados - <?= date('d/m/Y', strtotime($c['vencimento'])) ?>')">✅</button>
+                            <button class="btn-acao" title="Ver Detalhes" onclick="toggleGrupo('<?= $c['grupo_id'] ?>')">🔍</button>
+                        <?php else: ?>
+                            <button class="btn-acao" title="Baixa" onclick="abrirModalBaixa(<?= $c['id'] ?>, '', <?= $c['valor'] ?>, '<?= htmlspecialchars($c['fornecedor'], ENT_QUOTES) ?>', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅</button>
+                            <button class="btn-acao" title="Editar" onclick='editarConta(<?= json_encode($c) ?>)'>✏️</button>
+                            <button class="btn-acao" title="Excluir" onclick="excluirConta(<?= $c['id'] ?>)">🗑️</button>
+                        <?php endif; ?>
+                    </td>
                     <td><?= date('d/m/Y', strtotime($c['vencimento'])) ?></td>
                     <td class="col-fornecedor"><?= htmlspecialchars($c['fornecedor']) ?></td>
                     <td class="col-nf"><?= htmlspecialchars($c['nota_fiscal'] ?? '-') ?></td>
@@ -131,16 +144,7 @@ usort($contas_finais, function ($a, $b) {
                     <td>R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
                     <td class="col-categoria"><?= htmlspecialchars($c['categoria_nome']) ?></td>
                     <td class="col-status"><span class="status-badge pendente">Pendente</span></td>
-                    <td class="text-center">
-                        <?php if (isset($c['is_group'])): ?>
-                            <button class="btn-acao" title="Baixar Grupo" onclick="abrirModalBaixa('', '<?= $c['vencimento'] ?>', <?= $c['valor'] ?>, 'Cacau Show', 'Royalties Agrupados - <?= date('d/m/Y', strtotime($c['vencimento'])) ?>')">✅</button>
-                            <button class="btn-acao" title="Ver Detalhes" onclick="toggleGrupo('<?= $c['grupo_id'] ?>')">🔍</button>
-                        <?php else: ?>
-                            <button class="btn-acao" title="Baixa" onclick="abrirModalBaixa(<?= $c['id'] ?>, '', <?= $c['valor'] ?>, '<?= htmlspecialchars($c['fornecedor'], ENT_QUOTES) ?>', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅</button>
-                            <button class="btn-acao" title="Editar" onclick='editarConta(<?= json_encode($c) ?>)'>✏️</button>
-                            <button class="btn-acao" title="Excluir" onclick="excluirConta(<?= $c['id'] ?>)">🗑️</button>
-                        <?php endif; ?>
-                    </td>
+
                 </tr>
 
                 <?php if (isset($c['is_group'])): ?>
@@ -149,6 +153,10 @@ usort($contas_finais, function ($a, $b) {
                             data-parent="<?= $c['grupo_id'] ?>"
                             style="display:none;">
                             <td></td>
+                              <td class="text-center">
+                                <button class="btn-acao" onclick='editarConta(<?= json_encode($filha) ?>)'>✏️</button>
+                                <button class="btn-acao" onclick="excluirConta(<?= $filha['id'] ?>)">🗑️</button>
+                            </td>
                             <td><?= date('d/m/Y', strtotime($filha['vencimento'])) ?></td>
                             <td class="col-fornecedor"><?= htmlspecialchars($filha['fornecedor']) ?></td>
                             <td class="col-nf"><?= htmlspecialchars($filha['nota_fiscal'] ?? '-') ?></td>
@@ -161,10 +169,7 @@ usort($contas_finais, function ($a, $b) {
                             <td> <span class="status-badge pendente">
                                     Pendente</span>
                             </td>
-                            <td class="text-center">
-                                <button class="btn-acao" onclick='editarConta(<?= json_encode($filha) ?>)'>✏️</button>
-                                <button class="btn-acao" onclick="excluirConta(<?= $filha['id'] ?>)">🗑️</button>
-                            </td>
+                          
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
