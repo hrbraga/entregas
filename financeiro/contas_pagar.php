@@ -20,8 +20,9 @@ try {
 
     $stmt_cat = $db_financeiro->query("SELECT * FROM categorias_financeiras WHERE tipo = 'Despesa' ORDER BY grupo ASC, nome ASC");
     $lista_categorias = $stmt_cat->fetchAll();
-} catch (Exception $e) { 
-    $contas = []; $lista_categorias = []; 
+} catch (Exception $e) {
+    $contas = [];
+    $lista_categorias = [];
 }
 $contas_finais = [];
 $grupos_royalties = [];
@@ -30,7 +31,7 @@ foreach ($contas as $c) {
     if (strpos(strtolower($c['descricao']), 'royalt') !== false) {
         $data_venc = $c['vencimento'];
         if (!isset($grupos_royalties[$data_venc])) {
-            $grupos_royalties[$data_venc] = [ 'master' => $c, 'detalhes' => [] ];
+            $grupos_royalties[$data_venc] = ['master' => $c, 'detalhes' => []];
             $grupos_royalties[$data_venc]['master']['valor'] = 0;
             $grupos_royalties[$data_venc]['master']['descricao'] = "Royalties Agrupados - Vencimento " . date('d/m/Y', strtotime($data_venc));
             $grupos_royalties[$data_venc]['master']['is_group'] = true;
@@ -42,8 +43,12 @@ foreach ($contas as $c) {
         $contas_finais[] = $c;
     }
 }
-foreach ($grupos_royalties as $grupo) { $contas_finais[] = $grupo['master']; }
-usort($contas_finais, function($a, $b) { return strtotime($a['vencimento']) - strtotime($b['vencimento']); });
+foreach ($grupos_royalties as $grupo) {
+    $contas_finais[] = $grupo['master'];
+}
+usort($contas_finais, function ($a, $b) {
+    return strtotime($a['vencimento']) - strtotime($b['vencimento']);
+});
 ?>
 
 <link rel="stylesheet" href="../static/css/global.css">
@@ -51,44 +56,81 @@ usort($contas_finais, function($a, $b) { return strtotime($a['vencimento']) - st
 <link rel="stylesheet" href="../static/css/financeiro.css">
 
 <div class="financeiro-container financeiro-wrapper">
-   <div class="header-actions">
-    <h1>Contas a Pagar</h1>
-    <div style="display: flex; gap: 10px;">
-        <a href="relatorio_contas.php" class="btn btn-secondary">📊 RELATÓRIOS</a>
-        <button class="btn btn-primary" onclick="abrirModalConta()">+ INCLUIR CONTA</button>
+    <div class="header-actions">
+        <button class="btn-column-filter" onclick="toggleColumnSidebar()">
+            ⚙ Filtrar Colunas
+        </button>
+        <h1>Contas a Pagar</h1>
+        <div style="display: flex; gap: 10px;">
+            <a href="relatorio_contas.php" class="btn btn-secondary">📊 RELATÓRIOS</a>
+            <button class="btn btn-primary" onclick="abrirModalConta()">+ INCLUIR CONTA</button>
+        </div>
     </div>
-</div>
 
     <table class="table-financeiro">
         <thead>
             <tr>
+                <th class="text-center">
+                    <input type="checkbox" id="selecionar_todos">
+                </th>
                 <th>Vencimento</th>
-                <th>Fornecedor</th>
-                <th>Descrição</th>
+                <th class="col-fornecedor">Fornecedor</th>
+                <th class="col-nf">NF</th>
+                <th class="col-descricao">Descrição</th>
                 <th>Valor</th>
-                <th>Categoria</th>
-                <th>Status</th>
+                <th class="col-categoria">Categoria</th>
+                <th class="col-status">Status</th>
                 <th class="text-center">Ações</th>
+
             </tr>
         </thead>
         <tbody>
-            <?php if(count($contas_finais) == 0): ?>
-                <tr><td colspan="7" class="empty-state">Tudo limpo! Não há contas pendentes. 🎉</td></tr>
+            <?php if (count($contas_finais) == 0): ?>
+                <tr>
+                    <td colspan="9" class="empty-state">Tudo limpo! Não há contas pendentes. 🎉</td>
+                </tr>
             <?php endif; ?>
-            
+
             <?php foreach ($contas_finais as $c): ?>
-                <tr class="<?= isset($c['is_group']) ? 'row-master' : '' ?>">
+                <tr class="<?= isset($c['is_group']) ? 'row-master' : '' ?>"
+                    <?= isset($c['is_group']) ? 'data-grupo="' . $c['grupo_id'] . '"' : '' ?>>
+                    <td class="text-center">
+                        <input
+                            type="checkbox"
+                            class="check-titulo <?= isset($c['is_group']) ? 'check-master' : '' ?>"
+
+                            <?php if (isset($c['is_group'])): ?>
+
+                            data-ids="<?=
+                                        implode(
+                                            ',',
+                                            array_column(
+                                                $grupos_royalties[$c['vencimento']]['detalhes'],
+                                                'id'
+                                            )
+                                        )
+                                        ?>"
+
+                            <?php else: ?>
+
+                            data-id="<?= $c['id'] ?>"
+
+                            <?php endif; ?>
+
+                            data-valor="<?= $c['valor'] ?>">
+                    </td>
                     <td><?= date('d/m/Y', strtotime($c['vencimento'])) ?></td>
-                    <td><?= htmlspecialchars($c['fornecedor']) ?></td>
-                    <td>
+                    <td class="col-fornecedor"><?= htmlspecialchars($c['fornecedor']) ?></td>
+                    <td class="col-nf"><?= htmlspecialchars($c['nota_fiscal'] ?? '-') ?></td>
+                    <td class="col-descricao">
                         <?= htmlspecialchars($c['descricao']) ?>
                         <?php if (isset($c['is_group'])): ?>
                             <br><small class="text-primary">(<?= count($grupos_royalties[$c['vencimento']]['detalhes']) ?> parcelas)</small>
                         <?php endif; ?>
                     </td>
                     <td>R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
-                    <td><?= htmlspecialchars($c['categoria_nome']) ?></td>
-                    <td><span class="status-badge pendente">Pendente</span></td>
+                    <td class="col-categoria"><?= htmlspecialchars($c['categoria_nome']) ?></td>
+                    <td class="col-status"><span class="status-badge pendente">Pendente</span></td>
                     <td class="text-center">
                         <?php if (isset($c['is_group'])): ?>
                             <button class="btn-acao" title="Baixar Grupo" onclick="abrirModalBaixa('', '<?= $c['vencimento'] ?>', <?= $c['valor'] ?>, 'Cacau Show', 'Royalties Agrupados - <?= date('d/m/Y', strtotime($c['vencimento'])) ?>')">✅</button>
@@ -103,13 +145,22 @@ usort($contas_finais, function($a, $b) { return strtotime($a['vencimento']) - st
 
                 <?php if (isset($c['is_group'])): ?>
                     <?php foreach ($grupos_royalties[$c['vencimento']]['detalhes'] as $filha): ?>
-                        <tr class="child-row <?= $c['grupo_id'] ?>" style="display:none;">
-                            <td class="child-row-indicator">↳ NF: <?= htmlspecialchars($filha['nota_fiscal']) ?></td>
-                            <td><?= htmlspecialchars($filha['fornecedor']) ?></td>
-                            <td><?= htmlspecialchars($filha['descricao']) ?></td>
+                        <tr class="child-row <?= $c['grupo_id'] ?>"
+                            data-parent="<?= $c['grupo_id'] ?>"
+                            style="display:none;">
+                            <td></td>
+                            <td><?= date('d/m/Y', strtotime($filha['vencimento'])) ?></td>
+                            <td class="col-fornecedor"><?= htmlspecialchars($filha['fornecedor']) ?></td>
+                            <td class="col-nf"><?= htmlspecialchars($filha['nota_fiscal'] ?? '-') ?></td>
+                            <td class="col-descricao"> ↳ NF: <?= htmlspecialchars($filha['nota_fiscal']) ?>
+                                <br>
+                                <?= htmlspecialchars($filha['descricao']) ?>
+                            </td>
                             <td>R$ <?= number_format($filha['valor'], 2, ',', '.') ?></td>
                             <td><?= htmlspecialchars($filha['categoria_nome']) ?></td>
-                            <td><span class="status-badge pendente">Pendente</span></td>
+                            <td> <span class="status-badge pendente">
+                                    Pendente</span>
+                            </td>
                             <td class="text-center">
                                 <button class="btn-acao" onclick='editarConta(<?= json_encode($filha) ?>)'>✏️</button>
                                 <button class="btn-acao" onclick="excluirConta(<?= $filha['id'] ?>)">🗑️</button>
@@ -128,7 +179,7 @@ usort($contas_finais, function($a, $b) { return strtotime($a['vencimento']) - st
             <h2>Dar Baixa na Conta</h2>
             <button onclick="fecharModalBaixa()" class="close-modal">&times;</button>
         </div>
-        
+
         <form id="formBaixa" class="form-body" onsubmit="salvarBaixa(event)">
             <input type="hidden" name="action" value="baixa">
             <input type="hidden" name="id_baixa" id="id_baixa">
@@ -139,7 +190,13 @@ usort($contas_finais, function($a, $b) { return strtotime($a['vencimento']) - st
 
             <div class="form-grid-3">
                 <div class="form-group"><label>Data do Pagamento</label><input type="date" name="data_pagamento" id="data_pagamento" class="form-control" required></div>
-                <div class="form-group"><label>Forma de Pagto</label><select name="forma_pagamento" class="form-control" required><option value="Boleto">Boleto</option><option value="PIX">PIX</option><option value="Transferência">Transferência</option><option value="Dinheiro">Dinheiro</option><option value="Cartão">Cartão</option></select></div>
+                <div class="form-group"><label>Forma de Pagto</label><select name="forma_pagamento" class="form-control" required>
+                        <option value="Boleto">Boleto</option>
+                        <option value="PIX">PIX</option>
+                        <option value="Transferência">Transferência</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Cartão">Cartão</option>
+                    </select></div>
                 <div class="form-group"><label>Banco de Saída</label><input type="text" name="banco_pagamento" placeholder="Ex: Itaú..." class="form-control" required></div>
             </div>
 
@@ -172,7 +229,7 @@ usort($contas_finais, function($a, $b) { return strtotime($a['vencimento']) - st
             <h2 id="tituloModal">Incluir Conta a Pagar</h2>
             <button onclick="fecharModal()" class="close-modal">&times;</button>
         </div>
-        
+
         <div class="import-xml-bar">
             <span>Deseja importar os dados de um XML?</span>
             <input type="file" id="import_xml_input" accept=".xml" style="display: none;" onchange="importarDadosXML()">
@@ -182,7 +239,7 @@ usort($contas_finais, function($a, $b) { return strtotime($a['vencimento']) - st
         <form id="formConta" class="form-body" onsubmit="salvarConta(event)">
             <input type="hidden" name="action" value="salvar">
             <input type="hidden" name="id" id="conta_id">
-            
+
             <div class="form-grid">
                 <div class="form-group span-2"><label>Fornecedor</label><input type="text" name="fornecedor" id="fornecedor" class="form-control" required></div>
                 <div class="form-group"><label>Data de Emissão (Primeira Parcela)</label><input type="date" name="emissao" id="emissao" class="form-control" required></div>
@@ -194,9 +251,9 @@ usort($contas_finais, function($a, $b) { return strtotime($a['vencimento']) - st
                     <label>Categoria (Apenas Despesas)</label>
                     <select name="id_categoria" id="id_categoria" class="form-control" required>
                         <option value="">Selecione a Sub-categoria...</option>
-                        <?php 
+                        <?php
                         $grupo_atual = null;
-                        foreach ($lista_categorias as $cat): 
+                        foreach ($lista_categorias as $cat):
                             if ($cat['grupo'] !== $grupo_atual):
                                 if ($grupo_atual !== null) echo '</optgroup>';
                                 $grupo_atual = $cat['grupo'];
@@ -215,7 +272,7 @@ usort($contas_finais, function($a, $b) { return strtotime($a['vencimento']) - st
                         <input type="checkbox" name="is_parcelado" id="is_parcelado" onchange="toggleParcelamento()" style="margin-right: 10px; width: 20px; height: 20px;">
                         <span style="font-weight:bold; color:#007bff; font-size: 15px;">Esta conta será parcelada?</span>
                     </label>
-                    
+
                     <div id="config_parcelas" style="display: none; margin-top: 15px;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
                             <div><label>Nº de Parcelas</label><input type="number" id="qtd_parcelas" min="2" max="120" value="2" class="form-control"></div>
@@ -240,6 +297,65 @@ usort($contas_finais, function($a, $b) { return strtotime($a['vencimento']) - st
                 <button type="submit" class="btn-confirm">SALVAR CONTA</button>
             </div>
         </form>
+    </div>
+</div>
+
+<div id="footerLote" class="footer-lote">
+    <div class="footer-lote-info">
+        <strong id="qtdSelecionados">0 títulos</strong>
+        <span id="valorSelecionado">R$ 0,00</span>
+    </div>
+
+    <div class="footer-lote-actions">
+        <button class="btn-cancel" onclick="limparSelecaoLote()">
+            Cancelar
+        </button>
+
+        <button class="btn-confirm" onclick="abrirBaixaLote()">
+            Dar Baixa
+        </button>
+    </div>
+</div>
+
+<div id="columnSidebar" class="column-sidebar">
+
+    <div class="sidebar-header">
+
+        <h3>Exibir Colunas</h3>
+
+        <button onclick="toggleColumnSidebar()">
+            ✕
+        </button>
+
+    </div>
+
+    <div class="sidebar-content">
+
+        <label>
+            <input type="checkbox" class="toggle-column" data-column="fornecedor" checked>
+            Fornecedor
+        </label>
+
+        <label>
+            <input type="checkbox" class="toggle-column" data-column="nf" checked>
+            Nota Fiscal
+        </label>
+
+        <label>
+            <input type="checkbox" class="toggle-column" data-column="descricao" checked>
+            Descrição
+        </label>
+
+        <label>
+            <input type="checkbox" class="toggle-column" data-column="categoria" checked>
+            Categoria
+        </label>
+
+        <label>
+            <input type="checkbox" class="toggle-column" data-column="status" checked>
+            Status
+        </label>
+
     </div>
 </div>
 

@@ -7,10 +7,11 @@ $action = $_POST['action'] ?? '';
 $id_usuario = $_SESSION['user_id'];
 
 // Função Global de Conversão de Moeda
-function converterMoeda($valor_string) {
+function converterMoeda($valor_string)
+{
     if (empty($valor_string)) return 0;
-    $valor_string = str_replace('.', '', $valor_string); 
-    $valor_string = str_replace(',', '.', $valor_string); 
+    $valor_string = str_replace('.', '', $valor_string);
+    $valor_string = str_replace(',', '.', $valor_string);
     return (float)$valor_string;
 }
 
@@ -19,7 +20,8 @@ try {
     $db_financeiro->exec("ALTER TABLE contas_pagar ADD COLUMN forma_pagamento TEXT");
     $db_financeiro->exec("ALTER TABLE contas_pagar ADD COLUMN banco_pagamento TEXT");
     $db_financeiro->exec("ALTER TABLE contas_pagar ADD COLUMN valor_pago REAL");
-} catch (Exception $e) { /* Colunas já existem */ }
+} catch (Exception $e) { /* Colunas já existem */
+}
 
 try {
     // 1. LEITURA DE XML
@@ -47,80 +49,294 @@ try {
 
     // 3. DAR BAIXA
     if ($action === 'baixa') {
+
         $data_pag = $_POST['data_pagamento'];
         $forma_pag = $_POST['forma_pagamento'];
         $banco_pag = $_POST['banco_pagamento'];
-        
+
         $juros = max(0, converterMoeda($_POST['juros']));
         $multa = max(0, converterMoeda($_POST['multa']));
         $desconto = max(0, converterMoeda($_POST['desconto']));
         $creditos = max(0, converterMoeda($_POST['creditos_cs']));
-        
+
         $fornecedor_baixa = $_POST['fornecedor_baixa'] ?? 'Diversos';
         $descricao_baixa = $_POST['descricao_baixa'] ?? 'Baixa de Título';
 
-        function obterCategoriaDRE($db, $nome, $tipo, $grupo) {
-            $stmt = $db->prepare("SELECT id FROM categorias_financeiras WHERE nome = ?");
+        function obterCategoriaDRE($db, $nome, $tipo, $grupo)
+        {
+
+            $stmt = $db->prepare("
+            SELECT id 
+            FROM categorias_financeiras 
+            WHERE nome = ?
+        ");
+
             $stmt->execute([$nome]);
+
             $res = $stmt->fetch();
+
             if ($res) return $res['id'];
-            $db->prepare("INSERT INTO categorias_financeiras (nome, tipo, grupo) VALUES (?, ?, ?)")->execute([$nome, $tipo, $grupo]);
+
+            $db->prepare("
+            INSERT INTO categorias_financeiras
+            (nome, tipo, grupo)
+            VALUES (?, ?, ?)
+        ")->execute([$nome, $tipo, $grupo]);
+
             return $db->lastInsertId();
         }
 
         $db_financeiro->beginTransaction();
 
         try {
+
+            // ==================================================
+            // BAIXA DE GRUPO DE ROYALTIES
+            // ==================================================
+
             if (!empty($_POST['vencimento_baixa'])) {
-                $sql = "UPDATE contas_pagar SET status = 'Pago', data_pagamento = ?, forma_pagamento = ?, banco_pagamento = ?, valor_pago = valor WHERE id_usuario = ? AND vencimento = ? AND (descricao LIKE '%Royalt%' OR descricao LIKE '%royalt%') AND status != 'Pago'";
+
+                $sql = "
+                UPDATE contas_pagar
+                SET
+                    status = 'Pago',
+                    data_pagamento = ?,
+                    forma_pagamento = ?,
+                    banco_pagamento = ?,
+                    valor_pago = valor
+                WHERE id_usuario = ?
+                AND vencimento = ?
+                AND (
+                    descricao LIKE '%Royalt%'
+                    OR descricao LIKE '%royalt%'
+                )
+                AND status != 'Pago'
+            ";
+
                 $stmt = $db_financeiro->prepare($sql);
-                $stmt->execute([$data_pag, $forma_pag, $banco_pag, $id_usuario, $_POST['vencimento_baixa']]);
+
+                $stmt->execute([
+                    $data_pag,
+                    $forma_pag,
+                    $banco_pag,
+                    $id_usuario,
+                    $_POST['vencimento_baixa']
+                ]);
+
                 $count = $stmt->rowCount();
+
                 $msg = "Todos os royalties do grupo ($count) foram baixados!";
-            } else {
-                $sql = "UPDATE contas_pagar SET status = 'Pago', data_pagamento = ?, forma_pagamento = ?, banco_pagamento = ?, valor_pago = valor WHERE id = ? AND id_usuario = ?";
-                $stmt = $db_financeiro->prepare($sql);
-                $stmt->execute([$data_pag, $forma_pag, $banco_pag, $_POST['id_baixa'], $id_usuario]);
-                $msg = "Pagamento registado com sucesso!";
             }
 
-            $sql_insert = "INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, descricao, valor, id_categoria, status, data_pagamento, forma_pagamento, banco_pagamento, valor_pago) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pago', ?, ?, ?, ?)";
+            // ==================================================
+            // BAIXA EM LOTE / INDIVIDUAL
+            // ==================================================
+
+            else {
+
+                $ids = explode(',', $_POST['id_baixa']);
+
+                $sql = "
+                UPDATE contas_pagar
+                SET
+                    status = 'Pago',
+                    data_pagamento = ?,
+                    forma_pagamento = ?,
+                    banco_pagamento = ?,
+                    valor_pago = valor
+                WHERE id = ?
+                AND id_usuario = ?
+            ";
+
+                $stmt = $db_financeiro->prepare($sql);
+
+                $count = 0;
+
+                foreach ($ids as $id) {
+
+                    $id = trim($id);
+
+                    if (empty($id)) continue;
+
+                    $stmt->execute([
+                        $data_pag,
+                        $forma_pag,
+                        $banco_pag,
+                        $id,
+                        $id_usuario
+                    ]);
+
+                    $count += $stmt->rowCount();
+                }
+
+                if ($count > 1) {
+                    $msg = "$count títulos baixados com sucesso!";
+                } else {
+                    $msg = "Pagamento registado com sucesso!";
+                }
+            }
+
+            // ==================================================
+            // LANÇAMENTOS FINANCEIROS
+            // ==================================================
+
+            $sql_insert = "
+            INSERT INTO contas_pagar
+            (
+                id_usuario,
+                fornecedor,
+                emissao,
+                vencimento,
+                descricao,
+                valor,
+                id_categoria,
+                status,
+                data_pagamento,
+                forma_pagamento,
+                banco_pagamento,
+                valor_pago
+            )
+            VALUES
+            (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                'Pago',
+                ?,
+                ?,
+                ?,
+                ?
+            )
+        ";
+
             $stmt_insert = $db_financeiro->prepare($sql_insert);
 
             if ($juros > 0) {
-                $id_cat = obterCategoriaDRE($db_financeiro, 'Juros Pagos', 'Despesa', 'Despesas Financeiras');
-                $stmt_insert->execute([$id_usuario, $fornecedor_baixa, $data_pag, $data_pag, "Juros Pagos - " . $descricao_baixa, $juros, $id_cat, $data_pag, $forma_pag, $banco_pag, $juros]);
+
+                $id_cat = obterCategoriaDRE(
+                    $db_financeiro,
+                    'Juros Pagos',
+                    'Despesa',
+                    'Despesas Financeiras'
+                );
+
+                $stmt_insert->execute([
+                    $id_usuario,
+                    $fornecedor_baixa,
+                    $data_pag,
+                    $data_pag,
+                    "Juros Pagos - " . $descricao_baixa,
+                    $juros,
+                    $id_cat,
+                    $data_pag,
+                    $forma_pag,
+                    $banco_pag,
+                    $juros
+                ]);
             }
+
             if ($multa > 0) {
-                $id_cat = obterCategoriaDRE($db_financeiro, 'Multas Pagas', 'Despesa', 'Despesas Financeiras');
-                $stmt_insert->execute([$id_usuario, $fornecedor_baixa, $data_pag, $data_pag, "Multas Pagas - " . $descricao_baixa, $multa, $id_cat, $data_pag, $forma_pag, $banco_pag, $multa]);
+
+                $id_cat = obterCategoriaDRE(
+                    $db_financeiro,
+                    'Multas Pagas',
+                    'Despesa',
+                    'Despesas Financeiras'
+                );
+
+                $stmt_insert->execute([
+                    $id_usuario,
+                    $fornecedor_baixa,
+                    $data_pag,
+                    $data_pag,
+                    "Multas Pagas - " . $descricao_baixa,
+                    $multa,
+                    $id_cat,
+                    $data_pag,
+                    $forma_pag,
+                    $banco_pag,
+                    $multa
+                ]);
             }
+
             if ($desconto > 0) {
-                $id_cat = obterCategoriaDRE($db_financeiro, 'Descontos Recebidos', 'Receita', 'Receitas Financeiras');
-                $stmt_insert->execute([$id_usuario, $fornecedor_baixa, $data_pag, $data_pag, "Desconto Recebido - " . $descricao_baixa, $desconto, $id_cat, $data_pag, $forma_pag, $banco_pag, $desconto]);
+
+                $id_cat = obterCategoriaDRE(
+                    $db_financeiro,
+                    'Descontos Recebidos',
+                    'Receita',
+                    'Receitas Financeiras'
+                );
+
+                $stmt_insert->execute([
+                    $id_usuario,
+                    $fornecedor_baixa,
+                    $data_pag,
+                    $data_pag,
+                    "Desconto Recebido - " . $descricao_baixa,
+                    $desconto,
+                    $id_cat,
+                    $data_pag,
+                    $forma_pag,
+                    $banco_pag,
+                    $desconto
+                ]);
             }
+
             if ($creditos > 0) {
-                $id_cat = obterCategoriaDRE($db_financeiro, 'Créditos Cacau Show', 'Receita', 'Receitas Operacionais');
-                $stmt_insert->execute([$id_usuario, $fornecedor_baixa, $data_pag, $data_pag, "Crédito Utilizado - " . $descricao_baixa, $creditos, $id_cat, $data_pag, $forma_pag, $banco_pag, $creditos]);
+
+                $id_cat = obterCategoriaDRE(
+                    $db_financeiro,
+                    'Créditos Cacau Show',
+                    'Receita',
+                    'Receitas Operacionais'
+                );
+
+                $stmt_insert->execute([
+                    $id_usuario,
+                    $fornecedor_baixa,
+                    $data_pag,
+                    $data_pag,
+                    "Crédito Utilizado - " . $descricao_baixa,
+                    $creditos,
+                    $id_cat,
+                    $data_pag,
+                    $forma_pag,
+                    $banco_pag,
+                    $creditos
+                ]);
             }
 
             $db_financeiro->commit();
-            echo json_encode(['status' => 'success', 'message' => $msg]);
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => $msg
+            ]);
         } catch (Exception $e) {
+
             $db_financeiro->rollBack();
-            echo json_encode(['status' => 'error', 'message' => "Erro na baixa: " . $e->getMessage()]);
+
+            echo json_encode([
+                'status' => 'error',
+                'message' => "Erro na baixa: " . $e->getMessage()
+            ]);
         }
+
         exit;
     }
-
     // 4. SALVAR / EDITAR / IMPORTAR XML / PARCELAMENTO
     if ($action === 'salvar') {
         $id = $_POST['id'] ?? '';
         $valor_conta = converterMoeda($_POST['valor']);
-        
+
         // --- INÍCIO DA BLINDAGEM CONTRA DUPLICIDADES ---
         if (empty($id)) { // Só faz a checagem se for uma conta NOVA (não bloqueia edições)
-            
+
             // Regra 1: Se a conta TEM Nota Fiscal (Bloqueia Fornecedor + NF idênticos)
             if (!empty($_POST['nota_fiscal'])) {
                 // Usamos TRIM e UPPER para ignorar espaços extras e diferenças de maiúsculas/minúsculas
@@ -130,9 +346,7 @@ try {
                     echo json_encode(['status' => 'error', 'message' => '⚠️ Bloqueio: A Nota Fiscal informada já foi lançada no sistema para o fornecedor ' . $_POST['fornecedor'] . '!']);
                     exit;
                 }
-            } 
-            
-            else {
+            } else {
                 // Bloqueia se tentarem lançar o Mesmo Fornecedor + Exatamente o Mesmo Valor + Mesma Data de Vencimento
                 $check2 = $db_financeiro->prepare("SELECT id FROM contas_pagar WHERE id_usuario = ? AND TRIM(UPPER(fornecedor)) = TRIM(UPPER(?)) AND valor = ? AND vencimento = ?");
                 $check2->execute([$id_usuario, $_POST['fornecedor'], $valor_conta, $_POST['vencimento']]);
@@ -149,10 +363,10 @@ try {
             $db_financeiro->prepare($sql)->execute([$_POST['fornecedor'], $_POST['emissao'], $_POST['vencimento'], $_POST['nota_fiscal'], $_POST['descricao'], $valor_conta, $_POST['id_categoria'], $id, $id_usuario]);
             echo json_encode(['status' => 'success', 'message' => 'Conta atualizada com sucesso!']);
             exit;
-        } 
-        
+        }
+
         $msg_extra = "";
-        
+
         // CÁLCULO DE XML (Cacau Show)
         if (isset($_POST['gerar_royalties']) && $_POST['gerar_royalties'] == '1' && isset($_FILES['arquivo_xml']) && $_FILES['arquivo_xml']['error'] === UPLOAD_ERR_OK) {
             $xml = simplexml_load_file($_FILES['arquivo_xml']['tmp_name']);
@@ -165,7 +379,7 @@ try {
             $eh_campanha = false;
             $nome_campanha_ext = "";
             $dados_campanha = null;
-            
+
             $stmt_campanhas = $db_financeiro->query("SELECT id, nome_campanha FROM campanhas");
             while ($camp = $stmt_campanhas->fetch()) {
                 if (strpos($infCpl, $camp['nome_campanha']) !== false) {
@@ -180,15 +394,17 @@ try {
 
             $stmt_cat = $db_financeiro->query("SELECT id, nome FROM categorias_financeiras");
             $cat_ids = [];
-            while($row = $stmt_cat->fetch()) { $cat_ids[$row['nome']] = $row['id']; }
-            
+            while ($row = $stmt_cat->fetch()) {
+                $cat_ids[$row['nome']] = $row['id'];
+            }
+
             $id_cat_merc = $cat_ids['Mercadoria para Revenda'] ?? $_POST['id_categoria'];
             $id_cat_roy = $cat_ids['Royalties'] ?? 0;
 
             $duplicatas = [];
             if (isset($nfe->cobr->dup)) {
                 foreach ($nfe->cobr->dup as $dup) {
-                    $duplicatas[] = [ 'vencimento' => (string) $dup->dVenc, 'valor' => (float) $dup->vDup ];
+                    $duplicatas[] = ['vencimento' => (string) $dup->dVenc, 'valor' => (float) $dup->vDup];
                     $stmt_merc = $db_financeiro->prepare("INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, nota_fiscal, descricao, valor, id_categoria) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt_merc->execute([$id_usuario, $_POST['fornecedor'], $emissao, (string)$dup->dVenc, $numero_nota, "Mercadoria{$desc_extra} - Parcela " . (string)$dup->nDup, (float)$dup->vDup, $id_cat_merc]);
                 }
@@ -220,19 +436,25 @@ try {
                 $inserir_royalty->execute([$id_usuario, 'Cacau Show (Royalties)', $emissao, $mes_seguinte . '-21', $numero_nota, "Royalties Linha - Parcela 2/2", $metade, $id_cat_roy]);
                 $msg_extra = "\n✅ Mercadorias e Royalties de Linha gerados!";
             }
-        } 
+        }
         // LÓGICA DO PARCELAMENTO MANUAL
         elseif (isset($_POST['is_parcelado']) && $_POST['is_parcelado'] == 'on' && isset($_POST['parcela_vencimento'])) {
             $vencimentos = $_POST['parcela_vencimento'];
             $valores = $_POST['parcela_valor'];
             $qtd = count($vencimentos);
-            
+
             $db_financeiro->beginTransaction();
             try {
                 for ($i = 0; $i < $qtd; $i++) {
                     $val_parcela = converterMoeda($valores[$i]);
-                    $desc_parcela = $_POST['descricao'] . " - Parcela " . ($i + 1) . "/" . $qtd;
-                    
+                    $desc_base = trim($_POST['descricao']);
+
+                    if (!empty($_POST['nota_fiscal'])) {
+                        $desc_base .= " | NF " . trim($_POST['nota_fiscal']);
+                    }
+
+                    $desc_parcela = $desc_base . " - Parcela " . ($i + 1) . "/" . $qtd;
+
                     $sql = "INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, nota_fiscal, descricao, valor, id_categoria) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                     $db_financeiro->prepare($sql)->execute([$id_usuario, $_POST['fornecedor'], $_POST['emissao'], $vencimentos[$i], $_POST['nota_fiscal'], $desc_parcela, $val_parcela, $_POST['id_categoria']]);
                 }
@@ -242,13 +464,49 @@ try {
                 $db_financeiro->rollBack();
                 throw $e;
             }
-        } 
+        }
         // LANÇAMENTO SIMPLES MANUAL
         else {
-            $sql = "INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, nota_fiscal, descricao, valor, id_categoria) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            $db_financeiro->prepare($sql)->execute([$id_usuario, $_POST['fornecedor'], $_POST['emissao'], $_POST['vencimento'], $_POST['nota_fiscal'], $_POST['descricao'], $valor_conta, $_POST['id_categoria']]);
+
+            // ==========================================
+            // MONTA DESCRIÇÃO COM NF
+            // ==========================================
+
+            $descricao_final = trim($_POST['descricao']);
+
+            if (!empty($_POST['nota_fiscal'])) {
+                $descricao_final .= " | NF " . trim($_POST['nota_fiscal']);
+            }
+
+            $sql = "
+        INSERT INTO contas_pagar
+        (
+            id_usuario,
+            fornecedor,
+            emissao,
+            vencimento,
+            nota_fiscal,
+            descricao,
+            valor,
+            id_categoria
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ";
+
+            $db_financeiro->prepare($sql)->execute([
+                $id_usuario,
+                $_POST['fornecedor'],
+                $_POST['emissao'],
+                $_POST['vencimento'],
+                $_POST['nota_fiscal'],
+                $descricao_final,
+                $valor_conta,
+                $_POST['id_categoria']
+            ]);
         }
 
         echo json_encode(['status' => 'success', 'message' => 'Conta salva com sucesso!' . $msg_extra]);
     }
-} catch (Exception $e) { echo json_encode(['status' => 'error', 'message' => $e->getMessage()]); }
+} catch (Exception $e) {
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+}
