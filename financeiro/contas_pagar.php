@@ -65,8 +65,6 @@ usort($contas_finais, function ($a, $b) {
         <button class="btn-column-filter" onclick="toggleColumnSidebar()">
             ⚙ Filtrar Colunas
         </button>
-
-
     </div>
 
     <table class="table-financeiro">
@@ -77,11 +75,15 @@ usort($contas_finais, function ($a, $b) {
                 </th>
                 <th class="text-center">Ações</th>
                 <th>Vencimento</th>
-                <th class="col-fornecedor">Fornecedor</th>
+                <th class="col-fornecedor"> Fornecedor <span class="filtro-icon" onclick="toggleFiltro('fornecedor')"> 🔽 </span>
+                    <div id="filtro-fornecedor" class="filtro-dropdown"></div>
+                </th>
                 <th class="col-nf">NF</th>
                 <th class="col-descricao">Descrição</th>
                 <th>Valor</th>
-                <th class="col-categoria">Categoria</th>
+                <th class="col-categoria"> Categoria <span class="filtro-icon" onclick="toggleFiltro('categoria')"> 🔽 </span>
+                    <div id="filtro-categoria" class="filtro-dropdown"></div>
+                </th>
                 <th class="col-status">Status</th>
 
 
@@ -153,7 +155,7 @@ usort($contas_finais, function ($a, $b) {
                             data-parent="<?= $c['grupo_id'] ?>"
                             style="display:none;">
                             <td></td>
-                              <td class="text-center">
+                            <td class="text-center">
                                 <button class="btn-acao" onclick='editarConta(<?= json_encode($filha) ?>)'>✏️</button>
                                 <button class="btn-acao" onclick="excluirConta(<?= $filha['id'] ?>)">🗑️</button>
                             </td>
@@ -169,7 +171,7 @@ usort($contas_finais, function ($a, $b) {
                             <td> <span class="status-badge pendente">
                                     Pendente</span>
                             </td>
-                          
+
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -246,7 +248,10 @@ usort($contas_finais, function ($a, $b) {
             <input type="hidden" name="id" id="conta_id">
 
             <div class="form-grid">
-                <div class="form-group span-2"><label>Fornecedor</label><input type="text" name="fornecedor" id="fornecedor" class="form-control" required></div>
+                <div class="form-group autocomplete-wrapper span-2">
+                    <label>Fornecedor</label><input type="text" name="fornecedor" id="fornecedor" class="form-control" autocomplete="off" required>
+                    <div id="fornecedor_sugestoes" class="autocomplete-list"></div>
+                </div>
                 <div class="form-group"><label>Data de Emissão (Primeira Parcela)</label><input type="date" name="emissao" id="emissao" class="form-control" required></div>
                 <div class="form-group"><label>Vencimento Inicial</label><input type="date" name="vencimento" id="vencimento" class="form-control" required></div>
                 <div class="form-group"><label>Nº Nota Fiscal</label><input type="text" name="nota_fiscal" id="nota_fiscal" class="form-control"></div>
@@ -254,7 +259,7 @@ usort($contas_finais, function ($a, $b) {
                 <div class="form-group span-2"><label>Descrição</label><input type="text" name="descricao" id="descricao" class="form-control" required></div>
                 <div class="form-group span-2">
                     <label>Categoria (Apenas Despesas)</label>
-                    <select name="id_categoria" id="id_categoria" class="form-control" required>
+                    <select name="id_categoria" id="id_categoria" class="form-control categoria-select" required>
                         <option value="">Selecione a Sub-categoria...</option>
                         <?php
                         $grupo_atual = null;
@@ -364,6 +369,9 @@ usort($contas_finais, function ($a, $b) {
     </div>
 </div>
 
+<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+<div id="toast-notification" class="toast-notification"></div>
 <script src="../static/js/contas_pagar.js"></script>
 
 <?php require '../includes/footer.php'; ?>

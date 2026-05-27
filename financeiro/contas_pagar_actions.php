@@ -510,3 +510,33 @@ try {
 } catch (Exception $e) {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
+
+// ==========================================
+// AUTOCOMPLETE FORNECEDORES
+// ==========================================
+
+if ($action === 'buscar_fornecedores') {
+
+    $termo = trim($_POST['termo'] ?? '');
+
+    $stmt = $db_financeiro->prepare("
+        SELECT DISTINCT fornecedor
+        FROM contas_pagar
+        WHERE id_usuario = ?
+        AND fornecedor LIKE ?
+        ORDER BY fornecedor ASC
+        LIMIT 10
+    ");
+
+    $stmt->execute([
+        $id_usuario,
+        "%{$termo}%"
+    ]);
+
+    echo json_encode([
+        'status' => 'success',
+        'dados' => $stmt->fetchAll(PDO::FETCH_COLUMN)
+    ]);
+
+    exit;
+}

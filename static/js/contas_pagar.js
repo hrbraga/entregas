@@ -59,8 +59,15 @@ function salvarBaixa(e) {
     const fd = new FormData(e.target);
     fetch('contas_pagar_actions.php', { method: 'POST', body: fd })
         .then(res => res.json()).then(d => {
-            alert(d.message);
-            if (d.status === 'success') location.reload();
+            mostrarToast(d.message);
+
+            if (d.status === 'success') {
+
+                setTimeout(() => {
+                    location.reload();
+                }, 2500);
+
+            }
         });
 }
 
@@ -68,9 +75,12 @@ function salvarBaixa(e) {
 function abrirModalConta() {
     document.getElementById('modalConta').style.display = 'flex';
 
-    // Garante que o box de parcelamento apareça ao incluir uma nova conta
-    const boxParcelamento = document.getElementById('box_parcelamento');
-    if (boxParcelamento) boxParcelamento.style.display = 'block';
+    const boxParcelamento =
+        document.getElementById('box_parcelamento');
+
+    if (boxParcelamento) {
+        boxParcelamento.style.display = 'block';
+    }
 }
 
 function fecharModal() {
@@ -120,15 +130,42 @@ function excluirConta(id) {
     if (!confirm('Tem a certeza que deseja eliminar esta conta?')) return;
     const fd = new FormData(); fd.append('action', 'excluir'); fd.append('id', id);
     fetch('contas_pagar_actions.php', { method: 'POST', body: fd })
-        .then(res => res.json()).then(d => { alert(d.message); location.reload(); });
+        .then(res => res.json()).then(d => {
+            mostrarToast(d.message);
+
+            if (d.status === 'success') {
+
+                setTimeout(() => {
+                    location.reload();
+                }, 2500);
+
+            }
+        });
 }
 
 function selecionarCategoriaPorNome(nome) {
+
     const select = document.getElementById('id_categoria');
+
     for (let i = 0; i < select.options.length; i++) {
-        // Ignora os optgroups e foca nas options
-        if (select.options[i].text.toLowerCase().includes(nome.toLowerCase())) {
-            select.selectedIndex = i; break;
+
+        if (
+            select.options[i].text
+                .toLowerCase()
+                .includes(nome.toLowerCase())
+        ) {
+
+            const valor = select.options[i].value;
+
+            // atualiza select normal
+            select.value = valor;
+
+            // atualiza TomSelect visualmente
+            if (select.tomselect) {
+                select.tomselect.setValue(valor);
+            }
+
+            break;
         }
     }
 }
@@ -162,7 +199,15 @@ function importarDadosXML() {
 
                 alert("Dados do XML carregados com sucesso!");
             } else {
-                alert(d.message);
+                mostrarToast(d.message);
+
+                if (d.status === 'success') {
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2500);
+
+                }
             }
         });
 }
@@ -186,8 +231,16 @@ function salvarConta(e) {
 
     fetch('contas_pagar_actions.php', { method: 'POST', body: fd })
         .then(res => res.json()).then(d => {
-            alert(d.message);
-            if (d.status === 'success') location.reload();
+            mostrarToast(d.message);
+
+            if (d.status === 'success') {
+
+                fecharModal();
+
+                setTimeout(() => {
+                    location.reload();
+                }, 2500);
+            }
         });
 }
 
@@ -390,3 +443,297 @@ document.querySelectorAll('.toggle-column').forEach(input => {
             });
     });
 });
+
+// ==========================================
+// AUTOCOMPLETE FORNECEDOR
+// ==========================================
+
+const fornecedorInput = document.getElementById('fornecedor');
+const fornecedorLista = document.getElementById('fornecedor_sugestoes');
+
+if (fornecedorInput) {
+
+    fornecedorInput.addEventListener('input', async function () {
+
+        const termo = this.value.trim();
+
+        if (termo.length < 2) {
+            fornecedorLista.innerHTML = '';
+            fornecedorLista.style.display = 'none';
+            return;
+        }
+
+        const fd = new FormData();
+        fd.append('action', 'buscar_fornecedores');
+        fd.append('termo', termo);
+
+        const res = await fetch('contas_pagar_actions.php', {
+            method: 'POST',
+            body: fd
+        });
+
+        const data = await res.json();
+
+        fornecedorLista.innerHTML = '';
+
+        if (data.status === 'success' && data.dados.length > 0) {
+
+            data.dados.forEach(nome => {
+
+                const item = document.createElement('div');
+
+                item.className = 'autocomplete-item';
+
+                item.innerText = nome;
+
+                item.onclick = () => {
+                    fornecedorInput.value = nome;
+                    fornecedorLista.innerHTML = '';
+                    fornecedorLista.style.display = 'none';
+                };
+
+                fornecedorLista.appendChild(item);
+            });
+
+            fornecedorLista.style.display = 'block';
+
+        } else {
+
+            fornecedorLista.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+
+        if (!e.target.closest('.autocomplete-wrapper')) {
+            fornecedorLista.style.display = 'none';
+        }
+
+    });
+}
+
+
+// ==========================================
+// TOAST
+// ==========================================
+
+function mostrarToast(mensagem) {
+    const toast = document.getElementById('toast-notification');
+    if (!toast) return;
+    toast.innerText = mensagem;
+    toast.classList.remove('show');
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2500);
+}
+
+// ==========================================
+// TOM SELECT - CATEGORIA
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    new TomSelect('#id_categoria', {
+
+        create: false,
+
+        sortField: {
+            field: "text",
+            direction: "asc"
+        },
+
+        placeholder: 'Digite para pesquisar...',
+
+        maxOptions: 500,
+
+        openOnFocus: true,
+
+        closeAfterSelect: true
+
+    });
+
+});
+
+// ==========================================
+// FILTRO ESTILO EXCEL
+// ==========================================
+
+const filtrosAtivos = {
+    fornecedor: [],
+    categoria: []
+};
+
+function toggleFiltro(tipo) {
+
+    const dropdown =
+        document.getElementById(`filtro-${tipo}`);
+
+    const estaAberto =
+        dropdown.style.display === 'flex';
+
+    // fecha todos
+    document
+        .querySelectorAll('.filtro-dropdown')
+        .forEach(el => {
+
+            el.style.display = 'none';
+        });
+
+    // se já estava aberto -> apenas fecha
+    if (estaAberto) {
+        return;
+    }
+
+    // senão abre
+    preencherFiltro(tipo);
+
+    dropdown.style.display = 'flex';
+
+    dropdown.style.flexDirection = 'column';
+}
+
+function preencherFiltro(tipo) {
+
+    const dropdown =
+        document.getElementById(`filtro-${tipo}`);
+
+    const classe =
+        tipo === 'fornecedor'
+            ? '.col-fornecedor'
+            : '.col-categoria';
+
+    const valores = new Set();
+
+    document
+        .querySelectorAll(`tbody ${classe}`)
+        .forEach(el => {
+
+            const texto =
+                el.innerText.trim();
+
+            if (texto) {
+                valores.add(texto);
+            }
+        });
+
+    const ordenado =
+        [...valores].sort();
+
+    dropdown.innerHTML = `
+
+        <input
+            type="text"
+            class="filtro-pesquisa"
+            placeholder="Pesquisar..."
+            onkeyup="filtrarOpcoesFiltro(this)"
+        >
+
+        <div class="filtro-opcoes"></div>
+    `;
+
+    const container =
+        dropdown.querySelector('.filtro-opcoes');
+
+    ordenado.forEach(valor => {
+
+        const checked =
+            filtrosAtivos[tipo].includes(valor)
+                ? 'checked'
+                : '';
+
+        container.innerHTML += `
+            <label class="filtro-item">
+                <input
+                    type="checkbox"
+                    value="${valor}"
+                    ${checked}
+                    onchange="alterarFiltro('${tipo}', this)">
+                ${valor}
+            </label>
+        `;
+    });
+}
+
+function alterarFiltro(tipo, checkbox) {
+
+    const valor = checkbox.value;
+
+    if (checkbox.checked) {
+
+        filtrosAtivos[tipo].push(valor);
+
+    } else {
+
+        filtrosAtivos[tipo] =
+            filtrosAtivos[tipo]
+                .filter(v => v !== valor);
+    }
+
+    aplicarFiltrosExcel();
+}
+
+function aplicarFiltrosExcel() {
+
+    const linhas =
+        document.querySelectorAll('.table-financeiro tbody tr');
+
+    linhas.forEach(linha => {
+
+        if (linha.classList.contains('child-row')) return;
+
+        const fornecedor =
+            linha.querySelector('.col-fornecedor')
+                ?.innerText.trim();
+
+        const categoria =
+            linha.querySelector('.col-categoria')
+                ?.innerText.trim();
+
+        const filtroFornecedor =
+            filtrosAtivos.fornecedor.length === 0 ||
+            filtrosAtivos.fornecedor.includes(fornecedor);
+
+        const filtroCategoria =
+            filtrosAtivos.categoria.length === 0 ||
+            filtrosAtivos.categoria.includes(categoria);
+
+        linha.style.display =
+            (filtroFornecedor && filtroCategoria)
+                ? ''
+                : 'none';
+    });
+}
+
+document.addEventListener('click', function (e) {
+
+    if (!e.target.closest('.filtro-dropdown') &&
+        !e.target.closest('.filtro-icon')) {
+
+        document
+            .querySelectorAll('.filtro-dropdown')
+            .forEach(el => el.style.display = 'none');
+    }
+});
+
+function filtrarOpcoesFiltro(input) {
+
+    const termo =
+        input.value.toLowerCase();
+
+    const itens =
+        input.parentElement
+        .querySelectorAll('.filtro-item');
+
+    itens.forEach(item => {
+
+        const texto =
+            item.innerText.toLowerCase();
+
+        item.style.display =
+            texto.includes(termo)
+                ? 'flex'
+                : 'none';
+    });
+}

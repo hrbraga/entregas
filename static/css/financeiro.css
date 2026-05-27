@@ -594,7 +594,7 @@ option {
 .table-financeiro th:nth-child(3),
 .table-financeiro td:nth-child(3) {
     width: 100px;
-    max-width: 170px;
+    max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -602,7 +602,7 @@ option {
 
 .table-financeiro th:nth-child(4),
 .table-financeiro td:nth-child(4) {
-    width: 200px;
+    width: 180px;
     min-width: 95px;
     white-space: wrap;
     text-overflow: ellipsis;
@@ -619,10 +619,9 @@ option {
 
 .table-financeiro th:nth-child(6),
 .table-financeiro td:nth-child(6) {
-    width: 200px;
+    width: 180px;
     min-width: 130px;
     white-space: wrap;
-    font-weight: bold;
 }
 
 .table-financeiro th:nth-child(7),
@@ -773,4 +772,257 @@ option {
     gap: 10px;
     cursor: pointer;
     font-size: 16px;
+}
+
+
+.autocomplete-wrapper {
+    position: relative;
+}
+
+.autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-top: none;
+    z-index: 99999;
+    max-height: 220px;
+    overflow-y: auto;
+    border-radius: 0 0 8px 8px;
+    display: none;
+    box-shadow: 0 6px 12px rgba(0,0,0,.1);
+}
+
+.autocomplete-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: .15s;
+    font-size: 14px;
+}
+
+.autocomplete-item:hover {
+    background: #f5f5f5;
+}
+
+/* ==========================================
+   SELECT2 - AUMENTAR FONTE
+========================================== */
+
+.select2-container--default .select2-results__option {
+    font-size: 14px;
+    padding: 10px 14px;
+}
+
+.select2-container--default .select2-results__group {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 12px 14px;
+    color: #007bff;
+}
+
+.select2-container--default .select2-selection--single {
+    height: 46px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    font-size: 15px;
+    line-height: 46px;
+    padding-left: 12px;
+}
+
+.select2-search--dropdown .select2-search__field {
+    font-size: 16px;
+    padding: 10px;
+}
+
+.select2-dropdown {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* ==========================================
+   TOAST NOTIFICATION
+========================================== */
+
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 8px 20px rgba(0,0,0,.15);
+    z-index: 999999;
+
+    opacity: 0;
+    transform: translateY(-15px);
+
+    transition:
+        opacity .25s ease,
+        transform .25s ease;
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: #28a745;
+    color: #fff;
+    padding: 16px 22px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0,0,0,.18);
+    z-index: 999999999;
+    opacity: 0;
+    transition: all .3s ease;
+    pointer-events: none;
+    min-width: 320px;
+    text-align: center;
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+
+}
+
+/* ==========================================
+   TOM SELECT
+========================================== */
+
+.ts-control {
+    min-height: 46px;
+    font-size: 15px !important;
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+}
+
+.ts-dropdown {
+    font-size: 15px !important;
+    border-radius: 10px !important;
+    overflow: hidden;
+}
+
+.ts-dropdown .option {
+    padding: 12px 14px !important;
+    font-size: 15px !important;
+}
+
+.ts-dropdown .optgroup-header {
+    font-size: 16px !important;
+    font-weight: bold !important;
+    color: #007bff !important;
+    padding: 12px 14px !important;
+    background: #f8f9fa !important;
+}
+
+.ts-control input {
+    font-size: 15px !important;
+}
+
+/* TEXTO DA CATEGORIA SELECIONADA */
+
+.ts-control .item {
+    font-size: 15px !important;
+    line-height: 22px !important;
+    padding: 4px 0 !important;
+    color: #333 !important;
+}
+
+/* ==========================================
+   FILTRO ESTILO EXCEL
+========================================== */
+
+.financeiro-container,
+.financeiro-wrapper,
+.table-financeiro {
+    overflow: visible !important;
+}
+
+.table-financeiro th {
+    position: relative;
+    overflow: visible !important;
+}
+
+
+.filtro-icon {
+    cursor: pointer;
+    margin-left: 6px;
+    font-size: 12px;
+}
+.filtro-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    display: none;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 12px;
+    min-width: 260px;
+    max-height: 320px;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    z-index: 999999;
+}
+
+.filtro-dropdown label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.table-financeiro th {
+    position: relative;
+}
+
+/* PESQUISA FILTRO */
+
+.filtro-pesquisa {
+    width: 100%;
+    height: 38px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0 12px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.filtro-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 6px;
+    font-size: 15px;
+    line-height: 22px;
+    cursor: pointer;
+}
+.filtro-item:hover {
+    background: #f5f5f5;
+    border-radius: 6px;
+}
+
+.filtro-item label,
+.filtro-item span,
+.filtro-item {
+    font-size: 12px !important;
+    font-weight: 300 !important;
+    color: #222 !important;
 }
