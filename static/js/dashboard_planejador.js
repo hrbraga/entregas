@@ -488,7 +488,7 @@ function gerarLinhaComparativo(
 // ========================================
 
 function calcularDashboard() {
-
+    const unidadesPorGrupo = {};
     let selling = 0;
     let sellout = 0;
     let taxasAdd = 0;
@@ -557,6 +557,20 @@ function calcularDashboard() {
 
         const qtdSugestao =
             totalSugestao * prod.qtdCx;
+
+        // Garante que o grupo exista no objeto
+        if (!unidadesPorGrupo[prod.grupo]) {
+            unidadesPorGrupo[prod.grupo] = {
+                pedido: 0,
+                vendido26: 0,
+                sugestao: 0
+            };
+        }
+
+        // Soma as unidades dentro do grupo específico
+        unidadesPorGrupo[prod.grupo].pedido += qtdTotal;
+        unidadesPorGrupo[prod.grupo].sugestao += qtdSugestao;
+        unidadesPorGrupo[prod.grupo].vendido26 += (totalVendido * prod.qtdCx);
 
         const diferenca =
             qtdTotal - qtdSugestao;
@@ -699,10 +713,10 @@ function calcularDashboard() {
     // COMPARATIVO
     // ========================================
 
-   const mostrarVD =
-    totalPedidoVD > 0;
+    const mostrarVD =
+        totalPedidoVD > 0;
 
-let htmlComparativo = `
+    let htmlComparativo = `
 
 <div class="comparativo-wrapper">
 
@@ -741,16 +755,16 @@ let htmlComparativo = `
                     <tbody>
 
                         ${gerarLinhaComparativo(
-                            'SELL IN',
-                            sugestaoSellInLoja,
-                            sellInLoja
-                        )}
+        'SELL IN',
+        sugestaoSellInLoja,
+        sellInLoja
+    )}
 
                         ${gerarLinhaComparativo(
-                            'SELL OUT',
-                            sugestaoSellOutLoja,
-                            sellOutLoja
-                        )}
+        'SELL OUT',
+        sugestaoSellOutLoja,
+        sellOutLoja
+    )}
 
                     </tbody>
 
@@ -761,9 +775,9 @@ let htmlComparativo = `
         </div>
 `;
 
-if (mostrarVD) {
+    if (mostrarVD) {
 
-    htmlComparativo += `
+        htmlComparativo += `
 
         <!-- VD -->
 
@@ -794,16 +808,16 @@ if (mostrarVD) {
                     <tbody>
 
                         ${gerarLinhaComparativo(
-                            'SELL IN',
-                            sugestaoSellInVD,
-                            sellInVD
-                        )}
+            'SELL IN',
+            sugestaoSellInVD,
+            sellInVD
+        )}
 
                         ${gerarLinhaComparativo(
-                            'SELL OUT',
-                            sugestaoSellOutVD,
-                            sellOutVD
-                        )}
+            'SELL OUT',
+            sugestaoSellOutVD,
+            sellOutVD
+        )}
 
                     </tbody>
 
@@ -813,9 +827,9 @@ if (mostrarVD) {
 
         </div>
     `;
-}
+    }
 
-htmlComparativo += `
+    htmlComparativo += `
 
         <!-- TOTAL -->
 
@@ -846,16 +860,16 @@ htmlComparativo += `
                     <tbody>
 
                         ${gerarLinhaComparativo(
-                            'SELL IN',
-                            sellInSugestaoTotal,
-                            selling
-                        )}
+        'SELL IN',
+        sellInSugestaoTotal,
+        selling
+    )}
 
                         ${gerarLinhaComparativo(
-                            'SELL OUT',
-                            sellOutSugestaoTotal,
-                            sellout
-                        )}
+        'SELL OUT',
+        sellOutSugestaoTotal,
+        sellout
+    )}
 
                     </tbody>
 
@@ -870,9 +884,9 @@ htmlComparativo += `
 </div>
 `;
 
-document.getElementById(
-    'comparativo-container'
-).innerHTML = htmlComparativo;
+    document.getElementById(
+        'comparativo-container'
+    ).innerHTML = htmlComparativo;
 
     // ========================================
     // KPI
@@ -937,6 +951,10 @@ document.getElementById(
     )?.destroy();
 
     Chart.getChart(
+        'graficoComparativoUnidades'
+    )?.destroy();
+
+    Chart.getChart(
         'graficoCanal'
     )?.destroy();
 
@@ -997,46 +1015,61 @@ document.getElementById(
     );
 
     // ========================================
-    // GRÁFICO CANAL
+    // GRÁFICO CANAL (Com Porcentagens)
     // ========================================
 
+    // Calcula o total para podermos extrair as porcentagens
+    const valoresCanais = Object.values(canais);
+    const totalCanais = valoresCanais.reduce((a, b) => a + b, 0);
+
     new Chart(
-        document.getElementById(
-            'graficoCanal'
-        ),
+        document.getElementById('graficoCanal'),
         {
-
             type: 'doughnut',
-
             data: {
-
-                labels:
-                    Object.keys(
-                        canais
-                    ),
-
+                labels: Object.keys(canais),
                 datasets: [{
-
-                    data:
-                        Object.values(
-                            canais
-                        )
-
+                    data: valoresCanais
                 }]
             },
-
+            // Ativa o plugin de labels para este gráfico específico
+            plugins: [ChartDataLabels],
             options: {
-
                 plugins: {
-
                     legend: {
                         position: 'bottom'
+                    },
+                    // Configuração do Hover (Mouse por cima)
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                let valor = context.raw;
+                                let percentual = totalCanais > 0 ? ((valor / totalCanais) * 100).toFixed(1) + '%' : '0%';
+                                return label + valor + ' cx (' + percentual + ')';
+                            }
+                        }
+                    },
+                    // Configuração do texto fixo visível no gráfico
+                    datalabels: {
+                        color: '#ffffff', // Cor da fonte (branco fica bom em gráficos de rosca)
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        },
+                        formatter: (value, context) => {
+                            // Se o valor for 0, não mostra o label para não poluir
+                            if (value === 0) return null;
+
+                            let percentual = totalCanais > 0 ? ((value / totalCanais) * 100).toFixed(1) + '%' : '0%';
+                            return percentual;
+                        }
                     }
-
                 }
-
             }
-
         }
     );
 
@@ -1203,6 +1236,70 @@ document.getElementById(
 
             }
 
+        }
+    );
+
+    // ========================================
+    // GRÁFICO COMPARATIVO UNIDADES
+    // ========================================
+
+    // ========================================
+    // GRÁFICO COMPARATIVO UNIDADES POR GRUPO
+    // ========================================
+
+    const labelsGrupos = Object.keys(unidadesPorGrupo);
+
+    // Mapeia os dados para cada coluna
+    const dataVendido = labelsGrupos.map(g => unidadesPorGrupo[g].vendido26);
+    const dataSugestao = labelsGrupos.map(g => unidadesPorGrupo[g].sugestao);
+    const dataPedido = labelsGrupos.map(g => unidadesPorGrupo[g].pedido);
+
+    new Chart(
+        document.getElementById('graficoComparativoUnidades'),
+        {
+            type: 'bar',
+            data: {
+                labels: labelsGrupos, // O eixo X agora são os grupos (ex: Ovos, Tabletes)
+                datasets: [
+                    {
+                        label: 'Vendido 26',
+                        data: dataVendido,
+                        backgroundColor: '#9e9e9e',
+                        borderWidth: 0
+                    },
+                    {
+                        label: 'Sugestão',
+                        data: dataSugestao,
+                        backgroundColor: '#17a2b8',
+                        borderWidth: 0
+                    },
+                    {
+                        label: 'Pedido',
+                        data: dataPedido,
+                        backgroundColor: '#d4af37',
+                        borderWidth: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom' // Mostra a legenda para identificar as cores
+                    }
+                },
+                scales: {
+                    x: {
+                        // Isso garante que as barras fiquem agrupadas (lado a lado) por categoria
+                        stacked: false
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
         }
     );
 

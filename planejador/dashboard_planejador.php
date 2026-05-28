@@ -34,15 +34,15 @@ include '../includes/header.php';
 
 <div class="dashboard-container">
 
-<div class="topo-dashboard">
+    <div class="topo-dashboard">
 
-    <a href="planejador.php" class="btn-voltar">
-        ← Voltar ao Planejador
-    </a>
+        <a href="planejador.php" class="btn-voltar">
+            ← Voltar ao Planejador
+        </a>
 
-</div>
+    </div>
 
-<h2>RESUMO DO PEDIDO</h2>
+    <h2>RESUMO DO PEDIDO</h2>
 
     <div class="kpi-grid">
         <div class="kpi-card">
@@ -83,65 +83,72 @@ include '../includes/header.php';
 
         <div class="campanha-card">
 
-    <div class="campanha-topo">
+            <div class="campanha-topo">
 
-        <label class="vip-toggle">
+                <label class="vip-toggle">
 
-            <input type="checkbox" id="toggleVip">
+                    <input type="checkbox" id="toggleVip">
 
-            Se for VIP selecione aqui
+                    Se for VIP selecione aqui
 
-        </label>
+                </label>
+
+            </div>
+
+            <div id="card-condicao"></div>
+
+        </div>
 
     </div>
 
-    <div id="card-condicao"></div>
+    <div class="boleto-card">
+
+        <div id="info-cluster"></div>
+
+    </div>
 
 </div>
 
-        </div>
+<div id="comparativo-container"></div>
 
-        <div class="boleto-card">
+<!-- Gráficos -->
+<div class="charts-grid">
 
-            <div id="info-cluster"></div>
+    <div class="chart-card">
 
-        </div>
+        <h3>Compra por Categoria</h3>
 
-    </div>
-
-        <div id="comparativo-container"></div>  
-
-    <!-- Gráficos -->
-    <div class="charts-grid">
-
-        <div class="chart-card">
-
-            <h3>Compra por Categoria</h3>
-
-            <canvas id="graficoCategoria"></canvas>
-
-        </div>
-
-        <div class="chart-card">
-
-            <h3>Compra por Canal</h3>
-
-            <canvas id="graficoCanal"></canvas>
-
-        </div>
+        <canvas id="graficoCategoria"></canvas>
 
     </div>
 
-    <!-- TOP 10 -->
-    <div class="chart-card top10-card">
+    <div class="chart-card">
 
-        <h3>Top 10 Produtos Comprados</h3>
+        <h3>Compra por Canal</h3>
 
-        <canvas id="graficoTop10"></canvas>
+        <canvas id="graficoCanal"></canvas>
 
     </div>
 
-    <div class="charts-grid">
+</div>
+
+<div class="chart-card" style="margin-bottom: 20px;">
+    <h3>Pedido x Vendido 26 x Sugestão (Unidades)</h3>
+    <canvas id="graficoComparativoUnidades" style="max-height: 300px;"></canvas>
+</div>
+
+<!-- TOP 10 -->
+<div class="chart-card top10-card">
+
+    <h3>Top 10 Produtos Comprados</h3>
+
+    <canvas id="graficoTop10"></canvas>
+
+</div>
+
+
+
+<div class="charts-grid">
 
     <div class="chart-card">
 
@@ -166,6 +173,10 @@ include '../includes/header.php';
 </div>
 
 </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
 <script>
     const dadosBanco = <?= json_encode($dados_banco) ?>;
