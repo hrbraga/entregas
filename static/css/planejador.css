@@ -280,26 +280,17 @@
 }
 
 .modal-content-export {
-
     background: white;
-
     padding: 30px;
-
     border-radius: 14px;
-
     width: 320px;
-
     text-align: center;
 }
 
 .modal-buttons {
-
     display: flex;
-
     flex-direction: column;
-
     gap: 12px;
-
     margin-top: 20px;
 }
 
@@ -362,4 +353,13 @@
 
         display: none !important;
     }
+}
+
+.info-unidades {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #fd7e14;
+    font-weight: 600;
+    line-height: 1.1;
 }

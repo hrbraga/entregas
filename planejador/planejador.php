@@ -178,7 +178,6 @@ include '../includes/header.php';
                     <th>Total Vendido Anterior (Cx)</th>
                     <th>Total Sugerido (Cx)</th>
                     <th style="background:#d1ecf1;">Total Planejado (Cx)</th>
-                    <th style="background:#e2e3e5;">Faturamento Previsto</th>
                 </tr>
             </thead>
             <tbody id="tbody-total"></tbody>

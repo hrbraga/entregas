@@ -79,22 +79,32 @@ function renderizarTabelas() {
                 </strong>
                 </td>
 
-                <td>
-                    <strong>
-                        ${dbInfo.sugestao_loja}
-                    </strong>
-                </td>
+<td>
+    <strong>
+        ${dbInfo.sugestao_loja}
+    </strong>
 
-                <td>
-                    <input
-                        type="number"
-                        class="input-editavel"
-                        data-sap="${prod.sap}"
-                        data-campo="pedido_loja"
-                        value="${dbInfo.pedido_loja}"
-                        onchange="atualizarLocal(this)"
-                    >
-                </td>
+    <span class="info-unidades">
+        ${(dbInfo.sugestao_loja || 0) * prod.qtdCx} unidades
+    </span>
+</td>
+
+          <td>
+
+    <input
+        type="number"
+        class="input-editavel"
+        data-sap="${prod.sap}"
+        data-campo="pedido_loja"
+        value="${dbInfo.pedido_loja}"
+        onchange="atualizarLocal(this)"
+    >
+
+    <span class="info-unidades">
+        ${(dbInfo.pedido_loja || 0) * prod.qtdCx} unidades
+    </span>
+
+</td>
 
             </tr>
         `;
@@ -128,22 +138,34 @@ function renderizarTabelas() {
                 </strong>
               </td>
 
-                <td>
-                    <strong>
-                        ${dbInfo.sugestao_vd}
-                    </strong>
-                </td>
+<td>
 
-                <td>
-                    <input
-                        type="number"
-                        class="input-editavel"
-                        data-sap="${prod.sap}"
-                        data-campo="pedido_vd"
-                        value="${dbInfo.pedido_vd}"
-                        onchange="atualizarLocal(this)"
-                    >
-                </td>
+    <strong>
+        ${dbInfo.sugestao_vd}
+    </strong>
+
+    <span class="info-unidades">
+        ${(dbInfo.sugestao_vd || 0) * prod.qtdCx} unidades
+    </span>
+
+</td>
+
+              <td>
+
+    <input
+        type="number"
+        class="input-editavel"
+        data-sap="${prod.sap}"
+        data-campo="pedido_vd"
+        value="${dbInfo.pedido_vd}"
+        onchange="atualizarLocal(this)"
+    >
+
+    <span class="info-unidades">
+        ${(dbInfo.pedido_vd || 0) * prod.qtdCx} unidades
+    </span>
+
+</td>
 
             </tr>
         `;
@@ -202,20 +224,29 @@ function renderizarTabelas() {
                     ${totalVendidoAnt}
                 </td>
 
-                <td>
-                    ${totalSugerido}
-                </td>
+<td>
 
-                <td
-                    class="tot-pedido"
-                    style="font-weight:bold;"
-                >
-                    ${totalPedido}
-                </td>
+    <strong>
+        ${totalSugerido}
+    </strong>
 
-                <td class="tot-faturamento">
-                    ${fatFormatado}
-                </td>
+    <span class="info-unidades">
+        ${totalSugerido * prod.qtdCx} unidades
+    </span>
+
+</td>
+
+     <td class="tot-pedido-cell">
+
+    <strong class="tot-pedido">
+        ${totalPedido}
+    </strong>
+
+    <span class="info-unidades">
+        ${totalPedido * prod.qtdCx} unidades
+    </span>
+
+</td>
 
             </tr>
         `;
@@ -268,14 +299,21 @@ function atualizarLocal(inputElement) {
 
     dbMap[sap][campo] = valor;
 
-    // ========================================
-    // ATUALIZA RESUMO
-    // ========================================
+    const td = inputElement.closest('td');
 
     const prodMestre =
         masterProdutosPascoa.find(
             p => p.sap === sap
         );
+
+    const infoUnidades =
+        td.querySelector('.info-unidades');
+
+    if (infoUnidades && prodMestre) {
+
+        infoUnidades.textContent =
+            `${valor * prodMestre.qtdCx} unidades`;
+    }
 
     if (prodMestre) {
 
@@ -294,11 +332,6 @@ function atualizarLocal(inputElement) {
                 (dbMap[sap].pedido_loja || 0) +
                 (dbMap[sap].pedido_vd || 0);
 
-            const novoFaturamento =
-                totalPedido *
-                prodMestre.qtdCx *
-                prodMestre.precoVenda;
-
             rowTotal.querySelector(
                 '.tot-vend-ant'
             ).textContent =
@@ -309,10 +342,16 @@ function atualizarLocal(inputElement) {
             ).textContent =
                 totalPedido;
 
-            rowTotal.querySelector(
-                '.tot-faturamento'
-            ).textContent =
-                formatR$(novoFaturamento);
+            const infoTotal =
+                rowTotal.querySelector(
+                    '.info-unidades'
+                );
+
+            if (infoTotal) {
+
+                infoTotal.textContent =
+                    `${totalPedido * prodMestre.qtdCx} unidades`;
+            }
         }
     }
 
