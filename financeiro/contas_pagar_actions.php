@@ -48,11 +48,13 @@ try {
     }
 
     // 3. DAR BAIXA
+    // 3. DAR BAIXA (TOTALMENTE INTEGRADO AO CAIXA E BANCOS)
     if ($action === 'baixa') {
-
         $data_pag = $_POST['data_pagamento'];
         $forma_pag = $_POST['forma_pagamento'];
-        $banco_pag = $_POST['banco_pagamento'];
+
+        // AGORA ISSO É O ID DA SUA CONTA CADASTRADA, E NÃO MAIS UM TEXTO
+        $id_conta_bancaria = $_POST['banco_pagamento'];
 
         $juros = max(0, converterMoeda($_POST['juros']));
         $multa = max(0, converterMoeda($_POST['multa']));
@@ -64,269 +66,113 @@ try {
 
         function obterCategoriaDRE($db, $nome, $tipo, $grupo)
         {
-
-            $stmt = $db->prepare("
-            SELECT id 
-            FROM categorias_financeiras 
-            WHERE nome = ?
-        ");
-
+            $stmt = $db->prepare("SELECT id FROM categorias_financeiras WHERE nome = ?");
             $stmt->execute([$nome]);
-
             $res = $stmt->fetch();
-
             if ($res) return $res['id'];
 
-            $db->prepare("
-            INSERT INTO categorias_financeiras
-            (nome, tipo, grupo)
-            VALUES (?, ?, ?)
-        ")->execute([$nome, $tipo, $grupo]);
-
+            $db->prepare("INSERT INTO categorias_financeiras (nome, tipo, grupo) VALUES (?, ?, ?)")->execute([$nome, $tipo, $grupo]);
             return $db->lastInsertId();
+        }
+
+        // --- NOVA FUNÇÃO MÁGICA: INSERE AUTOMATICAMENTE NO CAIXA ---
+        function integrarAoCaixa($db, $id_user, $id_conta, $data, $tipo, $valor, $desc, $id_cat)
+        {
+            if ($valor <= 0 || empty($id_conta)) return;
+            $stmt = $db->prepare("INSERT INTO movimentacoes_caixa (id_usuario, id_conta, data_movimento, tipo, valor, descricao, id_categoria, origem) VALUES (?, ?, ?, ?, ?, ?, ?, 'Contas a Pagar')");
+            $stmt->execute([$id_user, $id_conta, $data, $tipo, $valor, $desc, $id_cat]);
         }
 
         $db_financeiro->beginTransaction();
 
         try {
-
             // ==================================================
             // BAIXA DE GRUPO DE ROYALTIES
             // ==================================================
-
             if (!empty($_POST['vencimento_baixa'])) {
+                // Busca os royalties antes de dar baixa para pegar o valor e jogar no caixa
+                $stmt_fetch = $db_financeiro->prepare("SELECT id, valor, descricao, id_categoria FROM contas_pagar WHERE id_usuario = ? AND vencimento = ? AND (descricao LIKE '%Royalt%' OR descricao LIKE '%royalt%') AND status != 'Pago'");
+                $stmt_fetch->execute([$id_usuario, $_POST['vencimento_baixa']]);
+                $royalties_a_pagar = $stmt_fetch->fetchAll();
 
-                $sql = "
-                UPDATE contas_pagar
-                SET
-                    status = 'Pago',
-                    data_pagamento = ?,
-                    forma_pagamento = ?,
-                    banco_pagamento = ?,
-                    valor_pago = valor
-                WHERE id_usuario = ?
-                AND vencimento = ?
-                AND (
-                    descricao LIKE '%Royalt%'
-                    OR descricao LIKE '%royalt%'
-                )
-                AND status != 'Pago'
-            ";
-
+                $sql = "UPDATE contas_pagar SET status = 'Pago', data_pagamento = ?, forma_pagamento = ?, banco_pagamento = ?, valor_pago = valor WHERE id_usuario = ? AND vencimento = ? AND (descricao LIKE '%Royalt%' OR descricao LIKE '%royalt%') AND status != 'Pago'";
                 $stmt = $db_financeiro->prepare($sql);
-
-                $stmt->execute([
-                    $data_pag,
-                    $forma_pag,
-                    $banco_pag,
-                    $id_usuario,
-                    $_POST['vencimento_baixa']
-                ]);
+                $stmt->execute([$data_pag, $forma_pag, $id_conta_bancaria, $id_usuario, $_POST['vencimento_baixa']]);
 
                 $count = $stmt->rowCount();
+                $msg = "Todos os royalties do grupo ($count) foram baixados e lançados no caixa!";
 
-                $msg = "Todos os royalties do grupo ($count) foram baixados!";
+                // Registra cada royalty no Caixa
+                foreach ($royalties_a_pagar as $roy) {
+                    integrarAoCaixa($db_financeiro, $id_usuario, $id_conta_bancaria, $data_pag, 'Saida', $roy['valor'], "Pgto: Cacau Show - " . $roy['descricao'], $roy['id_categoria']);
+                }
             }
-
             // ==================================================
             // BAIXA EM LOTE / INDIVIDUAL
             // ==================================================
-
             else {
-
                 $ids = explode(',', $_POST['id_baixa']);
-
-                $sql = "
-                UPDATE contas_pagar
-                SET
-                    status = 'Pago',
-                    data_pagamento = ?,
-                    forma_pagamento = ?,
-                    banco_pagamento = ?,
-                    valor_pago = valor
-                WHERE id = ?
-                AND id_usuario = ?
-            ";
-
+                $sql = "UPDATE contas_pagar SET status = 'Pago', data_pagamento = ?, forma_pagamento = ?, banco_pagamento = ?, valor_pago = valor WHERE id = ? AND id_usuario = ?";
                 $stmt = $db_financeiro->prepare($sql);
-
                 $count = 0;
 
                 foreach ($ids as $id) {
-
                     $id = trim($id);
-
                     if (empty($id)) continue;
 
-                    $stmt->execute([
-                        $data_pag,
-                        $forma_pag,
-                        $banco_pag,
-                        $id,
-                        $id_usuario
-                    ]);
+                    // Busca os dados da conta ANTES de baixar para jogar o valor exato no caixa
+                    $stmt_dados = $db_financeiro->prepare("SELECT fornecedor, valor, descricao, id_categoria FROM contas_pagar WHERE id = ? AND id_usuario = ?");
+                    $stmt_dados->execute([$id, $id_usuario]);
+                    $conta_info = $stmt_dados->fetch();
 
-                    $count += $stmt->rowCount();
-                }
+                    if ($conta_info) {
+                        $stmt->execute([$data_pag, $forma_pag, $id_conta_bancaria, $id, $id_usuario]);
+                        $count += $stmt->rowCount();
 
-                if ($count > 1) {
-                    $msg = "$count títulos baixados com sucesso!";
-                } else {
-                    $msg = "Pagamento registado com sucesso!";
+                        // Envia a Saída de dinheiro para o Caixa
+                        integrarAoCaixa($db_financeiro, $id_usuario, $id_conta_bancaria, $data_pag, 'Saida', $conta_info['valor'], "Pgto: " . $conta_info['fornecedor'] . " - " . $conta_info['descricao'], $conta_info['id_categoria']);
+                    }
                 }
+                $msg = $count > 1 ? "$count títulos baixados e enviados ao Caixa!" : "Pagamento registrado no Caixa com sucesso!";
             }
 
             // ==================================================
-            // LANÇAMENTOS FINANCEIROS
+            // LANÇAMENTOS ADICIONAIS (JUROS, MULTAS, DESCONTOS)
             // ==================================================
-
-            $sql_insert = "
-            INSERT INTO contas_pagar
-            (
-                id_usuario,
-                fornecedor,
-                emissao,
-                vencimento,
-                descricao,
-                valor,
-                id_categoria,
-                status,
-                data_pagamento,
-                forma_pagamento,
-                banco_pagamento,
-                valor_pago
-            )
-            VALUES
-            (
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                'Pago',
-                ?,
-                ?,
-                ?,
-                ?
-            )
-        ";
-
+            $sql_insert = "INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, descricao, valor, id_categoria, status, data_pagamento, forma_pagamento, banco_pagamento, valor_pago) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pago', ?, ?, ?, ?)";
             $stmt_insert = $db_financeiro->prepare($sql_insert);
 
             if ($juros > 0) {
-
-                $id_cat = obterCategoriaDRE(
-                    $db_financeiro,
-                    'Juros Pagos',
-                    'Despesa',
-                    'Despesas Financeiras'
-                );
-
-                $stmt_insert->execute([
-                    $id_usuario,
-                    $fornecedor_baixa,
-                    $data_pag,
-                    $data_pag,
-                    "Juros Pagos - " . $descricao_baixa,
-                    $juros,
-                    $id_cat,
-                    $data_pag,
-                    $forma_pag,
-                    $banco_pag,
-                    $juros
-                ]);
+                $id_cat = obterCategoriaDRE($db_financeiro, 'Juros Pagos', 'Despesa', 'Despesas Financeiras');
+                $stmt_insert->execute([$id_usuario, $fornecedor_baixa, $data_pag, $data_pag, "Juros Pagos - " . $descricao_baixa, $juros, $id_cat, $data_pag, $forma_pag, $id_conta_bancaria, $juros]);
+                integrarAoCaixa($db_financeiro, $id_usuario, $id_conta_bancaria, $data_pag, 'Saida', $juros, "Juros Pagos - " . $descricao_baixa, $id_cat);
             }
 
             if ($multa > 0) {
-
-                $id_cat = obterCategoriaDRE(
-                    $db_financeiro,
-                    'Multas Pagas',
-                    'Despesa',
-                    'Despesas Financeiras'
-                );
-
-                $stmt_insert->execute([
-                    $id_usuario,
-                    $fornecedor_baixa,
-                    $data_pag,
-                    $data_pag,
-                    "Multas Pagas - " . $descricao_baixa,
-                    $multa,
-                    $id_cat,
-                    $data_pag,
-                    $forma_pag,
-                    $banco_pag,
-                    $multa
-                ]);
+                $id_cat = obterCategoriaDRE($db_financeiro, 'Multas Pagas', 'Despesa', 'Despesas Financeiras');
+                $stmt_insert->execute([$id_usuario, $fornecedor_baixa, $data_pag, $data_pag, "Multas Pagas - " . $descricao_baixa, $multa, $id_cat, $data_pag, $forma_pag, $id_conta_bancaria, $multa]);
+                integrarAoCaixa($db_financeiro, $id_usuario, $id_conta_bancaria, $data_pag, 'Saida', $multa, "Multas Pagas - " . $descricao_baixa, $id_cat);
             }
 
+            // Para manter o Caixa equilibrado, Descontos entram como 'Entrada' de estorno
             if ($desconto > 0) {
-
-                $id_cat = obterCategoriaDRE(
-                    $db_financeiro,
-                    'Descontos Recebidos',
-                    'Receita',
-                    'Receitas Financeiras'
-                );
-
-                $stmt_insert->execute([
-                    $id_usuario,
-                    $fornecedor_baixa,
-                    $data_pag,
-                    $data_pag,
-                    "Desconto Recebido - " . $descricao_baixa,
-                    $desconto,
-                    $id_cat,
-                    $data_pag,
-                    $forma_pag,
-                    $banco_pag,
-                    $desconto
-                ]);
+                $id_cat = obterCategoriaDRE($db_financeiro, 'Descontos Recebidos', 'Receita', 'Receitas Financeiras');
+                $stmt_insert->execute([$id_usuario, $fornecedor_baixa, $data_pag, $data_pag, "Desconto Recebido - " . $descricao_baixa, $desconto, $id_cat, $data_pag, $forma_pag, $id_conta_bancaria, $desconto]);
+                integrarAoCaixa($db_financeiro, $id_usuario, $id_conta_bancaria, $data_pag, 'Entrada', $desconto, "Desconto Recebido - " . $descricao_baixa, $id_cat);
             }
 
             if ($creditos > 0) {
-
-                $id_cat = obterCategoriaDRE(
-                    $db_financeiro,
-                    'Créditos Cacau Show',
-                    'Receita',
-                    'Receitas Operacionais'
-                );
-
-                $stmt_insert->execute([
-                    $id_usuario,
-                    $fornecedor_baixa,
-                    $data_pag,
-                    $data_pag,
-                    "Crédito Utilizado - " . $descricao_baixa,
-                    $creditos,
-                    $id_cat,
-                    $data_pag,
-                    $forma_pag,
-                    $banco_pag,
-                    $creditos
-                ]);
+                $id_cat = obterCategoriaDRE($db_financeiro, 'Créditos Cacau Show', 'Receita', 'Receitas Operacionais');
+                $stmt_insert->execute([$id_usuario, $fornecedor_baixa, $data_pag, $data_pag, "Crédito Utilizado - " . $descricao_baixa, $creditos, $id_cat, $data_pag, $forma_pag, $id_conta_bancaria, $creditos]);
+                integrarAoCaixa($db_financeiro, $id_usuario, $id_conta_bancaria, $data_pag, 'Entrada', $creditos, "Crédito Utilizado CS - " . $descricao_baixa, $id_cat);
             }
 
             $db_financeiro->commit();
-
-            echo json_encode([
-                'status' => 'success',
-                'message' => $msg
-            ]);
+            echo json_encode(['status' => 'success', 'message' => $msg]);
         } catch (Exception $e) {
-
             $db_financeiro->rollBack();
-
-            echo json_encode([
-                'status' => 'error',
-                'message' => "Erro na baixa: " . $e->getMessage()
-            ]);
+            echo json_encode(['status' => 'error', 'message' => "Erro na baixa: " . $e->getMessage()]);
         }
-
         exit;
     }
     // 4. SALVAR / EDITAR / IMPORTAR XML / PARCELAMENTO

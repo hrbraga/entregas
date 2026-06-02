@@ -65,7 +65,7 @@ function salvarBaixa(e) {
 
                 setTimeout(() => {
                     location.reload();
-                }, 2500);
+                }, 2200);
 
             }
         });
@@ -137,7 +137,7 @@ function excluirConta(id) {
 
                 setTimeout(() => {
                     location.reload();
-                }, 2500);
+                }, 2200);
 
             }
         });
@@ -205,7 +205,7 @@ function importarDadosXML() {
 
                     setTimeout(() => {
                         location.reload();
-                    }, 2500);
+                    }, 2200);
 
                 }
             }
@@ -239,7 +239,7 @@ function salvarConta(e) {
 
                 setTimeout(() => {
                     location.reload();
-                }, 2500);
+                }, 2200);
             }
         });
 }
@@ -526,7 +526,7 @@ function mostrarToast(mensagem) {
     toast.classList.add('show');
     setTimeout(() => {
         toast.classList.remove('show');
-    }, 2500);
+    }, 2200);
 }
 
 // ==========================================

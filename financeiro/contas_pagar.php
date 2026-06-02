@@ -20,9 +20,17 @@ try {
 
     $stmt_cat = $db_financeiro->query("SELECT * FROM categorias_financeiras WHERE tipo = 'Despesa' ORDER BY grupo ASC, nome ASC");
     $lista_categorias = $stmt_cat->fetchAll();
+
+    // --- NOVA ALTERAÇÃO: BUSCAR CONTAS BANCÁRIAS (SOMENTE AS ATIVAS) ---
+    $stmt_bancos_ativos = $db_financeiro->prepare("SELECT id, nome_conta, banco FROM contas_bancarias WHERE id_usuario = ? AND (status = 'Ativa' OR status IS NULL)");
+    $stmt_bancos_ativos->execute([$id_usuario]);
+    $bancos_cadastrados = $stmt_bancos_ativos->fetchAll(PDO::FETCH_ASSOC);
+    // -----------------------------------------------
+
 } catch (Exception $e) {
     $contas = [];
     $lista_categorias = [];
+    $bancos_cadastrados = [];
 }
 $contas_finais = [];
 $grupos_royalties = [];
@@ -54,12 +62,32 @@ usort($contas_finais, function ($a, $b) {
 <link rel="stylesheet" href="../static/css/global.css">
 <link rel="stylesheet" href="../static/css/style.css">
 <link rel="stylesheet" href="../static/css/financeiro.css">
+
+<div class="financeiro-nav">
+    <div class="nav-dropdown">
+        <button class="nav-dropbtn">Cadastros ▾</button>
+        <div class="nav-dropdown-content">
+            <a href="gerenciar_contas.php">Contas Correntes</a>
+            <a href="#">Fornecedores</a>
+            <a href="#">Clientes</a>
+        </div>
+    </div>
+    <a href="caixa_bancos.php">Caixa e Bancos</a>
+    <a href="contas_pagar.php">Contas a Pagar</a>
+    <a href="#">Contas a Receber</a>
+    <div class="nav-dropdown">
+        <button class="nav-dropbtn">Relatórios ▾</button>
+        <div class="nav-dropdown-content">
+            <a href="relatorio_contas.php">Pagamentos</a>
+            <a href="#">Recebimentos</a>
+        </div>
+    </div>
+</div>
+
 <div style="display: flex; gap: 10px;">
-    <a href="relatorio_contas.php" class="btn btn-secondary">📊 RELATÓRIOS</a>
     <button class="btn btn-primary" onclick="abrirModalConta()">+ INCLUIR CONTA</button>
 </div>
 <div class="financeiro-container financeiro-wrapper">
-
 
     <div class="header-actions">
         <button class="btn-column-filter" onclick="toggleColumnSidebar()">
@@ -85,8 +113,6 @@ usort($contas_finais, function ($a, $b) {
                     <div id="filtro-categoria" class="filtro-dropdown"></div>
                 </th>
                 <th class="col-status">Status</th>
-
-
             </tr>
         </thead>
         <tbody>
@@ -105,21 +131,9 @@ usort($contas_finais, function ($a, $b) {
                             class="check-titulo <?= isset($c['is_group']) ? 'check-master' : '' ?>"
 
                             <?php if (isset($c['is_group'])): ?>
-
-                            data-ids="<?=
-                                        implode(
-                                            ',',
-                                            array_column(
-                                                $grupos_royalties[$c['vencimento']]['detalhes'],
-                                                'id'
-                                            )
-                                        )
-                                        ?>"
-
+                            data-ids="<?= implode(',', array_column($grupos_royalties[$c['vencimento']]['detalhes'], 'id')) ?>"
                             <?php else: ?>
-
                             data-id="<?= $c['id'] ?>"
-
                             <?php endif; ?>
 
                             data-valor="<?= $c['valor'] ?>">
@@ -146,7 +160,6 @@ usort($contas_finais, function ($a, $b) {
                     <td>R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
                     <td class="col-categoria"><?= htmlspecialchars($c['categoria_nome']) ?></td>
                     <td class="col-status"><span class="status-badge pendente">Pendente</span></td>
-
                 </tr>
 
                 <?php if (isset($c['is_group'])): ?>
@@ -168,10 +181,7 @@ usort($contas_finais, function ($a, $b) {
                             </td>
                             <td>R$ <?= number_format($filha['valor'], 2, ',', '.') ?></td>
                             <td><?= htmlspecialchars($filha['categoria_nome']) ?></td>
-                            <td> <span class="status-badge pendente">
-                                    Pendente</span>
-                            </td>
-
+                            <td> <span class="status-badge pendente">Pendente</span></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -204,7 +214,16 @@ usort($contas_finais, function ($a, $b) {
                         <option value="Dinheiro">Dinheiro</option>
                         <option value="Cartão">Cartão</option>
                     </select></div>
-                <div class="form-group"><label>Banco de Saída</label><input type="text" name="banco_pagamento" placeholder="Ex: Itaú..." class="form-control" required></div>
+
+                <div class="form-group">
+                    <label>Conta de Saída</label>
+                    <select name="banco_pagamento" id="banco_pagamento" class="form-control" required>
+                        <option value="">Selecione a Conta...</option>
+                        <?php foreach ($bancos_cadastrados as $banco): ?>
+                            <option value="<?= $banco['id'] ?>"><?= htmlspecialchars($banco['nome_conta']) ?> (<?= htmlspecialchars($banco['banco']) ?>)</option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
             <div class="composicao-box">
@@ -328,44 +347,16 @@ usort($contas_finais, function ($a, $b) {
 </div>
 
 <div id="columnSidebar" class="column-sidebar">
-
     <div class="sidebar-header">
-
         <h3>Exibir Colunas</h3>
-
-        <button onclick="toggleColumnSidebar()">
-            ✕
-        </button>
-
+        <button onclick="toggleColumnSidebar()">✕</button>
     </div>
-
     <div class="sidebar-content">
-
-        <label>
-            <input type="checkbox" class="toggle-column" data-column="fornecedor" checked>
-            Fornecedor
-        </label>
-
-        <label>
-            <input type="checkbox" class="toggle-column" data-column="nf" checked>
-            Nota Fiscal
-        </label>
-
-        <label>
-            <input type="checkbox" class="toggle-column" data-column="descricao" checked>
-            Descrição
-        </label>
-
-        <label>
-            <input type="checkbox" class="toggle-column" data-column="categoria" checked>
-            Categoria
-        </label>
-
-        <label>
-            <input type="checkbox" class="toggle-column" data-column="status" checked>
-            Status
-        </label>
-
+        <label><input type="checkbox" class="toggle-column" data-column="fornecedor" checked> Fornecedor</label>
+        <label><input type="checkbox" class="toggle-column" data-column="nf" checked> Nota Fiscal</label>
+        <label><input type="checkbox" class="toggle-column" data-column="descricao" checked> Descrição</label>
+        <label><input type="checkbox" class="toggle-column" data-column="categoria" checked> Categoria</label>
+        <label><input type="checkbox" class="toggle-column" data-column="status" checked> Status</label>
     </div>
 </div>
 

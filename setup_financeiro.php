@@ -57,4 +57,50 @@ try {
 } catch (PDOException $e) {
     echo "<p style='color: red;'>Erro ao criar tabelas: " . $e->getMessage() . "</p>";
 }
+
+// 2. DADOS DOS USUÁRIOS (Isolados por id_usuario)
+    $sql_usuarios = "
+    CREATE TABLE IF NOT EXISTS contas_pagar (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_usuario INTEGER NOT NULL, -- A chave mágica da separação!
+        fornecedor TEXT,
+        emissao DATE,
+        vencimento DATE,
+        nota_fiscal TEXT,
+        descricao TEXT,
+        valor REAL,
+        id_categoria INTEGER,
+        status TEXT DEFAULT 'Pendente',
+        xml_referencia TEXT,
+        FOREIGN KEY (id_categoria) REFERENCES categorias_financeiras(id)
+    );
+
+    -- NOVAS TABELAS PARA CAIXA E BANCOS
+    CREATE TABLE IF NOT EXISTS contas_bancarias (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_usuario INTEGER NOT NULL,
+        nome_conta TEXT NOT NULL,
+        banco TEXT,
+        saldo_inicial REAL DEFAULT 0.0,
+        data_saldo_inicial DATE
+    );
+
+    CREATE TABLE IF NOT EXISTS movimentacoes_caixa (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_usuario INTEGER NOT NULL,
+        id_conta INTEGER NOT NULL,
+        data_movimento DATE NOT NULL,
+        tipo TEXT CHECK(tipo IN ('Entrada', 'Saida')) NOT NULL,
+        valor REAL NOT NULL,
+        descricao TEXT,
+        id_categoria INTEGER,
+        origem TEXT DEFAULT 'Manual', -- 'Manual' ou 'Importacao'
+        hash_importacao TEXT UNIQUE,  -- Crucial para evitar duplicar dados ao importar o mesmo extrato 2x
+        FOREIGN KEY (id_conta) REFERENCES contas_bancarias(id) ON DELETE CASCADE,
+        FOREIGN KEY (id_categoria) REFERENCES categorias_financeiras(id)
+    );
+    ";
+    $db_financeiro->exec($sql_usuarios);
+    
 ?>
+

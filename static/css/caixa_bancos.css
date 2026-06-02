@@ -1,0 +1,360 @@
+*{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-sizing: border-box;
+    font-size: 12px;
+}
+
+/* =======================================
+   Filtros e Botões (Alinhamento Perfeito)
+   ======================================= */
+.cabecalho-pagina {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+}
+
+.cabecalho-pagina h2 {
+    margin: 0;
+    color: #343a40;
+}
+
+.filtros-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    /* Permite os botões caírem lindamente em telas menores */
+    gap: 20px;
+}
+
+.filtros-inputs {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    flex: 1;
+    /* Faz os filtros ocuparem o espaço sem empurrar os botões */
+}
+
+.filtros-acoes {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+    align-items: flex-end;
+}
+
+.filtros-acoes button {
+    white-space: nowrap;
+    /* Impede a quebra de linha do "Novo Lançamento" */
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: #fff;
+}
+
+.btn-success:hover {
+    background-color: #6caa7a;
+}
+
+
+.btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 5px;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.btn-secondary {
+    background-color: #1565c0;
+    border-color: #1565c0;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #335b88;
+    border-color: #335b88;
+}
+
+.grupo-filtro {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.grupo-filtro label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+}
+
+.btn-atualizar {
+    height: 38px;
+}
+
+.select-conta {
+    max-width: 320px;
+    /* Evita que o campo cresça ao infinito */
+}
+
+/* =======================================
+   Cards do Dashboard e Outros
+   ======================================= */
+.resumo-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.card-resumo {
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-info h4 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.card-info h3 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.card-inicial {
+    background-color: #f8f9fa;
+    border-left: 5px solid #6c757d;
+}
+
+.card-inicial h3 {
+    color: #343a40;
+}
+
+.card-entradas {
+    background-color: #e8f5e9;
+    border-left: 5px solid #2e7d32;
+}
+
+.card-entradas h3 {
+    color: #2e7d32;
+}
+
+.card-saidas {
+    background-color: #ffebee;
+    border-left: 5px solid #c62828;
+}
+
+.card-saidas h3 {
+    color: #c62828;
+}
+
+.card-final {
+    background-color: #e3f2fd;
+    border-left: 5px solid #1565c0;
+}
+
+.card-final h3 {
+    color: #1565c0;
+}
+
+.painel-branco {
+    background: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tabela-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    padding-bottom: 120px !important; 
+}
+
+
+.table, .table tbody, .table tr, .table td {
+    overflow: visible !important;
+}
+
+.dropdown-acoes {
+    position: relative;
+    display: inline-block;
+}
+
+.valor-entrada {
+    color: #2e7d32;
+    font-weight: bold;
+}
+
+.valor-saida {
+    color: #c62828;
+    font-weight: bold;
+}
+
+.table th {
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    vertical-align: middle !important;
+}
+
+/* Modais */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.fechar-modal {
+    font-size: 24px;
+    cursor: pointer;
+    color: #aaa;
+    font-weight: bold;
+}
+
+.fechar-modal:hover {
+    color: #000;
+}
+
+/* Menu de Ações Dropdown */
+.dropdown-acoes {
+    position: relative;
+    display: inline-block;
+}
+
+.btn-dots {
+    background: none;
+    border: none;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 10px;
+    color: #6c757d;
+    border-radius: 5px;
+}
+
+.btn-dots:hover {
+    color: #000;
+    background: #f1f3f5;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%; /* Faz o menu abrir exatamente debaixo do botão */
+    background-color: #ffffff;
+    min-width: 130px;
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.25) !important; /* Sombra mais forte */
+    z-index: 9999999 !important; /* Nível máximo para passar por cima de tudo */
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+.dropdown-content a {
+    color: #333;
+    padding: 12px 15px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.dropdown-content a:last-child {
+    border-bottom: none;
+}
+
+.dropdown-content a:hover {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    color: #007bff;
+}
+
+.dropdown-content a.text-danger:hover {
+    color: #dc3545;
+}
+
+.dropdown-show {
+    display: block;
+}
+
+/* =======================================
+   Estrutura dos Modais (Fundo Escuro e Caixa)
+   ======================================= */
+.modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.6) !important; /* Fundo escuro transparente */
+    z-index: 99999999 !important; /* Fica acima de absolutamente TUDO na tela */
+    padding-top: 6% !important;
+    overflow: visible !important;
+}
+
+.modal-content {
+    font-size: 12px;
+    background: #ffffff !important;
+    border-radius: 10px !important;
+    padding: 30px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+    margin: 0 auto !important; 
+    position: relative !important;
+    width: 90% !important;
+    max-width: 500px !important;
+    max-height: 85vh !important; /* Nunca ultrapassa 85% da altura da tela */
+    overflow-y: auto !important; /* Cria barra de rolagem só dentro da caixa se precisar */
+    box-sizing: border-box !important;
+}
+
+.modal-pequeno {
+    max-width: 500px !important;
+    width: 90% !important;
+}
+
+.modal-botoes {
+    margin-top: 24px;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
