@@ -8,14 +8,33 @@ require '../includes/header.php';
 $id_usuario = $_SESSION['user_id'];
 
 try {
-    $stmt = $db_financeiro->prepare("
+    // Captura as datas do filtro via GET
+    $data_inicio = $_GET['data_inicio'] ?? '';
+    $data_fim = $_GET['data_fim'] ?? '';
+
+    // Monta a query base
+    $sql_contas = "
         SELECT cp.*, cat.nome as categoria_nome 
         FROM contas_pagar cp 
         LEFT JOIN categorias_financeiras cat ON cp.id_categoria = cat.id 
         WHERE cp.id_usuario = ? AND cp.status != 'Pago'
-        ORDER BY cp.vencimento ASC
-    ");
-    $stmt->execute([$id_usuario]);
+    ";
+    $params = [$id_usuario];
+
+    // Adiciona o filtro de período, se preenchido
+    if (!empty($data_inicio)) {
+        $sql_contas .= " AND cp.vencimento >= ?";
+        $params[] = $data_inicio;
+    }
+    if (!empty($data_fim)) {
+        $sql_contas .= " AND cp.vencimento <= ?";
+        $params[] = $data_fim;
+    }
+
+    $sql_contas .= " ORDER BY cp.vencimento ASC";
+
+    $stmt = $db_financeiro->prepare($sql_contas);
+    $stmt->execute($params);
     $contas = $stmt->fetchAll();
 
     $stmt_cat = $db_financeiro->query("SELECT * FROM categorias_financeiras WHERE tipo = 'Despesa' ORDER BY grupo ASC, nome ASC");
@@ -26,6 +45,7 @@ try {
     $stmt_bancos_ativos->execute([$id_usuario]);
     $bancos_cadastrados = $stmt_bancos_ativos->fetchAll(PDO::FETCH_ASSOC);
     // -----------------------------------------------
+
 
 } catch (Exception $e) {
     $contas = [];
@@ -89,7 +109,24 @@ usort($contas_finais, function ($a, $b) {
 </div>
 <div class="financeiro-container financeiro-wrapper">
 
-    <div class="header-actions">
+  <div class="header-actions" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 15px;">
+        
+        <form method="GET" action="contas_pagar.php" style="display: flex; align-items: center; gap: 10px; margin: 0;">
+            <label style="font-size: 14px; font-weight: bold;">Período:</label>
+            
+            <input type="date" name="data_inicio" class="form-control" value="<?= htmlspecialchars($data_inicio) ?>" style="max-width: 140px; cursor: pointer; font-size: 12px;" onclick="this.showPicker()">
+            
+            <span style="font-size: 14px;">até</span>
+            
+            <input type="date" name="data_fim" class="form-control" value="<?= htmlspecialchars($data_fim) ?>" style="max-width: 140px; cursor: pointer; font-size: 12px;" onclick="this.showPicker()">
+            
+            <button type="submit" class="btn btn-primary" style="margin: 0; padding: 7px 20px;">🔍 Buscar</button>
+            
+            <?php if(!empty($data_inicio) || !empty($data_fim)): ?>
+                <a href="contas_pagar.php" class="btn-cancel" style="font-size: 12px; padding: 8px 15px; text-decoration: none; display: flex; align-items: center;">Limpar</a>
+            <?php endif; ?>
+        </form>
+
         <button class="btn-column-filter" onclick="toggleColumnSidebar()">
             ⚙ Filtrar Colunas
         </button>
