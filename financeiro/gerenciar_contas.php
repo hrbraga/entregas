@@ -99,14 +99,15 @@ if(isset($_GET['msg'])) {
                 <a href="#">Clientes</a>
             </div>
         </div>
-        <a href="caixa_bancos.php">Caixa e Bancos</a>
+       <a href="caixa_bancos.php">Caixa e Bancos</a>
         <a href="contas_pagar.php">Contas a Pagar</a>
-        <a href="#">Contas a Receber</a>
+        <a href="contas_receber.php">Contas a Receber</a>
         <div class="nav-dropdown">
             <button class="nav-dropbtn">Relatórios ▾</button>
             <div class="nav-dropdown-content">
                 <a href="relatorio_contas.php">Pagamentos</a>
                 <a href="#">Recebimentos</a>
+                <a href="dre.php" style="font-weight: bold; background: #f8f9fa;">📊 DRE</a>
             </div>
         </div>
     </div>

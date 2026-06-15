@@ -1,4 +1,4 @@
-*{
+* {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     box-sizing: border-box;
     font-size: 12px;
@@ -192,11 +192,14 @@
     overflow: visible !important;
     overflow-x: visible !important;
     overflow-y: visible !important;
-    padding-bottom: 120px !important; 
+    padding-bottom: 120px !important;
 }
 
 
-.table, .table tbody, .table tr, .table td {
+.table,
+.table tbody,
+.table tr,
+.table td {
     overflow: visible !important;
 }
 
@@ -279,11 +282,14 @@
     display: none;
     position: absolute;
     right: 0;
-    top: 100%; /* Faz o menu abrir exatamente debaixo do botão */
+    top: 100%;
+    /* Faz o menu abrir exatamente debaixo do botão */
     background-color: #ffffff;
     min-width: 130px;
-    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.25) !important; /* Sombra mais forte */
-    z-index: 9999999 !important; /* Nível máximo para passar por cima de tudo */
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.25) !important;
+    /* Sombra mais forte */
+    z-index: 9999999 !important;
+    /* Nível máximo para passar por cima de tudo */
     border-radius: 6px;
     border: 1px solid #ccc;
     text-align: left;
@@ -325,8 +331,10 @@
     left: 0 !important;
     width: 100% !important;
     height: 100% !important;
-    background: rgba(0, 0, 0, 0.6) !important; /* Fundo escuro transparente */
-    z-index: 99999999 !important; /* Fica acima de absolutamente TUDO na tela */
+    background: rgba(0, 0, 0, 0.6) !important;
+    /* Fundo escuro transparente */
+    z-index: 99999999 !important;
+    /* Fica acima de absolutamente TUDO na tela */
     padding-top: 6% !important;
     overflow: visible !important;
 }
@@ -337,12 +345,14 @@
     border-radius: 10px !important;
     padding: 30px !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
-    margin: 0 auto !important; 
+    margin: 0 auto !important;
     position: relative !important;
     width: 90% !important;
     max-width: 500px !important;
-    max-height: 85vh !important; /* Nunca ultrapassa 85% da altura da tela */
-    overflow-y: auto !important; /* Cria barra de rolagem só dentro da caixa se precisar */
+    max-height: 85vh !important;
+    /* Nunca ultrapassa 85% da altura da tela */
+    overflow-y: auto !important;
+    /* Cria barra de rolagem só dentro da caixa se precisar */
     box-sizing: border-box !important;
 }
 
@@ -357,4 +367,16 @@
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+}
+
+.btn-conciliacao {
+    background: #17a2b8;
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }

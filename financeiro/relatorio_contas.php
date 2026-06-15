@@ -14,34 +14,34 @@ $status_filtro = $_GET['status'] ?? 'Aberto';
 
 try {
     if ($status_filtro === 'Aberto') {
-        // 1. Busca dados APENAS do Contas a Pagar (Abertos)
-        $sql_tabela = "
+        // 1. Busca dados APENAS do Contas a Pagar (Abertos) + TAXAS INVISÍVEIS DA CIELO (A Receber)
+        $sql_base = "
             SELECT cp.vencimento as data_ref, cp.fornecedor, cp.descricao, cat.nome as categoria_nome, cp.valor
             FROM contas_pagar cp
             LEFT JOIN categorias_financeiras cat ON cp.id_categoria = cat.id
             WHERE cp.id_usuario = ? AND cp.status != 'Pago' AND cp.vencimento BETWEEN ? AND ?
-            ORDER BY cp.vencimento ASC
-        ";
-        $params = [$id_usuario, $data_inicio, $data_fim];
-
-        $sql_grafico = "
-            SELECT vencimento as data_ref, SUM(valor) as total
-            FROM contas_pagar
-            WHERE id_usuario = ? AND status != 'Pago' AND vencimento BETWEEN ? AND ?
-            GROUP BY vencimento
-            ORDER BY vencimento ASC
+            
+            UNION ALL 
+            
+            SELECT cr.vencimento as data_ref, 'Cielo (Taxas)' as fornecedor, 'Taxa a Descontar: ' || cr.descricao as descricao, 'Taxas de Cartão' as categoria_nome, cr.taxa_importacao as valor
+            FROM contas_receber cr
+            WHERE cr.id_usuario = ? AND cr.status != 'Recebido' AND COALESCE(cr.taxa_importacao, 0) > 0 AND cr.vencimento BETWEEN ? AND ?
         ";
 
-        $sql_cat = "
-            SELECT COALESCE(cat.nome, 'Sem Categoria') as categoria, SUM(cp.valor) as total
-            FROM contas_pagar cp
-            LEFT JOIN categorias_financeiras cat ON cp.id_categoria = cat.id
-            WHERE cp.id_usuario = ? AND cp.status != 'Pago' AND cp.vencimento BETWEEN ? AND ?
-            GROUP BY cat.nome
-            ORDER BY total DESC
-        ";
+        $params = [
+            $id_usuario,
+            $data_inicio,
+            $data_fim,
+            $id_usuario,
+            $data_inicio,
+            $data_fim
+        ];
+
+        $sql_tabela = "SELECT data_ref, fornecedor, descricao, categoria_nome, valor FROM ($sql_base) as unificados ORDER BY data_ref ASC";
+        $sql_grafico = "SELECT data_ref, SUM(valor) as total FROM ($sql_base) as unificados GROUP BY data_ref ORDER BY data_ref ASC";
+        $sql_cat = "SELECT COALESCE(categoria_nome, 'Sem Categoria') as categoria, SUM(valor) as total FROM ($sql_base) as unificados GROUP BY categoria_nome ORDER BY total DESC";
     } else {
-        // 2. Busca dados PAGOS (Contas a Pagar) + SAÍDAS (Caixa e Bancos)
+        // 2. Busca dados PAGOS + SAÍDAS (Caixa e Bancos) + TAXAS INVISÍVEIS DA CIELO (Já Recebidas)
         $sql_base_pago = "
             SELECT cp.data_pagamento as data_ref, cp.fornecedor, cp.descricao, cat.nome as categoria_nome, cp.valor
             FROM contas_pagar cp
@@ -53,30 +53,30 @@ try {
             SELECT mc.data_movimento as data_ref, 'Caixa / Bancos' as fornecedor, mc.descricao, cat.nome as categoria_nome, mc.valor
             FROM movimentacoes_caixa mc
             LEFT JOIN categorias_financeiras cat ON mc.id_categoria = cat.id
-            WHERE mc.id_usuario = ? AND mc.origem IN ('Manual', 'Importacao') AND mc.tipo = 'Saida' AND mc.data_movimento BETWEEN ? AND ?
+            WHERE mc.id_usuario = ? AND mc.origem IN ('Manual', 'Importacao', 'Contas a Receber') AND mc.tipo = 'Saida' AND mc.data_movimento BETWEEN ? AND ?
+
+            UNION ALL
+            
+            SELECT cr.data_pagamento as data_ref, 'Cielo (Taxas)' as fornecedor, 'Taxa Oculta: ' || cr.descricao as descricao, 'Taxas de Cartão' as categoria_nome, cr.taxa_importacao as valor
+            FROM contas_receber cr
+            WHERE cr.id_usuario = ? AND cr.status = 'Recebido' AND COALESCE(cr.taxa_importacao, 0) > 0 AND cr.data_pagamento BETWEEN ? AND ?
         ";
 
-        $params = [$id_usuario, $data_inicio, $data_fim, $id_usuario, $data_inicio, $data_fim];
+        $params = [
+            $id_usuario,
+            $data_inicio,
+            $data_fim,
+            $id_usuario,
+            $data_inicio,
+            $data_fim,
+            $id_usuario,
+            $data_inicio,
+            $data_fim
+        ];
 
-        $sql_tabela = "
-            SELECT data_ref, fornecedor, descricao, categoria_nome, valor 
-            FROM ($sql_base_pago) as unificados
-            ORDER BY data_ref ASC
-        ";
-
-        $sql_grafico = "
-            SELECT data_ref, SUM(valor) as total
-            FROM ($sql_base_pago) as unificados
-            GROUP BY data_ref
-            ORDER BY data_ref ASC
-        ";
-
-        $sql_cat = "
-            SELECT COALESCE(categoria_nome, 'Sem Categoria') as categoria, SUM(valor) as total
-            FROM ($sql_base_pago) as unificados
-            GROUP BY categoria_nome
-            ORDER BY total DESC
-        ";
+        $sql_tabela = "SELECT data_ref, fornecedor, descricao, categoria_nome, valor FROM ($sql_base_pago) as unificados ORDER BY data_ref ASC";
+        $sql_grafico = "SELECT data_ref, SUM(valor) as total FROM ($sql_base_pago) as unificados GROUP BY data_ref ORDER BY data_ref ASC";
+        $sql_cat = "SELECT COALESCE(categoria_nome, 'Sem Categoria') as categoria, SUM(valor) as total FROM ($sql_base_pago) as unificados GROUP BY categoria_nome ORDER BY total DESC";
     }
 
     $stmt = $db_financeiro->prepare($sql_tabela);
@@ -112,12 +112,13 @@ try {
     </div>
     <a href="caixa_bancos.php">Caixa e Bancos</a>
     <a href="contas_pagar.php">Contas a Pagar</a>
-    <a href="#">Contas a Receber</a>
+    <a href="contas_receber.php">Contas a Receber</a>
     <div class="nav-dropdown">
         <button class="nav-dropbtn">Relatórios ▾</button>
         <div class="nav-dropdown-content">
             <a href="relatorio_contas.php">Pagamentos</a>
             <a href="#">Recebimentos</a>
+            <a href="dre.php" style="font-weight: bold; background: #f8f9fa;">📊 DRE</a>
         </div>
     </div>
 </div>
@@ -225,6 +226,8 @@ try {
                     <td>
                         <?php if ($c['fornecedor'] === 'Caixa / Bancos'): ?>
                             <span style="background: #1565c0; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px;">🏦 Caixa</span>
+                        <?php elseif (strpos($c['fornecedor'], 'Cielo') !== false): ?>
+                            <span style="background: #ff9800; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px;">💳 <?= htmlspecialchars($c['fornecedor']) ?></span>
                         <?php else: ?>
                             <?= htmlspecialchars($c['fornecedor']) ?>
                         <?php endif; ?>

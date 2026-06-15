@@ -94,12 +94,13 @@ usort($contas_finais, function ($a, $b) {
     </div>
     <a href="caixa_bancos.php">Caixa e Bancos</a>
     <a href="contas_pagar.php">Contas a Pagar</a>
-    <a href="#">Contas a Receber</a>
+    <a href="contas_receber.php">Contas a Receber</a>
     <div class="nav-dropdown">
         <button class="nav-dropbtn">Relatórios ▾</button>
         <div class="nav-dropdown-content">
             <a href="relatorio_contas.php">Pagamentos</a>
             <a href="#">Recebimentos</a>
+            <a href="dre.php" style="font-weight: bold; background: #f8f9fa;">📊 DRE</a>
         </div>
     </div>
 </div>
@@ -109,20 +110,20 @@ usort($contas_finais, function ($a, $b) {
 </div>
 <div class="financeiro-container financeiro-wrapper">
 
-  <div class="header-actions" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 15px;">
-        
+    <div class="header-actions" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 15px;">
+
         <form method="GET" action="contas_pagar.php" style="display: flex; align-items: center; gap: 10px; margin: 0;">
             <label style="font-size: 14px; font-weight: bold;">Período:</label>
-            
+
             <input type="date" name="data_inicio" class="form-control" value="<?= htmlspecialchars($data_inicio) ?>" style="max-width: 140px; cursor: pointer; font-size: 12px;" onclick="this.showPicker()">
-            
+
             <span style="font-size: 14px;">até</span>
-            
+
             <input type="date" name="data_fim" class="form-control" value="<?= htmlspecialchars($data_fim) ?>" style="max-width: 140px; cursor: pointer; font-size: 12px;" onclick="this.showPicker()">
-            
+
             <button type="submit" class="btn btn-primary" style="margin: 0; padding: 7px 20px;">🔍 Buscar</button>
-            
-            <?php if(!empty($data_inicio) || !empty($data_fim)): ?>
+
+            <?php if (!empty($data_inicio) || !empty($data_fim)): ?>
                 <a href="contas_pagar.php" class="btn-cancel" style="font-size: 12px; padding: 8px 15px; text-decoration: none; display: flex; align-items: center;">Limpar</a>
             <?php endif; ?>
         </form>

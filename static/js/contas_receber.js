@@ -436,3 +436,103 @@ function filtrarOpcoesFiltro(input) {
         item.style.display = texto.includes(termo) ? 'flex' : 'none';
     });
 }
+
+let dadosCieloAtuais = [];
+
+// ==========================================
+// MENU KEBAB (Sobreposição Perfeita)
+// ==========================================
+function toggleKebab(btn) {
+    const dropdown = btn.nextElementSibling;
+    const isShowing = dropdown.classList.contains('show');
+
+    // Fecha todos os outros menus primeiro
+    document.querySelectorAll('.kebab-dropdown').forEach(d => d.classList.remove('show'));
+
+    if (!isShowing) {
+        // Pega a posição exata do botão no monitor do usuário
+        const rect = btn.getBoundingClientRect();
+        
+        // Fixa o menu na tela de forma absoluta (ignora a tabela)
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = rect.bottom + 'px';
+        dropdown.style.left = (rect.right - 140) + 'px'; // Empurra para a esquerda
+        
+        dropdown.classList.add('show');
+    }
+}
+
+// Fecha o menu se o usuário rolar a página (para não ficar a flutuar)
+window.addEventListener('scroll', () => {
+    document.querySelectorAll('.kebab-dropdown').forEach(d => d.classList.remove('show'));
+}, true);
+
+document.addEventListener('click', e => {
+    if (!e.target.matches('.btn-kebab')) {
+        document.querySelectorAll('.kebab-dropdown').forEach(d => d.classList.remove('show'));
+    }
+});
+
+// ==========================================
+// IMPORTAÇÃO CIELO
+// ==========================================
+function abrirModalImportar() {
+    document.getElementById('modalImportar').style.display = 'flex';
+    document.getElementById('import_step_1').style.display = 'block';
+    document.getElementById('import_step_2').style.display = 'none';
+    document.getElementById('arquivo_importacao').value = '';
+}
+
+function fecharModalImportar() {
+    document.getElementById('modalImportar').style.display = 'none';
+}
+
+function processarPlanilhaCielo() {
+    const file = document.getElementById('arquivo_importacao').files[0];
+    if (!file) return alert("Selecione um arquivo CSV primeiro!");
+
+    const fd = new FormData();
+    fd.append('action', 'preview_cielo');
+    fd.append('arquivo_csv', file);
+
+    fetch('contas_receber_actions.php', { method: 'POST', body: fd })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                dadosCieloAtuais = data.dados;
+                let html = '';
+                dadosCieloAtuais.forEach(d => {
+                    const dtV = d.vencimento.split('-').reverse().join('/');
+                    const dtE = d.emissao.split('-').reverse().join('/');
+                    html += `<tr>
+                        <td>${dtE}</td>
+                        <td><strong style="color:#007bff">${dtV}</strong></td>
+                        <td>Cielo - Receb. em ${d.tipo}</td>
+                        <td class="text-right" style="color:#28a745; font-weight:bold">${formatarValor(d.liquido)}</td>
+                        <td class="text-right" style="color:#dc3545">${formatarValor(d.taxa)}</td>
+                    </tr>`;
+                });
+                
+                document.getElementById('tabela_preview_cielo').innerHTML = html;
+                document.getElementById('import_step_1').style.display = 'none';
+                document.getElementById('import_step_2').style.display = 'block';
+            } else { alert("Erro: " + data.message); }
+        });
+}
+
+function confirmarImportacaoCielo() {
+    const fd = new FormData();
+    fd.append('action', 'importar_cielo_confirmado');
+    fd.append('dados_importacao', JSON.stringify(dadosCieloAtuais));
+
+    fetch('contas_receber_actions.php', { method: 'POST', body: fd })
+        .then(res => res.json())
+        .then(data => {
+            mostrarToast(data.message);
+            if (data.status === 'success') setTimeout(() => location.reload(), 1500);
+        });
+}
+
+function formatarValor(v) { 
+    return parseFloat(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); 
+}

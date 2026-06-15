@@ -34,12 +34,13 @@ $categorias = $stmt_categorias->fetchAll(PDO::FETCH_ASSOC);
         </div>
         <a href="caixa_bancos.php">Caixa e Bancos</a>
         <a href="contas_pagar.php">Contas a Pagar</a>
-        <a href="#">Contas a Receber</a>
+        <a href="contas_receber.php">Contas a Receber</a>
         <div class="nav-dropdown">
             <button class="nav-dropbtn">Relatórios ▾</button>
             <div class="nav-dropdown-content">
                 <a href="relatorio_contas.php">Pagamentos</a>
                 <a href="#">Recebimentos</a>
+                <a href="dre.php" style="font-weight: bold; background: #f8f9fa;">📊 DRE</a>
             </div>
         </div>
     </div>
@@ -52,88 +53,92 @@ $categorias = $stmt_categorias->fetchAll(PDO::FETCH_ASSOC);
         <button onclick="abrirModalLancamento()" class="btn btn-success">+ Novo Lançamento</button>
         <button onclick="abrirModalTransferencia()" class="btn btn-info" style="background-color: #17a2b8; border-color: #17a2b8; color: white; font-weight: 600;">🔄 Transferência</button>
         <button onclick="abrirModalImportacao()" class="btn btn-secondary">📥 Importar Extrato</button>
+        <a href="conciliacao.php" class="btn btn-conciliacao">
+            🤝 CONCILIAÇÃO BANCÁRIA
+        </a>
     </div>
+</div>
 
-    <div class="filtros-wrapper">
-        <div class="filtros-inputs">
-            <div class="grupo-filtro">
-                <label>Conta Bancária</label>
-                <select id="filtroConta" class="form-control select-conta" onchange="carregarMovimentacoes()">
-                    <option value="todas">Visão Geral (Todas as Contas)</option>
-                    <?php foreach ($contas as $conta): ?>
-                        <option value="<?= $conta['id'] ?>"><?= htmlspecialchars($conta['nome_conta']) ?> (<?= htmlspecialchars($conta['banco']) ?>)</option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+<div class="filtros-wrapper">
+    <div class="filtros-inputs">
+        <div class="grupo-filtro">
+            <label>Conta Bancária</label>
+            <select id="filtroConta" class="form-control select-conta" onchange="carregarMovimentacoes()">
+                <option value="todas">Visão Geral (Todas as Contas)</option>
+                <?php foreach ($contas as $conta): ?>
+                    <option value="<?= $conta['id'] ?>"><?= htmlspecialchars($conta['nome_conta']) ?> (<?= htmlspecialchars($conta['banco']) ?>)</option>
+                <?php endforeach; ?>
+            </select>
+        </div>
 
-            <div class="grupo-filtro">
-                <label>Período</label>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="date" id="filtroDataInicio" class="form-control" value="<?= date('Y-m-01') ?>" onchange="carregarMovimentacoes()">
-                    <span>até</span>
-                    <input type="date" id="filtroDataFim" class="form-control" value="<?= date('Y-m-t') ?>" onchange="carregarMovimentacoes()">
-                </div>
-            </div>
-
-            <div class="grupo-filtro">
-                <label>Tipo</label>
-                <select id="filtroTipo" class="form-control" onchange="carregarMovimentacoes()">
-                    <option value="Todos">Todos</option>
-                    <option value="Entrada">Entradas</option>
-                    <option value="Saida">Saídas</option>
-                </select>
+        <div class="grupo-filtro">
+            <label>Período</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="date" id="filtroDataInicio" class="form-control" value="<?= date('Y-m-01') ?>" onchange="carregarMovimentacoes()">
+                <span>até</span>
+                <input type="date" id="filtroDataFim" class="form-control" value="<?= date('Y-m-t') ?>" onchange="carregarMovimentacoes()">
             </div>
         </div>
-    </div>
 
-    <div class="resumo-cards">
-        <div class="card-resumo card-inicial">
-            <div class="card-info">
-                <h4>Saldo Inicial</h4>
-                <h3 id="cardSaldoInicial">R$ 0,00</h3>
-            </div>
-        </div>
-        <div class="card-resumo card-entradas">
-            <div class="card-info">
-                <h4>Entradas</h4>
-                <h3 id="cardEntradas">R$ 0,00</h3>
-            </div>
-        </div>
-        <div class="card-resumo card-saidas">
-            <div class="card-info">
-                <h4>Saídas</h4>
-                <h3 id="cardSaidas">R$ 0,00</h3>
-            </div>
-        </div>
-        <div class="card-resumo card-final">
-            <div class="card-info">
-                <h4>Saldo Final</h4>
-                <h3 id="cardSaldoFinal">R$ 0,00</h3>
-            </div>
+        <div class="grupo-filtro">
+            <label>Tipo</label>
+            <select id="filtroTipo" class="form-control" onchange="carregarMovimentacoes()">
+                <option value="Todos">Todos</option>
+                <option value="Entrada">Entradas</option>
+                <option value="Saida">Saídas</option>
+            </select>
         </div>
     </div>
+</div>
 
-    <div class="tabela-container">
-        <table class="table table-striped table-hover" id="tabelaCaixa">
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Descrição</th>
-                    <th>Categoria</th>
-                    <th>Origem</th>
-                    <th>Tipo</th>
-                    <th>Valor</th>
-                    <th>Saldo</th>
-                    <th style="text-align: center;">Ações</th>
-                </tr>
-            </thead>
-            <tbody id="corpoTabelaCaixa">
-                <tr>
-                    <td colspan="8" style="text-align: center; padding: 20px;">Carregando dados...</td>
-                </tr>
-            </tbody>
-        </table>
+<div class="resumo-cards">
+    <div class="card-resumo card-inicial">
+        <div class="card-info">
+            <h4>Saldo Inicial</h4>
+            <h3 id="cardSaldoInicial">R$ 0,00</h3>
+        </div>
     </div>
+    <div class="card-resumo card-entradas">
+        <div class="card-info">
+            <h4>Entradas</h4>
+            <h3 id="cardEntradas">R$ 0,00</h3>
+        </div>
+    </div>
+    <div class="card-resumo card-saidas">
+        <div class="card-info">
+            <h4>Saídas</h4>
+            <h3 id="cardSaidas">R$ 0,00</h3>
+        </div>
+    </div>
+    <div class="card-resumo card-final">
+        <div class="card-info">
+            <h4>Saldo Final</h4>
+            <h3 id="cardSaldoFinal">R$ 0,00</h3>
+        </div>
+    </div>
+</div>
+
+<div class="tabela-container">
+    <table class="table table-striped table-hover" id="tabelaCaixa">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th>Origem</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Saldo</th>
+                <th style="text-align: center;">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="corpoTabelaCaixa">
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 20px;">Carregando dados...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 </div>
 
 <div id="modalLancamento" class="modal" style="display: none;">

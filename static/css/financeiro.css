@@ -1,4 +1,4 @@
-*{
+* {
     box-sizing: border-box;
 }
 
@@ -88,7 +88,7 @@ h1 {
     display: block !important;
 }
 
-.btn-secondary{
+.btn-secondary {
     text-decoration: none;
     display: flex;
     font-size: 10px;
@@ -640,7 +640,7 @@ option {
 /* CHECKBOX */
 .table-financeiro th:first-child,
 .table-financeiro td:first-child {
-    width: 40px;
+    width: 30px;
     white-space: nowrap;
     text-align: center;
 }
@@ -658,14 +658,14 @@ option {
 
 .table-financeiro th:nth-child(2),
 .table-financeiro td:nth-child(2) {
-    width: 170px;
+    width: 80px;
     min-width: 100px;
     text-align: center;
 }
 
 .table-financeiro th:nth-child(3),
 .table-financeiro td:nth-child(3) {
-    width: 100px;
+    width: 90px;
     max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -674,8 +674,7 @@ option {
 
 .table-financeiro th:nth-child(4),
 .table-financeiro td:nth-child(4) {
-    width: 180px;
-    min-width: 95px;
+    width: 100px;
     white-space: wrap;
     text-overflow: ellipsis;
     font-weight: bold;
@@ -683,15 +682,15 @@ option {
 
 .table-financeiro th:nth-child(5),
 .table-financeiro td:nth-child(5) {
-    width: 80px;
-    max-width: 260px;
+    width: 70px;
+
     overflow: hidden;
     white-space: nowrap;
 }
 
 .table-financeiro th:nth-child(6),
 .table-financeiro td:nth-child(6) {
-    width: 180px;
+    width: 140px;
     min-width: 130px;
     white-space: wrap;
 }
@@ -712,10 +711,15 @@ option {
     white-space: wrap;
 }
 
-/* AÇÕES */
 .table-financeiro th:nth-child(9),
 .table-financeiro td:nth-child(9) {
-    width: 120px;
+    width: 100px;
+    text-align: center;
+}
+
+.table-financeiro th:nth-child(10),
+.table-financeiro td:nth-child(10) {
+    width: 70px;
     text-align: center;
 }
 
@@ -732,7 +736,7 @@ option {
     justify-content: space-between;
     align-items: center;
     z-index: 9999;
-    box-shadow: 0 -2px 10px rgba(0,0,0,.25);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, .25);
 }
 
 .footer-lote-info {
@@ -800,7 +804,7 @@ option {
     font-size: 14px;
     height: 100vh;
     background: white;
-    box-shadow: -4px 0 12px rgba(0,0,0,.1);
+    box-shadow: -4px 0 12px rgba(0, 0, 0, .1);
     z-index: 99999;
     transition: right .25s ease;
     display: flex;
@@ -864,7 +868,7 @@ option {
     overflow-y: auto;
     border-radius: 0 0 8px 8px;
     display: none;
-    box-shadow: 0 6px 12px rgba(0,0,0,.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, .1);
 }
 
 .autocomplete-item {
@@ -930,7 +934,7 @@ option {
     border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
-    box-shadow: 0 8px 20px rgba(0,0,0,.15);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .15);
     z-index: 999999;
 
     opacity: 0;
@@ -957,7 +961,7 @@ option {
     border-radius: 12px;
     font-size: 15px;
     font-weight: 600;
-    box-shadow: 0 10px 25px rgba(0,0,0,.18);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .18);
     z-index: 999999999;
     opacity: 0;
     transition: all .3s ease;
@@ -1036,6 +1040,7 @@ option {
     margin-left: 6px;
     font-size: 12px;
 }
+
 .filtro-dropdown {
     position: absolute;
     top: 100%;
@@ -1048,7 +1053,7 @@ option {
     min-width: 260px;
     max-height: 320px;
     overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
     z-index: 999999;
 }
 
@@ -1086,6 +1091,7 @@ option {
     line-height: 22px;
     cursor: pointer;
 }
+
 .filtro-item:hover {
     background: #f5f5f5;
     border-radius: 6px;
@@ -1097,4 +1103,87 @@ option {
     font-size: 12px !important;
     font-weight: 300 !important;
     color: #222 !important;
+}
+
+/* ==========================================
+   MENU KEBAB (Ações)
+   ========================================== */
+.kebab-menu { 
+    position: relative; 
+    display: inline-block; 
+}
+
+.btn-kebab { 
+    background: none; 
+    border: none; 
+    font-size: 20px; 
+    cursor: pointer; 
+    color: #666; 
+    padding: 5px 10px; 
+    line-height: 1;
+    border-radius: 4px;
+}
+
+.btn-kebab:hover { 
+    background-color: #f1f1f1;
+    color: #000; 
+}
+
+.kebab-dropdown { 
+    display: none; 
+    position: absolute; 
+    right: 25px; /* Empurra o menu para a esquerda para não vazar da tela */
+    top: 0; 
+    background: white; 
+    border: 1px solid #ddd; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+    border-radius: 4px; 
+    z-index: 9999; /* Garante que fique acima de todas as outras linhas */
+    min-width: 160px; 
+    text-align: left; 
+}
+
+.kebab-dropdown.show { 
+    display: block; 
+}
+
+.kebab-dropdown button { 
+    display: block; 
+    width: 100%; 
+    padding: 10px 15px; 
+    border: none; 
+    background: none; 
+    text-align: left; 
+    cursor: pointer; 
+    font-size: 13px; 
+    border-bottom: 1px solid #eee; 
+}
+
+.kebab-dropdown button:hover { 
+    background: #f8f9fa; 
+}
+
+/* ==========================================
+   RESPONSIVIDADE DA TABELA E COLUNAS
+   ========================================== */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Dá um respiro embaixo para o dropdown do kebab não ser cortado */
+    padding-bottom: 80px; 
+}
+
+.table-financeiro {
+    width: 100%;
+    min-width: 1000px; /* Impede a tabela de espremer demais os dados */
+    border-collapse: collapse;
+}
+
+/* Limita a coluna de descrição para não "explodir" a largura da tela */
+.col-descricao {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

@@ -44,7 +44,6 @@ try {
 // 2. BUSCA CATEGORIAS (ISOLADO E BLINDADO)
 // ==========================================
 try {
-    // Usamos LIKE para evitar qualquer problema com espaços ou letras minúsculas
     $stmt_cat = $db_financeiro->query("SELECT * FROM categorias_financeiras WHERE tipo LIKE '%Receita%' OR tipo LIKE '%receita%' ORDER BY grupo ASC, nome ASC");
     $lista_categorias = $stmt_cat->fetchAll();
 } catch (Exception $e) {
@@ -89,6 +88,7 @@ usort($contas, function ($a, $b) {
         <div class="nav-dropdown-content">
             <a href="relatorio_contas.php">Pagamentos</a>
             <a href="#">Recebimentos</a>
+            <a href="dre.php" style="font-weight: bold; background: #f8f9fa;">📊 DRE</a>
         </div>
     </div>
 </div>
@@ -96,7 +96,7 @@ usort($contas, function ($a, $b) {
 <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
     <button class="btn btn-primary" onclick="abrirModalConta()">+ INCLUIR CONTA</button>
     <button class="btn" onclick="abrirModalImportar()" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;">
-        📂 IMPORTAR CONTAS
+        📂 IMPORTAR CIELO
     </button>
 </div>
 
@@ -105,11 +105,11 @@ usort($contas, function ($a, $b) {
     <div class="header-actions" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 15px;">
         <form method="GET" action="contas_receber.php" style="display: flex; align-items: center; gap: 10px; margin: 0;">
             <label style="font-size: 14px; font-weight: bold;">Período:</label>
-            <input type="date" name="data_inicio" class="form-control" value="<?= htmlspecialchars($data_inicio) ?>" style="max-width: 140px; cursor: pointer;" onclick="this.showPicker()">
+            <input type="date" name="data_inicio" class="form-control" style="font-size: 12px;  value=" <?= htmlspecialchars($data_inicio) ?>" style="max-width: 140px; cursor: pointer;" onclick="this.showPicker()">
             <span style="font-size: 14px;">até</span>
-            <input type="date" name="data_fim" class="form-control" value="<?= htmlspecialchars($data_fim) ?>" style="max-width: 140px; cursor: pointer;" onclick="this.showPicker()">
+            <input type="date" name="data_fim" class="form-control" style="font-size: 12px; value=" <?= htmlspecialchars($data_fim) ?>" style="max-width: 140px; cursor: pointer;" onclick="this.showPicker()">
             <button type="submit" class="btn btn-primary" style="margin: 0; padding: 8px 15px;">🔍 Buscar</button>
-            <?php if(!empty($data_inicio) || !empty($data_fim)): ?>
+            <?php if (!empty($data_inicio) || !empty($data_fim)): ?>
                 <a href="contas_receber.php" class="btn-cancel" style="padding: 8px 15px; text-decoration: none; display: flex; align-items: center;">Limpar</a>
             <?php endif; ?>
         </form>
@@ -119,48 +119,59 @@ usort($contas, function ($a, $b) {
         </button>
     </div>
 
-    <table class="table-financeiro">
-        <thead>
-            <tr>
-                <th class="text-center"><input type="checkbox" id="selecionar_todos"></th>
-                <th class="text-center">Ações</th>
-                <th>Vencimento</th>
-                <th class="col-cliente"> Cliente <span class="filtro-icon" onclick="toggleFiltro('cliente')"> 🔽 </span>
-                    <div id="filtro-cliente" class="filtro-dropdown"></div>
-                </th>
-                <th class="col-nf">Doc/NF</th>
-                <th class="col-descricao">Descrição</th>
-                <th>Valor</th>
-                <th class="col-categoria"> Categoria <span class="filtro-icon" onclick="toggleFiltro('categoria')"> 🔽 </span>
-                    <div id="filtro-categoria" class="filtro-dropdown"></div>
-                </th>
-                <th class="col-status">Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (count($contas) == 0): ?>
-                <tr><td colspan="9" class="empty-state">Nenhum lançamento a receber encontrado para este período. 🎉</td></tr>
-            <?php endif; ?>
-
-            <?php foreach ($contas as $c): ?>
+    <div class="table-responsive">
+        <table class="table-financeiro">
+            <thead>
                 <tr>
-                    <td class="text-center"><input type="checkbox" class="check-titulo" data-id="<?= $c['id'] ?>" data-valor="<?= $c['valor'] ?>"></td>
-                    <td class="text-center">
-                        <button class="btn-acao" title="Liquidar/Receber" onclick="abrirModalBaixa(<?= $c['id'] ?>, '', <?= $c['valor'] ?>, '<?= htmlspecialchars($c['cliente'], ENT_QUOTES) ?>', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅</button>
-                        <button class="btn-acao" title="Editar" onclick='editarConta(<?= json_encode($c) ?>)'>✏️</button>
-                        <button class="btn-acao" title="Excluir" onclick="excluirConta(<?= $c['id'] ?>)">🗑️</button>
-                    </td>
-                    <td><?= date('d/m/Y', strtotime($c['vencimento'])) ?></td>
-                    <td class="col-cliente"><?= htmlspecialchars($c['cliente']) ?></td>
-                    <td class="col-nf"><?= htmlspecialchars($c['nota_fiscal'] ?? '-') ?></td>
-                    <td class="col-descricao"><?= htmlspecialchars($c['descricao']) ?></td>
-                    <td>R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
-                    <td class="col-categoria"><?= htmlspecialchars($c['categoria_nome']) ?></td>
-                    <td class="col-status"><span class="status-badge pendente">Pendente</span></td>
+                    <th class="text-center"><input type="checkbox" id="selecionar_todos"></th>
+                    <th>Emissão</th>
+                    <th>Vencimento</th>
+                    <th class="col-cliente"> Cliente <span class="filtro-icon" onclick="toggleFiltro('cliente')"> 🔽 </span>
+                        <div id="filtro-cliente" class="filtro-dropdown"></div>
+                    </th>
+                    <th class="col-nf">Doc/NF</th>
+                    <th class="col-descricao">Descrição</th>
+                    <th>Valor</th>
+                    <th class="col-categoria"> Categoria <span class="filtro-icon" onclick="toggleFiltro('categoria')"> 🔽 </span>
+                        <div id="filtro-categoria" class="filtro-dropdown"></div>
+                    </th>
+                    <th class="col-status">Status</th>
+                    <th class="text-center">Ações</th>
                 </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <?php if (count($contas) == 0): ?>
+                    <tr>
+                        <td colspan="10" class="empty-state">Nenhum lançamento a receber encontrado para este período. 🎉</td>
+                    </tr>
+                <?php endif; ?>
+
+                <?php foreach ($contas as $c): ?>
+                    <tr>
+                        <td class="text-center"><input type="checkbox" class="check-titulo" data-id="<?= $c['id'] ?>" data-valor="<?= $c['valor'] ?>"></td>
+                        <td><?= date('d/m/Y', strtotime($c['emissao'] ?? $c['vencimento'])) ?></td>
+                        <td><?= date('d/m/Y', strtotime($c['vencimento'])) ?></td>
+                        <td class="col-cliente"><?= htmlspecialchars($c['cliente']) ?></td>
+                        <td class="col-nf"><?= htmlspecialchars($c['nota_fiscal'] ?? '-') ?></td>
+                        <td class="col-descricao"><?= htmlspecialchars($c['descricao']) ?></td>
+                        <td style="font-weight: bold; color: #28a745;">R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
+                        <td class="col-categoria"><?= htmlspecialchars($c['categoria_nome'] ?? 'Venda de Mercadorias') ?></td>
+                        <td class="col-status"><span class="status-badge pendente">Pendente</span></td>
+                        <td class="text-center">
+                            <div class="kebab-menu">
+                                <button class="btn-kebab" onclick="toggleKebab(this)">⋮</button>
+                                <div class="kebab-dropdown">
+                                    <button onclick="abrirModalBaixa(<?= $c['id'] ?>, '', <?= $c['valor'] ?>, '<?= htmlspecialchars($c['cliente'], ENT_QUOTES) ?>', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅ Liquidar Lote</button>
+                                    <button onclick='editarConta(<?= json_encode($c) ?>)'>✏️ Editar</button>
+                                    <button onclick="excluirConta(<?= $c['id'] ?>)" style="color: red;">🗑️ Excluir</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <div id="modalBaixa" class="modal-financeiro dark-overlay">
@@ -202,8 +213,9 @@ usort($contas, function ($a, $b) {
                 <div class="composicao-grid">
                     <div class="form-group"><label class="label-success">+ Juros / Multa (R$)</label><input type="text" name="juros" id="juros_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorRecebido();"></div>
                     <div class="form-group"><label class="label-danger">- Descontos (R$)</label><input type="text" name="desconto" id="desconto_baixa" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorRecebido();"></div>
-                    <div class="form-group"><label class="label-danger">- Taxas de Cartão (R$)</label><input type="text" name="taxa_cartao" id="taxa_cartao" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorRecebido();"></div>
+                    <div class="form-group"><label class="label-danger">- Taxas Extra (R$)</label><input type="text" name="taxa_cartao" id="taxa_cartao" value="0,00" class="form-control text-right" onkeyup="mascararMoeda(this); calcularValorRecebido();"></div>
                 </div>
+                <small style="color: #666; display: block; margin-top: 10px;">* As taxas invisíveis da Cielo importadas já serão lançadas automaticamente como Despesa Financeira no DRE após a baixa.</small>
             </div>
 
             <div class="total-container">
@@ -239,32 +251,29 @@ usort($contas, function ($a, $b) {
                 <div class="form-group"><label>Nº Documento / NF</label><input type="text" name="nota_fiscal" id="nota_fiscal" class="form-control"></div>
                 <div class="form-group"><label>Valor (R$)</label><input type="text" name="valor" id="valor" value="0,00" class="form-control text-right" required onkeyup="mascararMoeda(this)"></div>
                 <div class="form-group span-2"><label>Descrição</label><input type="text" name="descricao" id="descricao" class="form-control" required></div>
-                
-               <div class="form-group span-2">
+
+                <div class="form-group span-2">
                     <label>Categoria (Apenas Receitas)</label>
                     <select name="id_categoria" id="id_categoria" class="form-control" required>
                         <option value="">Selecione a Categoria...</option>
                         <?php
-                        // Se houver um erro no banco de dados e ele não achar nada, mostrará isso:
                         if (empty($lista_categorias)) {
                             echo '<option value="" disabled>🚨 ERRO: Nenhuma categoria "Receita" encontrada!</option>';
                         } else {
                             $grupo_atual = null;
                             foreach ($lista_categorias as $cat) {
                                 $grupo_linha = trim((string)$cat['grupo']);
-                                
+
                                 if (empty($grupo_linha)) {
                                     $grupo_linha = 'Outras Receitas';
                                 }
-                                
+
                                 if ($grupo_linha !== $grupo_atual) {
                                     if ($grupo_atual !== null) echo '</optgroup>';
                                     $grupo_atual = $grupo_linha;
-                                    // Adicionando o ícone de pasta no Grupo
                                     echo '<optgroup label="📂 ' . htmlspecialchars($grupo_atual) . '">';
                                 }
-                                
-                                // Adicionando os espaços e a setinha na Subcategoria
+
                                 echo '<option value="' . $cat['id'] . '">&nbsp;&nbsp;↳ ' . htmlspecialchars(trim($cat['nome'])) . '</option>';
                             }
                             if ($grupo_atual !== null) echo '</optgroup>';
@@ -305,19 +314,41 @@ usort($contas, function ($a, $b) {
     </div>
 </div>
 
-<div id="modalImportar" class="modal-financeiro dark-overlay">
-    <div class="modal-content modal-md">
+<div id="modalImportar" class="modal-financeiro dark-overlay" style="display: none;">
+    <div class="modal-content modal-lg">
         <div class="modal-header" style="background: #28a745;">
-            <h2>Importar Lançamentos a Receber</h2>
+            <h2>Importar Extrato Cielo (Recebíveis)</h2>
             <button onclick="fecharModalImportar()" class="close-modal">&times;</button>
         </div>
-        <div class="modal-body" style="padding: 20px;">
-            <p>Selecione o arquivo de integração ou planilha de vendas para processar os recebimentos em lote:</p>
-            <input type="file" id="arquivo_importacao" class="form-control" style="margin-bottom: 15px;">
+
+        <div class="modal-body" id="import_step_1" style="padding: 20px;">
+            <p style="margin-bottom: 15px;">Selecione o arquivo Excel/CSV (Recebíveis Detalhado) exportado da sua máquina Cielo:</p>
+            <input type="file" id="arquivo_importacao" accept=".csv" class="form-control" style="margin-bottom: 20px;">
+            <div style="text-align: right;">
+                <button class="btn-confirm" style="background: #28a745;" onclick="processarPlanilhaCielo()">Analisar Arquivo ➔</button>
+            </div>
         </div>
-        <div class="modal-footer">
-            <button type="button" onclick="fecharModalImportar()" class="btn-cancel">Cancelar</button>
-            <button type="button" class="btn-confirm" style="background: #28a745;" onclick="processarImportacao()">PROCESSAR ARQUIVO</button>
+
+        <div class="modal-body" id="import_step_2" style="padding: 20px; display: none;">
+            <h3 style="margin-bottom: 15px;">Pré-visualização dos Lotes</h3>
+            <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 15px;">
+                <table class="table-financeiro" style="margin: 0; font-size: 13px;">
+                    <thead>
+                        <tr>
+                            <th>Emissão</th>
+                            <th>Vencimento</th>
+                            <th>Descrição</th>
+                            <th class="text-right">Valor Líquido</th>
+                            <th class="text-right">Taxa Oculta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela_preview_cielo"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer" style="padding: 0;">
+                <button type="button" onclick="fecharModalImportar()" class="btn-cancel">Cancelar</button>
+                <button type="button" class="btn-confirm" style="background: #28a745;" onclick="confirmarImportacaoCielo()">Confirmar e Salvar ✅</button>
+            </div>
         </div>
     </div>
 </div>
