@@ -19,9 +19,24 @@ try {
         $conteudo = file_get_contents($_FILES['arquivo_ofx']['tmp_name']);
         $conteudo = mb_convert_encoding($conteudo, 'UTF-8', mb_detect_encoding($conteudo, 'UTF-8, ISO-8859-1', true));
 
-        $transacoes_ofx = [];
+$transacoes_ofx = [];
         $ignoradas = 0;
 
+        // 1. OTIMIZAÇÃO: Buscar todos os FITIDs do banco numa ÚNICA consulta (muito mais rápido)
+        // Isso também já resolve a leitura de múltiplos IDs separados por vírgula da conciliação N-para-1
+        $stmt_existentes = $db_financeiro->prepare("SELECT id_transacao_banco FROM movimentacoes_caixa WHERE id_usuario = ? AND id_conta = ? AND id_transacao_banco IS NOT NULL AND id_transacao_banco != ''");
+        $stmt_existentes->execute([$id_usuario, $id_conta]);
+        $registos_banco = $stmt_existentes->fetchAll(PDO::FETCH_COLUMN);
+
+        $fitids_ja_importados = [];
+        foreach ($registos_banco as $linha_ids) {
+            $ids_separados = explode(',', $linha_ids);
+            foreach ($ids_separados as $id_unico) {
+                $fitids_ja_importados[trim($id_unico)] = true;
+            }
+        }
+
+        // 2. Processamento do arquivo OFX na memória (Instantâneo)
         if (preg_match_all('/<STMTTRN>(.*?)<\/STMTTRN>/s', $conteudo, $blocos)) {
             foreach ($blocos[1] as $bloco) {
                 $data_raw = extrairTagOFX('DTPOSTED', $bloco);
@@ -36,11 +51,8 @@ try {
                 $tipo = ($valor_float < 0) ? 'Saida' : 'Entrada';
                 $valor_absoluto = abs($valor_float);
 
-                // Bloqueio de duplicadas
-                $stmt_check = $db_financeiro->prepare("SELECT id FROM movimentacoes_caixa WHERE id_usuario = ? AND id_transacao_banco = ?");
-                $stmt_check->execute([$id_usuario, $fitid]);
-                
-                if ($stmt_check->fetch()) {
+                // Verifica na memória (Array PHP) em vez de ir ao banco de dados repetidamente
+                if (isset($fitids_ja_importados[$fitid])) {
                     $ignoradas++;
                 } elseif (!empty($fitid) && $valor_absoluto > 0) {
                     $transacoes_ofx[] = [
@@ -85,6 +97,25 @@ try {
         $id_caixa = $_POST['id_caixa'] ?? ''; $fitid = $_POST['fitid'] ?? '';
         $stmt = $db_financeiro->prepare("UPDATE movimentacoes_caixa SET conciliado = 1, id_transacao_banco = ?, data_conciliacao = datetime('now', 'localtime') WHERE id = ? AND id_usuario = ?");
         $stmt->execute([$fitid, $id_caixa, $id_usuario]);
+        echo json_encode(['status' => 'success']);
+        exit;
+    }
+
+
+    if ($action === 'confirmar_match_multiplo') {
+        $id_caixa = $_POST['id_caixa'] ?? '';
+
+        $fitids = isset($_POST['fitids']) ? json_decode($_POST['fitids'], true) : [];
+
+        if (empty($id_caixa) || empty($fitids)) {
+            throw new Exception("Dados insuficientes para conciliação múltipla.");
+        }
+
+        $fitids_str = implode(',', $fitids);
+
+        $stmt = $db_financeiro->prepare("UPDATE movimentacoes_caixa SET conciliado = 1, id_transacao_banco = ?, data_conciliacao = datetime('now', 'localtime') WHERE id = ? AND id_usuario = ?");
+        $stmt->execute([$fitids_str, $id_caixa, $id_usuario]);
+        
         echo json_encode(['status' => 'success']);
         exit;
     }

@@ -1,10 +1,81 @@
 let movimentacoesGlobais = []; 
 
+// Variáveis globais para o TomSelect e backup do HTML das categorias
+let tomSelectCategoria = null;
+let backupCategoriasHTML = '';
+
+// 1. FORMATAÇÃO DA MOEDA EM TEMPO REAL
+function formatarValorMonetario(input) {
+    let valor = input.value.replace(/\D/g, ''); 
+    if (valor === '') valor = '0';
+    input.value = (parseInt(valor, 10) / 100).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+// 2. FILTRO DE CATEGORIAS + TOMSELECT (RESOLVENDO O CONFLITO DE NOMES DO BANCO)
+function filtrarCategorias() {
+    const tipoSelecionado = document.getElementById('novoTipo').value; 
+    const select = document.getElementById('novaCategoria'); 
+
+    if (!select) return; 
+
+    // Se é a primeira vez, salva todo o HTML original das categorias
+    if (!backupCategoriasHTML) {
+        backupCategoriasHTML = select.innerHTML;
+    }
+
+    // Destrói o TomSelect se já existir para podermos manipular o HTML nativo
+    if (tomSelectCategoria) {
+        tomSelectCategoria.destroy();
+        tomSelectCategoria = null;
+    }
+
+    // Restaura o HTML completo com todos os optgroups
+    select.innerHTML = backupCategoriasHTML;
+
+    // Se um tipo foi selecionado no modal, filtramos com base nas equivalências do Banco de Dados
+    if (tipoSelecionado) {
+        const grupos = select.querySelectorAll('optgroup');
+        grupos.forEach(grupo => {
+            // Pega o nome do tipo que veio do banco (ex: "Receita", "Despesa") e converte para minúsculas
+            const tipoBanco = (grupo.getAttribute('data-tipo') || '').toLowerCase().trim();
+            
+            let manter = false;
+
+            // Regra de equivalência: Se escolheu "Entrada", aceita "entrada" ou "receita"
+            if (tipoSelecionado === 'Entrada' && (tipoBanco === 'entrada' || tipoBanco === 'receita')) {
+                manter = true;
+            }
+            
+            // Regra de equivalência: Se escolheu "Saida", aceita "saida", "saída" ou "despesa"
+            if (tipoSelecionado === 'Saida' && (tipoBanco === 'saida' || tipoBanco === 'saída' || tipoBanco === 'despesa')) {
+                manter = true;
+            }
+
+            // Se não bater com a regra, remove o grupo visualmente
+            if (!manter) {
+                grupo.remove(); 
+            }
+        });
+    }
+
+    select.value = ''; // Limpa a escolha anterior para não bugar o envio
+
+    // Inicializa o TomSelect limpo com as opções filtradas
+    tomSelectCategoria = new TomSelect('#novaCategoria', {
+        create: false,
+        placeholder: 'Pesquisar ou selecionar categoria...',
+        maxOptions: 500
+    });
+}
 function formatarMoeda(valor) {
     return parseFloat(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function formatarData(dataIso) {
+    if (!dataIso) return '';
     const partes = dataIso.split('-');
     return `${partes[2]}/${partes[1]}/${partes[0]}`;
 }
@@ -81,7 +152,6 @@ async function carregarMovimentacoes() {
             const nomeCategoria = mov.categoria_nome || '<span style="color:#999">Sem Categoria</span>';
             const nomeBanco = mov.banco_nome ? `<br><small style="color: #6c757d; font-weight: 500;">🏦 ${mov.banco_nome}</small>` : '';
 
-            // Cor de crachá especial para transferências
             let badgeClass = 'bg-info';
             if(mov.origem === 'Manual') badgeClass = 'bg-secondary';
             if(mov.origem === 'Transferencia') badgeClass = 'bg-primary';
@@ -125,12 +195,22 @@ function abrirModalLancamento() {
     document.getElementById('novaData').readOnly = false;
     document.getElementById('novoValor').readOnly = false;
     document.getElementById('novaDescricao').readOnly = false;
-    document.getElementById('novoTipo').disabled = false;
+    
+    // Corrigido para novoTipo
+    const selectTipo = document.getElementById('novoTipo');
+    if (selectTipo) {
+        selectTipo.disabled = false;
+        selectTipo.style.backgroundColor = "";
+        selectTipo.value = ""; 
+    }
+    
     document.getElementById('novaData').style.backgroundColor = "";
     document.getElementById('novoValor').style.backgroundColor = "";
     document.getElementById('novaDescricao').style.backgroundColor = "";
-    document.getElementById('novoTipo').style.backgroundColor = "";
     document.getElementById('tituloModalLancamento').innerText = "Novo Lançamento Manual";
+    
+    // Reseta e inicia o filtro de categorias
+    filtrarCategorias();
     
     document.getElementById('modalLancamento').style.display = 'block';
 }
@@ -145,12 +225,10 @@ function abrirModalImportacao() {
     document.getElementById('modalImportacao').style.display = 'block';
 }
 
-// NOVA FUNÇÃO DO MODAL DE TRANSFERÊNCIA
 function abrirModalTransferencia() {
     document.getElementById('formTransferencia').reset();
     document.getElementById('transfData').valueAsDate = new Date();
     
-    // Se o usuário estiver com uma conta selecionada, já preenche a Origem automaticamente
     const filtroConta = document.getElementById('filtroConta').value;
     if(filtroConta !== 'todas') {
         document.getElementById('transfOrigem').value = filtroConta;
@@ -187,7 +265,6 @@ async function salvarLancamento(event) {
     } catch (erro) { alert("Erro ao tentar guardar o lançamento."); }
 }
 
-// NOVA FUNÇÃO: SALVAR TRANSFERÊNCIA
 async function salvarTransferencia(event) {
     event.preventDefault();
     
@@ -234,23 +311,42 @@ function editarLancamento(id) {
     document.getElementById('idMovimentoEdicao').value = mov.id;
     document.getElementById('contaSelecionadaOculta').value = mov.id_conta; 
     document.getElementById('novaData').value = mov.data_movimento;
-    document.getElementById('novoTipo').value = mov.tipo;
-    document.getElementById('novoValor').value = mov.valor;
+    
+    // Corrigido para novoTipo
+    const selectTipo = document.getElementById('novoTipo');
+    if (selectTipo) {
+        selectTipo.value = mov.tipo;
+    }
+    
+    // Formata o valor corretamente para o padrão 0.000,00 na edição
+    let valorEdit = parseFloat(mov.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('novoValor').value = valorEdit;
+    
     document.getElementById('novaDescricao').value = mov.descricao;
-    document.getElementById('novaCategoria').value = mov.id_categoria || "";
+    
+    // Filtra as categorias de acordo com o tipo (Entrada/Saída) da movimentação
+    filtrarCategorias();
+    
+    // Define a categoria correta usando a API do TomSelect no ID correto
+    if (tomSelectCategoria && mov.id_categoria) {
+        tomSelectCategoria.setValue(mov.id_categoria);
+    }
     
     const isImportado = (mov.origem === 'Importacao');
     
     document.getElementById('novaData').readOnly = isImportado;
     document.getElementById('novoValor').readOnly = isImportado;
     document.getElementById('novaDescricao').readOnly = isImportado;
-    document.getElementById('novoTipo').disabled = isImportado; 
+    
+    if (selectTipo) {
+        selectTipo.disabled = isImportado;
+        selectTipo.style.backgroundColor = isImportado ? "#e9ecef" : "";
+    }
     
     const corBloqueado = isImportado ? "#e9ecef" : "";
     document.getElementById('novaData').style.backgroundColor = corBloqueado;
     document.getElementById('novoValor').style.backgroundColor = corBloqueado;
     document.getElementById('novaDescricao').style.backgroundColor = corBloqueado;
-    document.getElementById('novoTipo').style.backgroundColor = corBloqueado;
 
     document.getElementById('tituloModalLancamento').innerText = isImportado ? "Classificar Importação" : "Editar Lançamento";
     document.getElementById('modalLancamento').style.display = 'block';

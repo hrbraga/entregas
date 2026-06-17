@@ -12,10 +12,18 @@ $stmt_contas = $db_financeiro->prepare("SELECT id, nome_conta, banco FROM contas
 $stmt_contas->execute([$id_usuario]);
 $contas = $stmt_contas->fetchAll(PDO::FETCH_ASSOC);
 
-// Procurar categorias para o formulário de lançamento manual
-$stmt_categorias = $db_financeiro->prepare("SELECT id, nome FROM categorias_financeiras ORDER BY nome");
+// Procurar categorias para o formulário de lançamento manual e agrupá-las
+$stmt_categorias = $db_financeiro->prepare("SELECT id, nome, tipo, grupo FROM categorias_financeiras ORDER BY tipo ASC, grupo ASC, nome ASC");
 $stmt_categorias->execute();
 $categorias = $stmt_categorias->fetchAll(PDO::FETCH_ASSOC);
+
+// Organizar categorias por Tipo -> Categoria Mãe -> Subcategorias
+$categorias_organizadas = [];
+foreach ($categorias as $cat) {
+    $tipo = $cat['tipo'];
+    $grupo = !empty($cat['grupo']) ? $cat['grupo'] : 'Outros';
+    $categorias_organizadas[$tipo][$grupo][] = $cat;
+}
 ?>
 
 <link rel="stylesheet" href="../static/css/financeiro.css">
@@ -139,7 +147,6 @@ $categorias = $stmt_categorias->fetchAll(PDO::FETCH_ASSOC);
         </tbody>
     </table>
 </div>
-</div>
 
 <div id="modalLancamento" class="modal" style="display: none;">
     <div class="modal-content modal-pequeno">
@@ -159,7 +166,8 @@ $categorias = $stmt_categorias->fetchAll(PDO::FETCH_ASSOC);
 
             <div class="grupo-filtro" style="margin-bottom: 15px;">
                 <label>Tipo (Entrada ou Saída):</label>
-                <select id="novoTipo" class="form-control" required>
+                <select id="novoTipo" class="form-control" onchange="filtrarCategorias()" required>
+                    <option value="">Selecione...</option>
                     <option value="Entrada">Entrada (Receita)</option>
                     <option value="Saida">Saída (Despesa)</option>
                 </select>
@@ -167,7 +175,7 @@ $categorias = $stmt_categorias->fetchAll(PDO::FETCH_ASSOC);
 
             <div class="grupo-filtro" style="margin-bottom: 15px;">
                 <label>Valor (R$):</label>
-                <input type="number" id="novoValor" step="0.01" class="form-control" required placeholder="0.00">
+                <input type="text" id="novoValor" class="form-control" oninput="formatarValorMonetario(this)" required placeholder="0,00">
             </div>
 
             <div class="grupo-filtro" style="margin-bottom: 15px;">
@@ -177,10 +185,16 @@ $categorias = $stmt_categorias->fetchAll(PDO::FETCH_ASSOC);
 
             <div class="grupo-filtro" style="margin-bottom: 25px;">
                 <label>Categoria Financeira:</label>
-                <select id="novaCategoria" class="form-control">
-                    <option value="">Sem Categoria...</option>
-                    <?php foreach ($categorias as $cat): ?>
-                        <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nome']) ?></option>
+                <select id="novaCategoria" class="form-control" required>
+                    <option value="">Selecione a Categoria...</option>
+                    <?php foreach ($categorias_organizadas as $tipo => $grupos): ?>
+                        <?php foreach ($grupos as $nome_grupo => $subcategorias): ?>
+                            <optgroup label="<?= htmlspecialchars($nome_grupo) ?>" data-tipo="<?= $tipo ?>">
+                                <?php foreach ($subcategorias as $sub): ?>
+                                    <option value="<?= $sub['id'] ?>"><?= htmlspecialchars($sub['nome']) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; ?>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -262,5 +276,9 @@ $categorias = $stmt_categorias->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </div>
 
+<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+
 <script src="../static/js/caixa_bancos.js?v=2"></script>
+
 <?php require_once '../includes/footer.php'; ?>

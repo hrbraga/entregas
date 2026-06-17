@@ -100,7 +100,7 @@ try {
         $id_conta = $_POST['id_conta'] ?? null;
         $data = $_POST['data'] ?? null;
         $tipo = $_POST['tipo'] ?? null;
-        $valor = $_POST['valor'] ?? null;
+       $valor = isset($_POST['valor']) ? str_replace(['.', ','], ['', '.'], $_POST['valor']) : null;
         $descricao = $_POST['descricao'] ?? '';
         $id_categoria = !empty($_POST['categoria']) ? $_POST['categoria'] : null;
 
