@@ -2,22 +2,29 @@
 require '../config.php';
 require '../auth/auth_check.php';
 $page_title = "DRE - Demonstração de Resultados";
-$sessao_nome = "DRE (Regime de Caixa)";
 require '../includes/header.php';
 
 $id_usuario = $_SESSION['user_id'];
 
-// Filtros Iniciais (Padrão: Mês Atual)
+// 1. Segurança: Garante que a coluna existe
+try {
+    $db_financeiro->exec("ALTER TABLE contas_receber ADD COLUMN taxa_importacao REAL DEFAULT 0");
+} catch (Throwable $e) {}
+
 $data_inicio = $_GET['data_inicio'] ?? date('Y-m-01');
 $data_fim = $_GET['data_fim'] ?? date('Y-m-t');
 
 try {
-    // Busca todas as Movimentações do Caixa + Taxas Ocultas da Cielo em apenas uma query
+    // Adicionada a exclusão de Retiradas Proprietário direto no banco de dados
     $sql_dre = "
         SELECT 'Caixa' as origem, mc.tipo as fluxo, mc.valor, COALESCE(cat.nome, 'Sem Categoria') as categoria, COALESCE(cat.grupo, 'Outros') as grupo
         FROM movimentacoes_caixa mc
         LEFT JOIN categorias_financeiras cat ON mc.id_categoria = cat.id
-        WHERE mc.id_usuario = ? AND mc.data_movimento BETWEEN ? AND ?
+        WHERE mc.id_usuario = ? 
+          AND mc.data_movimento BETWEEN ? AND ?
+          AND cat.nome != 'Transferência'
+          AND mc.origem != 'Transferência'
+          AND cat.nome NOT LIKE '%Retirada%Proprietário%'
 
         UNION ALL
         
@@ -27,74 +34,88 @@ try {
     ";
 
     $params = [$id_usuario, $data_inicio, $data_fim, $id_usuario, $data_inicio, $data_fim];
-    
     $stmt = $db_financeiro->prepare($sql_dre);
     $stmt->execute($params);
     $movimentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Arrays para organizar a cascata do DRE
-    $receitas_brutas = [];
+    // Estrutura hierárquica [Grupo][Categoria] = Valor
+    $receitas = [];
     $deducoes = [];
-    $custos_variaveis = [];
-    $despesas_operacionais = [];
+    $custos = [];
+    $despesas = [];
 
-    // Totais
-    $tot_receita_bruta = 0;
-    $tot_deducoes = 0;
-    $tot_custos = 0;
-    $tot_despesas = 0;
+    $tot_receita = 0; $tot_deducao = 0; $tot_custo = 0; $tot_despesa = 0;
 
-    // Motor de Classificação Automática
     foreach ($movimentos as $m) {
         $val = (float) $m['valor'];
         $cat = $m['categoria'];
-        $grupo = mb_strtolower($m['grupo'], 'UTF-8');
+        $grupo = !empty($m['grupo']) ? $m['grupo'] : 'Outros';
+        
         $cat_low = mb_strtolower($cat, 'UTF-8');
+        $grupo_low = mb_strtolower($grupo, 'UTF-8');
+
+        // Filtro de segurança extra no PHP para distribuições de lucro
+        if (strpos($cat_low, 'retirada') !== false && strpos($cat_low, 'propriet') !== false) {
+            continue; 
+        }
 
         if ($m['fluxo'] === 'Entrada') {
-            // É Receita!
-            $receitas_brutas[$cat] = ($receitas_brutas[$cat] ?? 0) + $val;
-            $tot_receita_bruta += $val;
+            $receitas[$grupo][$cat] = ($receitas[$grupo][$cat] ?? 0) + $val;
+            $tot_receita += $val;
         } else {
-            // É Saída (Precisamos descobrir onde se encaixa no DRE)
-            if (strpos($grupo, 'deduç') !== false || strpos($grupo, 'imposto') !== false || strpos($cat_low, 'taxa') !== false || strpos($cat_low, 'desconto') !== false || strpos($cat_low, 'devoluç') !== false) {
-                // 1. Deduções (Taxas Cielo, Descontos dados, Impostos de venda)
-                $deducoes[$cat] = ($deducoes[$cat] ?? 0) + $val;
-                $tot_deducoes += $val;
-            } elseif (strpos($grupo, 'custo') !== false || strpos($grupo, 'fornecedor') !== false || strpos($grupo, 'variável') !== false || strpos($cat_low, 'mercadoria') !== false) {
-                // 2. Custos Variáveis (O que gasta para poder vender - CMV)
-                $custos_variaveis[$cat] = ($custos_variaveis[$cat] ?? 0) + $val;
-                $tot_custos += $val;
+            // REGRA 1: Taxas da Cacau Show -> Deduções
+            // REGRA 2: 'Taxas' (genérico) -> Custos Variáveis
+            if (strpos($cat_low, 'cacau show') !== false) {
+                $deducoes['Deduções da Receita'][$cat] = ($deducoes['Deduções da Receita'][$cat] ?? 0) + $val;
+                $tot_deducao += $val;
+            } 
+            elseif (strpos($cat_low, 'taxa') !== false && strpos($cat_low, 'cacau show') === false) {
+                $custos['Custos Variáveis'][$cat] = ($custos['Custos Variáveis'][$cat] ?? 0) + $val;
+                $tot_custo += $val;
+            } 
+            elseif (strpos($grupo_low, 'deduç') !== false || strpos($grupo_low, 'imposto') !== false || strpos($cat_low, 'desconto') !== false) {
+                $deducoes[$grupo][$cat] = ($deducoes[$grupo][$cat] ?? 0) + $val;
+                $tot_deducao += $val;
+            } 
+            elseif (strpos($grupo_low, 'custo') !== false || strpos($grupo_low, 'fornecedor') !== false || strpos($grupo_low, 'variá') !== false || strpos($cat_low, 'mercadoria') !== false) {
+                $custos[$grupo][$cat] = ($custos[$grupo][$cat] ?? 0) + $val;
+                $tot_custo += $val;
             } else {
-                // 3. Despesas Operacionais / Fixas (Aluguer, Salários, Energia, Juros pagos...)
-                $despesas_operacionais[$cat] = ($despesas_operacionais[$cat] ?? 0) + $val;
-                $tot_despesas += $val;
+                $despesas[$grupo][$cat] = ($despesas[$grupo][$cat] ?? 0) + $val;
+                $tot_despesa += $val;
             }
         }
     }
-
-    // Cálculos da Cascata
-    $receita_liquida = $tot_receita_bruta - $tot_deducoes;
-    $margem_contribuicao = $receita_liquida - $tot_custos;
-    $resultado_liquido = $margem_contribuicao - $tot_despesas;
-
-    // Percentagens (Análise Vertical)
-    $perc_margem = $receita_liquida > 0 ? ($margem_contribuicao / $receita_liquida) * 100 : 0;
-    $perc_lucro = $receita_liquida > 0 ? ($resultado_liquido / $receita_liquida) * 100 : 0;
-
 } catch (Exception $e) {
-    die("Erro ao calcular o DRE: " . $e->getMessage());
+    die("Erro: " . $e->getMessage());
 }
 
-// Função auxiliar para desenhar as linhas das tabelas
-function desenharLinhaDRE($nome, $valor, $is_subtracao = false) {
-    if ($valor == 0) return '';
-    $cor = $is_subtracao ? '#dc3545' : '#333';
+// Função para desenhar a árvore já com a lógica de abrir/fechar
+function desenharArvoreDRE($agrupado, $is_subtracao = true, $prefixo = 'grp') {
     $sinal = $is_subtracao ? '- R$ ' : 'R$ ';
-    echo "<tr style='border-bottom: 1px dashed #eee;'>
-            <td style='padding: 8px 20px; font-size: 13px; color: #555; padding-left: 40px;'>↳ " . htmlspecialchars($nome) . "</td>
-            <td style='padding: 8px 20px; font-size: 13px; text-align: right; color: {$cor}; font-weight: 500;'>" . $sinal . number_format($valor, 2, ',', '.') . "</td>
-          </tr>";
+    $cor = $is_subtracao ? '#dc3545' : '#333';
+    $contador = 0;
+
+    foreach ($agrupado as $grupo => $itens) {
+        $contador++;
+        $id_grupo = $prefixo . '_' . $contador; 
+        
+        // Linha Mãe (Clicável)
+        echo "<tr style='background: #f8f9fa; cursor: pointer; transition: 0.2s;' onclick=\"toggleDREGroup('{$id_grupo}')\" onmouseover=\"this.style.background='#f1f3f5'\" onmouseout=\"this.style.background='#f8f9fa'\">
+                <td style='padding: 10px 20px; font-weight: bold; font-size: 13px; color: #444; user-select: none;'>
+                    <span id='icon_{$id_grupo}' style='display: inline-block; width: 15px; color: #007bff;'>▶</span> 📂 " . htmlspecialchars($grupo) . "
+                </td>
+                <td style='text-align: right; font-weight: bold; color: $cor; padding: 10px 20px;'>" . $sinal . number_format(array_sum($itens), 2, ',', '.') . "</td>
+              </tr>";
+              
+        // Linhas Filhas (Ocultas por padrão)
+        foreach ($itens as $nome => $valor) {
+            echo "<tr class='child-of-{$id_grupo}' style='display: none;'>
+                    <td style='padding: 6px 20px 6px 45px; font-size: 12px; color: #666; border-left: 3px solid #e9ecef;'>↳ " . htmlspecialchars($nome) . "</td>
+                    <td style='text-align: right; font-size: 12px; color: #777; padding: 6px 20px;'>" . $sinal . number_format($valor, 2, ',', '.') . "</td>
+                  </tr>";
+        }
+    }
 }
 ?>
 
@@ -123,86 +144,94 @@ function desenharLinhaDRE($nome, $valor, $is_subtracao = false) {
     </div>
 </div>
 
-<div class="financeiro-wrapper" style="max-width: 900px; margin: 0 auto;">
-    
-    <form class="composicao-box" method="GET" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; padding: 20px; margin-bottom: 25px;">
-        <div class="form-group">
-            <label>Data Início</label>
+<div class="financeiro-wrapper" style="max-width: 900px; margin: 20px auto;">
+    <form method="GET" class="composicao-box" style="padding: 20px; display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-end;">
+        <div>
+            <label style="font-size: 12px; font-weight: bold; margin-bottom: 5px; display: block;">Data Início</label>
             <input type="date" name="data_inicio" value="<?= $data_inicio ?>" class="form-control">
         </div>
-        <div class="form-group">
-            <label>Data Fim</label>
+        <div>
+            <label style="font-size: 12px; font-weight: bold; margin-bottom: 5px; display: block;">Data Fim</label>
             <input type="date" name="data_fim" value="<?= $data_fim ?>" class="form-control">
         </div>
-        <button type="submit" class="btn btn-primary" style="height: 42px; background: #343a40;">GERAR DRE</button>
+        <button type="submit" class="btn btn-primary" style="height: 42px;">GERAR DRE</button>
     </form>
 
     <div class="composicao-box" style="padding: 0; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-        
-        <div style="background: #343a40; color: white; padding: 15px 20px; text-align: center;">
-            <h2 style="margin: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px;">Demonstração do Resultado do Exercício</h2>
-            <p style="margin: 5px 0 0 0; font-size: 13px; color: #adb5bd;">Período: <?= date('d/m/Y', strtotime($data_inicio)) ?> a <?= date('d/m/Y', strtotime($data_fim)) ?></p>
-        </div>
-
         <table style="width: 100%; border-collapse: collapse;">
-            <tbody>
-                <tr style="background: #e9ecef;">
-                    <td style="padding: 12px 20px; font-weight: bold; font-size: 15px; color: #000;">1. RECEITA BRUTA DE VENDAS</td>
-                    <td style="padding: 12px 20px; text-align: right; font-weight: bold; font-size: 15px; color: #28a745;">R$ <?= number_format($tot_receita_bruta, 2, ',', '.') ?></td>
-                </tr>
-                <?php foreach($receitas_brutas as $nome => $valor) desenharLinhaDRE($nome, $valor); ?>
+            <tr style="background: #343a40; color: white;">
+                <td colspan="2" style="padding: 15px; text-align: center; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
+                    DRE - DEMONSTRATIVO DE RESULTADO DO EXERCÍCIO
+                    <div style="font-size: 12px; font-weight: normal; color: #adb5bd; margin-top: 5px;">Período: <?= date('d/m/Y', strtotime($data_inicio)) ?> a <?= date('d/m/Y', strtotime($data_fim)) ?></div>
+                </td>
+            </tr>
 
-                <tr style="background: #e9ecef; border-top: 2px solid #fff;">
-                    <td style="padding: 12px 20px; font-weight: bold; font-size: 15px; color: #000;">2. (-) DEDUÇÕES DA RECEITA (Impostos e Taxas)</td>
-                    <td style="padding: 12px 20px; text-align: right; font-weight: bold; font-size: 15px; color: #dc3545;">- R$ <?= number_format($tot_deducoes, 2, ',', '.') ?></td>
-                </tr>
-                <?php foreach($deducoes as $nome => $valor) desenharLinhaDRE($nome, $valor, true); ?>
+            <tr style="background: #e9ecef;">
+                <td style="padding: 12px 20px; font-weight: bold; font-size: 15px; color: #000;">1. RECEITA BRUTA DE VENDAS</td>
+                <td style="padding: 12px 20px; text-align: right; font-weight: bold; font-size: 15px; color: #28a745;">R$ <?= number_format($tot_receita, 2, ',', '.') ?></td>
+            </tr>
+            <?php desenharArvoreDRE($receitas, false, 'rec'); ?>
+            
+            <tr style="background: #e9ecef; border-top: 2px solid #fff;">
+                <td style="padding: 12px 20px; font-weight: bold; font-size: 15px; color: #000;">2. (-) DEDUÇÕES DA RECEITA</td>
+                <td style="padding: 12px 20px; text-align: right; font-weight: bold; font-size: 15px; color: #dc3545;">- R$ <?= number_format($tot_deducao, 2, ',', '.') ?></td>
+            </tr>
+            <?php desenharArvoreDRE($deducoes, true, 'ded'); ?>
+            
+            <tr style="background: #d4edda; border-top: 2px solid #c3e6cb;">
+                <td style="padding: 15px 20px; font-weight: bold; font-size: 16px; color: #155724;">3. (=) RECEITA LÍQUIDA (1 - 2)</td>
+                <td style="padding: 15px 20px; text-align: right; font-weight: bold; font-size: 16px; color: #155724;">R$ <?= number_format($tot_receita - $tot_deducao, 2, ',', '.') ?></td>
+            </tr>
 
-                <tr style="background: #d4edda; border-top: 2px solid #c3e6cb;">
-                    <td style="padding: 15px 20px; font-weight: bold; font-size: 16px; color: #155724;">3. (=) RECEITA LÍQUIDA (1 - 2)</td>
-                    <td style="padding: 15px 20px; text-align: right; font-weight: bold; font-size: 16px; color: #155724;">R$ <?= number_format($receita_liquida, 2, ',', '.') ?></td>
-                </tr>
+            <tr style="background: #e9ecef; border-top: 2px solid #fff;">
+                <td style="padding: 12px 20px; font-weight: bold; font-size: 15px; color: #000;">4. (-) CUSTOS VARIÁVEIS / FORNECEDORES</td>
+                <td style="padding: 12px 20px; text-align: right; font-weight: bold; font-size: 15px; color: #dc3545;">- R$ <?= number_format($tot_custo, 2, ',', '.') ?></td>
+            </tr>
+            <?php desenharArvoreDRE($custos, true, 'cus'); ?>
+            
+            <?php $margem = ($tot_receita - $tot_deducao) - $tot_custo; ?>
+            <tr style="background: #cce5ff; border-top: 2px solid #b8daff;">
+                <td style="padding: 15px 20px; font-weight: bold; font-size: 16px; color: #004085;">5. (=) MARGEM DE CONTRIBUIÇÃO (3 - 4)</td>
+                <td style="padding: 15px 20px; text-align: right; font-weight: bold; font-size: 16px; color: #004085;">R$ <?= number_format($margem, 2, ',', '.') ?></td>
+            </tr>
 
-                <tr style="background: #e9ecef; border-top: 2px solid #fff;">
-                    <td style="padding: 12px 20px; font-weight: bold; font-size: 15px; color: #000;">4. (-) CUSTOS VARIÁVEIS / FORNECEDORES (CMV)</td>
-                    <td style="padding: 12px 20px; text-align: right; font-weight: bold; font-size: 15px; color: #dc3545;">- R$ <?= number_format($tot_custos, 2, ',', '.') ?></td>
-                </tr>
-                <?php foreach($custos_variaveis as $nome => $valor) desenharLinhaDRE($nome, $valor, true); ?>
-
-                <tr style="background: #cce5ff; border-top: 2px solid #b8daff;">
-                    <td style="padding: 15px 20px; font-weight: bold; font-size: 16px; color: #004085;">
-                        5. (=) MARGEM DE CONTRIBUIÇÃO (3 - 4)
-                        <span style="font-size: 11px; background: #0056b3; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 10px;"><?= number_format($perc_margem, 1, ',', '.') ?>%</span>
-                    </td>
-                    <td style="padding: 15px 20px; text-align: right; font-weight: bold; font-size: 16px; color: #004085;">R$ <?= number_format($margem_contribuicao, 2, ',', '.') ?></td>
-                </tr>
-
-                <tr style="background: #e9ecef; border-top: 2px solid #fff;">
-                    <td style="padding: 12px 20px; font-weight: bold; font-size: 15px; color: #000;">6. (-) DESPESAS OPERACIONAIS E FIXAS</td>
-                    <td style="padding: 12px 20px; text-align: right; font-weight: bold; font-size: 15px; color: #dc3545;">- R$ <?= number_format($tot_despesas, 2, ',', '.') ?></td>
-                </tr>
-                <?php foreach($despesas_operacionais as $nome => $valor) desenharLinhaDRE($nome, $valor, true); ?>
-
-                <?php 
-                    $bg_resultado = $resultado_liquido >= 0 ? '#28a745' : '#dc3545';
-                    $texto_resultado = $resultado_liquido >= 0 ? 'LUCRO LÍQUIDO' : 'PREJUÍZO LÍQUIDO';
-                ?>
-                <tr style="background: <?= $bg_resultado ?>; color: white; border-top: 2px solid #fff;">
-                    <td style="padding: 20px; font-weight: bold; font-size: 18px;">
-                        7. (=) RESULTADO DO EXERCÍCIO (<?= $texto_resultado ?>)
-                        <span style="font-size: 12px; background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; margin-left: 10px;"><?= number_format($perc_lucro, 1, ',', '.') ?>% de Margem Líquida</span>
-                    </td>
-                    <td style="padding: 20px; text-align: right; font-weight: bold; font-size: 20px;">R$ <?= number_format($resultado_liquido, 2, ',', '.') ?></td>
-                </tr>
-            </tbody>
+            <tr style="background: #e9ecef; border-top: 2px solid #fff;">
+                <td style="padding: 12px 20px; font-weight: bold; font-size: 15px; color: #000;">6. (-) DESPESAS OPERACIONAIS E FIXAS</td>
+                <td style="padding: 12px 20px; text-align: right; font-weight: bold; font-size: 15px; color: #dc3545;">- R$ <?= number_format($tot_despesa, 2, ',', '.') ?></td>
+            </tr>
+            <?php desenharArvoreDRE($despesas, true, 'des'); ?>
+            
+            <?php 
+                $lucro = $margem - $tot_despesa; 
+                $bg_resultado = $lucro >= 0 ? '#28a745' : '#dc3545';
+            ?>
+            <tr style="background: <?= $bg_resultado ?>; color: #fff; border-top: 2px solid #fff;">
+                <td style="padding: 20px; font-weight: bold; font-size: 18px;">7. (=) RESULTADO DO EXERCÍCIO</td>
+                <td style="padding: 20px; text-align: right; font-weight: bold; font-size: 20px;">R$ <?= number_format($lucro, 2, ',', '.') ?></td>
+            </tr>
         </table>
     </div>
-
-    <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-left: 5px solid #ffc107; border-radius: 4px; font-size: 13px; color: #856404;">
-        <strong>💡 Como ler o seu DRE:</strong><br>
-        - A <b>Margem de Contribuição</b> indica o quanto sobra das suas vendas após pagar os fornecedores para cobrir as despesas da loja.<br>
-        - As <b>Taxas Ocultas da Cielo</b> foram importadas automaticamente do Contas a Receber e já estão embutidas nas "Deduções", garantindo o cálculo perfeito do seu lucro sem distorcer o seu Caixa bancário!
-    </div>
 </div>
+
+<script>
+// Script para abrir e fechar as categorias (Efeito Sanfona)
+function toggleDREGroup(groupId) {
+    const rows = document.querySelectorAll('.child-of-' + groupId);
+    const icon = document.getElementById('icon_' + groupId);
+    
+    let isHidden = true;
+    if (rows.length > 0) {
+        isHidden = rows[0].style.display === 'none';
+    }
+
+    rows.forEach(row => {
+        row.style.display = isHidden ? 'table-row' : 'none';
+    });
+
+    if (icon) {
+        icon.innerHTML = isHidden ? '▼' : '▶';
+    }
+}
+</script>
 
 <?php require '../includes/footer.php'; ?>

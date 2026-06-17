@@ -1,217 +1,155 @@
-// Variável global para armazenar os dados lidos do OFX
 let dadosConciliacao = { matches: [], ofx_pendentes: [], sistema_pendentes: [] };
 
-// Função para formatar moeda no padrão brasileiro
-function formatarMoeda(valor) {
-    return parseFloat(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-// Função para formatar data (YYYY-MM-DD para DD/MM/YYYY)
+function formatarMoeda(valor) { return parseFloat(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
 function formatarData(dataString) {
     if (!dataString) return '';
     const partes = dataString.split('-');
     return `${partes[2]}/${partes[1]}/${partes[0]}`;
 }
 
-// 1. LER O FICHEIRO E ENVIAR PARA O PHP
 function processarOFX() {
     const conta = document.getElementById('conta_selecionada').value;
     const fileInput = document.getElementById('arquivo_ofx');
     
-    if(!conta) {
-        alert("Por favor, selecione a conta bancária primeiro!");
-        return;
-    }
-    if(!fileInput.files.length) {
-        alert("Por favor, selecione um ficheiro OFX válido!");
-        return;
-    }
+    if(!conta) return alert("Por favor, selecione a conta bancária primeiro!");
+    if(!fileInput.files.length) return alert("Por favor, selecione um ficheiro OFX válido!");
     
-    // Indicadores de Loading
-    document.getElementById('lista_ofx').innerHTML = "<div style='text-align:center; padding: 40px; font-weight: bold; color: #17a2b8;'>A processar ficheiro OFX... ⏳</div>";
-    document.getElementById('lista_sistema').innerHTML = "<div style='text-align:center; padding: 40px; font-weight: bold; color: #28a745;'>A cruzar dados com o sistema... 🔍</div>";
+    document.getElementById('lista_ofx').innerHTML = "<div style='text-align:center; padding: 40px;'>⏳ Lendo arquivo...</div>";
     
     const fd = new FormData();
-    fd.append('action', 'ler_ofx');
-    fd.append('id_conta', conta);
-    fd.append('arquivo_ofx', fileInput.files[0]);
+    fd.append('action', 'ler_ofx'); fd.append('id_conta', conta); fd.append('arquivo_ofx', fileInput.files[0]);
 
     fetch('conciliacao_actions.php', { method: 'POST', body: fd })
         .then(res => res.json())
         .then(data => {
             if(data.status === 'success') {
+                if(data.ignoradas > 0) {
+                    alert(`✅ Arquivo processado!\n\n${data.ignoradas} transações foram ocultadas pois você já as tinha conciliado em importações anteriores.`);
+                }
                 renderizarListas(data);
-            } else {
-                alert("Erro ao ler ficheiro: " + data.message);
-                document.getElementById('lista_ofx').innerHTML = "";
-                document.getElementById('lista_sistema').innerHTML = "";
-            }
-        }).catch(err => {
-            alert("Ocorreu um erro de comunicação.");
-            console.error(err);
+            } else { alert("Erro: " + data.message); }
         });
 }
 
-// 2. DESENHAR OS CARTÕES NA TELA
 function renderizarListas(dados) {
     dadosConciliacao = dados;
-
     const listaOfx = document.getElementById('lista_ofx');
     const listaSis = document.getElementById('lista_sistema');
+    listaOfx.innerHTML = ''; listaSis.innerHTML = '';
 
-    listaOfx.innerHTML = '';
-    listaSis.innerHTML = '';
-
-    // A. Renderizar Matches (Aparecem no topo destacados em verde)
-    dados.matches.forEach((match, index) => {
-        listaOfx.innerHTML += criarCartaoOFX(match.ofx, 'match', index);
-        listaSis.innerHTML += criarCartaoSistema(match.sistema, 'match', index);
-    });
-
-    // B. Renderizar Pendentes OFX (O que sobrou do banco)
-    dados.ofx_pendentes.forEach((ofx, index) => {
-        listaOfx.innerHTML += criarCartaoOFX(ofx, 'pendente', index);
-    });
-
-    // C. Renderizar Pendentes Sistema (O que está no sistema mas não veio no banco)
-    dados.sistema_pendentes.forEach((sis, index) => {
-        listaSis.innerHTML += criarCartaoSistema(sis, 'pendente', index);
-    });
-
-    // Mensagens de vazio
-    if (dados.matches.length === 0 && dados.ofx_pendentes.length === 0) {
-        listaOfx.innerHTML = '<div style="text-align:center; padding:20px; color:#777;">Nenhuma transação encontrada no ficheiro.</div>';
+    // Painel de Ações em Lote (Botão e Selecionar Todos)
+    if (dados.ofx_pendentes.length > 0) {
+        listaOfx.innerHTML += `
+            <div style="background: #e9ecef; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <label style="cursor: pointer; font-weight: bold; font-size: 13px;">
+                    <input type="checkbox" onchange="selecionarTodosLote(this)"> Sel. Todos
+                </label>
+                <button onclick="abrirModalLote()" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; background: #007bff;">➕ Adicionar Lote ao Caixa</button>
+            </div>
+        `;
     }
-    if (dados.matches.length === 0 && dados.sistema_pendentes.length === 0) {
-        listaSis.innerHTML = '<div style="text-align:center; padding:20px; color:#777;">Tudo limpo! Nenhuma transação pendente no sistema.</div>';
-    }
+
+    dados.matches.forEach((m, i) => listaOfx.innerHTML += criarCartaoOFX(m.ofx, 'match', i));
+    dados.matches.forEach((m, i) => listaSis.innerHTML += criarCartaoSistema(m.sistema, 'match', i));
+    dados.ofx_pendentes.forEach((ofx, i) => listaOfx.innerHTML += criarCartaoOFX(ofx, 'pendente', i));
+    dados.sistema_pendentes.forEach((sis, i) => listaSis.innerHTML += criarCartaoSistema(sis, 'pendente', i));
 }
 
-// 3. CONSTRUTORES DE HTML (CARTÕES)
 function criarCartaoOFX(trx, status, index) {
     const cor = trx.tipo === 'Entrada' ? 'positivo' : 'negativo';
     const icone = trx.tipo === 'Entrada' ? '⬇️' : '⬆️';
-    let botoes = '';
+    let botoes = status === 'match' ? 
+        `<button class="btn-conciliar" onclick="confirmarMatch(${index})">✅ Confirmar Match</button>` : 
+        `<div style="display:flex; gap:10px; margin-top:10px; align-items:center;">
+            <button class="btn-conciliar" style="background:#004C99; flex:1;" onclick="adicionarNova(${index})">➕ Add Individual</button>
+            <input type="checkbox" class="check-lote-ofx" value="${index}" style="width:20px; height:20px; cursor:pointer;" title="Selecionar para Lote">
+         </div>`;
 
-    if (status === 'match') {
-        botoes = `<button class="btn-conciliar" onclick="confirmarMatch(${index})">✅ Confirmar Match</button>`;
-    } else {
-        botoes = `<button class="btn-conciliar" style="background:#007bff;" onclick="adicionarNova(${index})">➕ Adicionar ao Caixa</button>`;
-    }
-
-    return `
-        <div class="t-card ${trx.tipo.toLowerCase()} ${status}" id="ofx-${status}-${index}">
-            <div class="t-row">
-                <span class="t-data">📅 ${formatarData(trx.data)}</span>
-                <span class="t-valor ${cor}">${icone} ${formatarMoeda(trx.valor)}</span>
-            </div>
-            <div class="t-desc">${trx.descricao}</div>
-            <div style="font-size:10px; color:#999; margin-bottom: 8px;">ID: ${trx.fitid}</div>
-            ${botoes}
-        </div>
-    `;
+    return `<div class="t-card ${trx.tipo.toLowerCase()} ${status}" id="ofx-${status}-${index}">
+                <div class="t-row"><span class="t-data">📅 ${formatarData(trx.data)}</span><span class="t-valor ${cor}">${icone} ${formatarMoeda(trx.valor)}</span></div>
+                <div class="t-desc">${trx.descricao}</div>
+                ${botoes}
+            </div>`;
 }
 
-function criarCartaoSistema(trx, status, index) {
+function criarCartaoSistema(trx, status, index) { /* Código original mantido */
     const cor = trx.tipo === 'Entrada' ? 'positivo' : 'negativo';
     const icone = trx.tipo === 'Entrada' ? '⬇️' : '⬆️';
-    const flag = status === 'match' ? '<span style="background:#28a745; color:white; padding:3px 6px; border-radius:3px; font-size:11px; float:right;">Correspondência Encontrada</span>' : '<span style="background:#ffc107; color:#333; padding:3px 6px; border-radius:3px; font-size:11px; float:right;">Aguardando Banco</span>';
-
-    return `
-        <div class="t-card ${trx.tipo.toLowerCase()} ${status}" id="sis-${status}-${index}">
-            <div class="t-row">
-                <span class="t-data">📅 ${formatarData(trx.data_movimento)}</span>
-                <span class="t-valor ${cor}">${icone} ${formatarMoeda(trx.valor)}</span>
-            </div>
-            <div class="t-desc">${trx.descricao}</div>
-            <div style="margin-top: 10px;">${flag}</div>
-        </div>
-    `;
+    return `<div class="t-card ${trx.tipo.toLowerCase()} ${status}" id="sis-${status}-${index}">
+                <div class="t-row"><span class="t-data">📅 ${formatarData(trx.data_movimento)}</span><span class="t-valor ${cor}">${icone} ${formatarMoeda(trx.valor)}</span></div>
+                <div class="t-desc">${trx.descricao}</div>
+            </div>`;
 }
 
-// 4. AÇÕES DE CONCILIAÇÃO (A Ligar ao Backend)
 function confirmarMatch(index) {
     const matchDados = dadosConciliacao.matches[index];
     const fd = new FormData();
-    fd.append('action', 'confirmar_match');
-    fd.append('id_caixa', matchDados.sistema.id);
-    fd.append('fitid', matchDados.ofx.fitid);
-
-    fetch('conciliacao_actions.php', { method: 'POST', body: fd })
-        .then(res => res.json())
-        .then(data => {
-            if(data.status === 'success') {
-                // Esconde os dois cartões após o sucesso com uma animação suave
-                document.getElementById(`ofx-match-${index}`).style.display = 'none';
-                document.getElementById(`sis-match-${index}`).style.display = 'none';
-            } else {
-                alert(data.message);
-            }
-        });
+    fd.append('action', 'confirmar_match'); fd.append('id_caixa', matchDados.sistema.id); fd.append('fitid', matchDados.ofx.fitid);
+    fetch('conciliacao_actions.php', { method: 'POST', body: fd }).then(res => res.json()).then(data => {
+        if(data.status === 'success') {
+            document.getElementById(`ofx-match-${index}`).style.display = 'none';
+            document.getElementById(`sis-match-${index}`).style.display = 'none';
+        }
+    });
 }
 
-// Abre o Modal com os dados da transação selecionada
-function adicionarNova(index) {
-    const ofxDados = dadosConciliacao.ofx_pendentes[index];
+// LÓGICA DE LOTE 
+function selecionarTodosLote(checkbox) {
+    document.querySelectorAll('.check-lote-ofx').forEach(cb => cb.checked = checkbox.checked);
+}
+
+function abrirModalLote() {
+    const selecionados = Array.from(document.querySelectorAll('.check-lote-ofx:checked')).map(cb => cb.value);
+    if(selecionados.length === 0) return alert("Selecione pelo menos 1 transação nas caixinhas!");
     
-    // Preenche os dados visuais no Modal
-    document.getElementById('modal_tx_index').value = index;
-    document.getElementById('modal_tx_data').innerText = `📅 ${formatarData(ofxDados.data)}`;
-    document.getElementById('modal_tx_desc').innerText = ofxDados.descricao;
-    
-    const cor = ofxDados.tipo === 'Entrada' ? '#28a745' : '#dc3545';
-    const icone = ofxDados.tipo === 'Entrada' ? '⬇️' : '⬆️';
-    document.getElementById('modal_tx_valor').innerHTML = `<span style="color: ${cor};">${icone} ${formatarMoeda(ofxDados.valor)}</span>`;
-    
-    // Abre o Modal
+    // Usamos o mesmo modal, mas sinalizamos que é lote
+    document.getElementById('modal_tx_index').value = 'LOTE:' + selecionados.join(',');
+    document.getElementById('modal_tx_desc').innerText = `LOTE: ${selecionados.length} transações selecionadas para inserção.`;
     document.getElementById('modalCategoria').style.display = 'flex';
 }
 
-function fecharModalCategoria() {
-    document.getElementById('modalCategoria').style.display = 'none';
-    
-    // Limpa a seleção do Tom Select
-    const select = document.getElementById('modal_id_categoria');
-    if(select.tomselect) {
-        select.tomselect.clear();
-    }
+function adicionarNova(index) {
+    document.getElementById('modal_tx_index').value = index;
+    document.getElementById('modal_tx_desc').innerText = dadosConciliacao.ofx_pendentes[index].descricao;
+    document.getElementById('modalCategoria').style.display = 'flex';
 }
 
-// Disparado ao submeter o formulário do Modal
+function fecharModalCategoria() { document.getElementById('modalCategoria').style.display = 'none'; }
+
 function salvarNovaTransacao(e) {
-    e.preventDefault(); // Impede o ecrã de recarregar
-    
-    const index = document.getElementById('modal_tx_index').value;
+    e.preventDefault();
+    const indexRaw = document.getElementById('modal_tx_index').value;
     const idCategoria = document.getElementById('modal_id_categoria').value;
     const idConta = document.getElementById('conta_selecionada').value;
-    const ofxDados = dadosConciliacao.ofx_pendentes[index];
-    
-    if(!idCategoria) {
-        alert("Por favor, selecione uma categoria.");
-        return;
-    }
-
-    // Prepara os dados para o PHP
     const fd = new FormData();
-    fd.append('action', 'adicionar_ofx');
-    fd.append('id_conta', idConta);
-    fd.append('fitid', ofxDados.fitid);
-    fd.append('data', ofxDados.data);
-    fd.append('valor', ofxDados.valor);
-    fd.append('tipo', ofxDados.tipo);
-    fd.append('descricao', ofxDados.descricao);
-    fd.append('id_categoria', idCategoria);
 
-    // Envia o pedido e processa a resposta
-    fetch('conciliacao_actions.php', { method: 'POST', body: fd })
-        .then(res => res.json())
-        .then(data => {
+    if(indexRaw.startsWith('LOTE:')) {
+        // MODO LOTE
+        const indices = indexRaw.replace('LOTE:', '').split(',');
+        const transacoesParaLote = indices.map(i => dadosConciliacao.ofx_pendentes[i]);
+        
+        fd.append('action', 'adicionar_ofx_lote');
+        fd.append('id_conta', idConta);
+        fd.append('id_categoria', idCategoria);
+        fd.append('transacoes', JSON.stringify(transacoesParaLote));
+
+        fetch('conciliacao_actions.php', { method: 'POST', body: fd }).then(res => res.json()).then(data => {
             if(data.status === 'success') {
-                // Esconde o cartão da lista e fecha o modal
-                document.getElementById(`ofx-pendente-${index}`).style.display = 'none';
+                indices.forEach(i => document.getElementById(`ofx-pendente-${i}`).style.display = 'none');
                 fecharModalCategoria();
-            } else {
-                alert("Erro ao gravar: " + data.message);
             }
         });
+    } else {
+        // MODO INDIVIDUAL
+        const ofxDados = dadosConciliacao.ofx_pendentes[indexRaw];
+        fd.append('action', 'adicionar_ofx'); fd.append('id_conta', idConta); fd.append('id_categoria', idCategoria);
+        fd.append('fitid', ofxDados.fitid); fd.append('data', ofxDados.data); fd.append('valor', ofxDados.valor);
+        fd.append('tipo', ofxDados.tipo); fd.append('descricao', ofxDados.descricao);
+        fetch('conciliacao_actions.php', { method: 'POST', body: fd }).then(res => res.json()).then(data => {
+            if(data.status === 'success') {
+                document.getElementById(`ofx-pendente-${indexRaw}`).style.display = 'none';
+                fecharModalCategoria();
+            }
+        });
+    }
 }
