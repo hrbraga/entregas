@@ -2,23 +2,32 @@
 require '../config.php';
 require '../auth/auth_check.php';
 $page_title = "Contas a Pagar";
-$sessao_nome = "Contas a Pagar"; // Isso 
+$sessao_nome = "Contas a Pagar";
 require '../includes/header.php';
 
 $id_usuario = $_SESSION['user_id'];
 
 try {
-    // Captura as datas do filtro via GET
+    // Captura as datas e o status do filtro via GET
     $data_inicio = $_GET['data_inicio'] ?? '';
     $data_fim = $_GET['data_fim'] ?? '';
+    $status_filtro = $_GET['status_filtro'] ?? 'Pendente'; // Padrão é carregar as pendentes
 
     // Monta a query base
     $sql_contas = "
         SELECT cp.*, cat.nome as categoria_nome 
         FROM contas_pagar cp 
         LEFT JOIN categorias_financeiras cat ON cp.id_categoria = cat.id 
-        WHERE cp.id_usuario = ? AND cp.status != 'Pago'
+        WHERE cp.id_usuario = ?
     ";
+
+    // Filtra pelo status selecionado
+    if ($status_filtro === 'Pago') {
+        $sql_contas .= " AND cp.status = 'Pago'";
+    } else {
+        $sql_contas .= " AND cp.status != 'Pago'";
+    }
+
     $params = [$id_usuario];
 
     // Adiciona o filtro de período, se preenchido
@@ -40,13 +49,10 @@ try {
     $stmt_cat = $db_financeiro->query("SELECT * FROM categorias_financeiras WHERE tipo = 'Despesa' ORDER BY grupo ASC, nome ASC");
     $lista_categorias = $stmt_cat->fetchAll();
 
-    // --- NOVA ALTERAÇÃO: BUSCAR CONTAS BANCÁRIAS (SOMENTE AS ATIVAS) ---
+    // BUSCAR CONTAS BANCÁRIAS (SOMENTE AS ATIVAS)
     $stmt_bancos_ativos = $db_financeiro->prepare("SELECT id, nome_conta, banco FROM contas_bancarias WHERE id_usuario = ? AND (status = 'Ativa' OR status IS NULL)");
     $stmt_bancos_ativos->execute([$id_usuario]);
     $bancos_cadastrados = $stmt_bancos_ativos->fetchAll(PDO::FETCH_ASSOC);
-    // -----------------------------------------------
-
-
 } catch (Exception $e) {
     $contas = [];
     $lista_categorias = [];
@@ -82,6 +88,7 @@ usort($contas_finais, function ($a, $b) {
 <link rel="stylesheet" href="../static/css/global.css">
 <link rel="stylesheet" href="../static/css/style.css">
 <link rel="stylesheet" href="../static/css/financeiro.css">
+<link rel="stylesheet" href="../static/css/contas_pagar.css">
 
 <div class="financeiro-nav">
     <div class="nav-dropdown">
@@ -113,7 +120,14 @@ usort($contas_finais, function ($a, $b) {
     <div class="header-actions" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 15px;">
 
         <form method="GET" action="contas_pagar.php" style="display: flex; align-items: center; gap: 10px; margin: 0;">
-            <label style="font-size: 14px; font-weight: bold;">Período:</label>
+
+            <label style="font-size: 14px; font-weight: bold;">Exibir:</label>
+            <select name="status_filtro" class="form-control" style="max-width: 130px; font-size: 12px; padding: 5px; cursor: pointer;" onchange="this.form.submit()">
+                <option value="Pendente" <?= $status_filtro === 'Pendente' ? 'selected' : '' ?>>📅 Pendentes</option>
+                <option value="Pago" <?= $status_filtro === 'Pago' ? 'selected' : '' ?>>✅ Pagas</option>
+            </select>
+
+            <label style="font-size: 14px; font-weight: bold; margin-left: 10px;">Período:</label>
 
             <input type="date" name="data_inicio" class="form-control" value="<?= htmlspecialchars($data_inicio) ?>" style="max-width: 140px; cursor: pointer; font-size: 12px;" onclick="this.showPicker()">
 
@@ -139,7 +153,6 @@ usort($contas_finais, function ($a, $b) {
                 <th class="text-center">
                     <input type="checkbox" id="selecionar_todos">
                 </th>
-                <th class="text-center">Ações</th>
                 <th>Vencimento</th>
                 <th class="col-fornecedor"> Fornecedor <span class="filtro-icon" onclick="toggleFiltro('fornecedor')"> 🔽 </span>
                     <div id="filtro-fornecedor" class="filtro-dropdown"></div>
@@ -151,12 +164,15 @@ usort($contas_finais, function ($a, $b) {
                     <div id="filtro-categoria" class="filtro-dropdown"></div>
                 </th>
                 <th class="col-status">Status</th>
+                <th class="text-center">Ações</th>
             </tr>
         </thead>
         <tbody>
             <?php if (count($contas_finais) == 0): ?>
                 <tr>
-                    <td colspan="9" class="empty-state">Tudo limpo! Não há contas pendentes. 🎉</td>
+                    <td colspan="9" class="empty-state">
+                        <?= $status_filtro === 'Pago' ? 'Ainda não há contas pagas neste período. 💸' : 'Tudo limpo! Não há contas pendentes. 🎉' ?>
+                    </td>
                 </tr>
             <?php endif; ?>
 
@@ -176,16 +192,6 @@ usort($contas_finais, function ($a, $b) {
 
                             data-valor="<?= $c['valor'] ?>">
                     </td>
-                    <td class="text-center">
-                        <?php if (isset($c['is_group'])): ?>
-                            <button class="btn-acao" title="Baixar Grupo" onclick="abrirModalBaixa('', '<?= $c['vencimento'] ?>', <?= $c['valor'] ?>, 'Cacau Show', 'Royalties Agrupados - <?= date('d/m/Y', strtotime($c['vencimento'])) ?>')">✅</button>
-                            <button class="btn-acao" title="Ver Detalhes" onclick="toggleGrupo('<?= $c['grupo_id'] ?>')">🔍</button>
-                        <?php else: ?>
-                            <button class="btn-acao" title="Baixa" onclick="abrirModalBaixa(<?= $c['id'] ?>, '', <?= $c['valor'] ?>, '<?= htmlspecialchars($c['fornecedor'], ENT_QUOTES) ?>', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅</button>
-                            <button class="btn-acao" title="Editar" onclick='editarConta(<?= json_encode($c) ?>)'>✏️</button>
-                            <button class="btn-acao" title="Excluir" onclick="excluirConta(<?= $c['id'] ?>)">🗑️</button>
-                        <?php endif; ?>
-                    </td>
                     <td><?= date('d/m/Y', strtotime($c['vencimento'])) ?></td>
                     <td class="col-fornecedor"><?= htmlspecialchars($c['fornecedor']) ?></td>
                     <td class="col-nf"><?= htmlspecialchars($c['nota_fiscal'] ?? '-') ?></td>
@@ -197,7 +203,27 @@ usort($contas_finais, function ($a, $b) {
                     </td>
                     <td>R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
                     <td class="col-categoria"><?= htmlspecialchars($c['categoria_nome']) ?></td>
-                    <td class="col-status"><span class="status-badge pendente">Pendente</span></td>
+                    <td class="col-status">
+                        <?php if ($status_filtro === 'Pago'): ?>
+                            <span class="status-badge" style="background: #28a745; color: white;">Pago</span>
+                        <?php else: ?>
+                            <span class="status-badge pendente">Pendente</span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="text-center">
+                        <div class="kebab-menu">
+                            <button class="btn-kebab" onclick="toggleKebab(this)">⋮</button>
+                            <div class="kebab-dropdown">
+                                <?php if (isset($_GET['status_filtro']) && $_GET['status_filtro'] === 'Pago'): ?>
+                                    <button type="button" onclick="estornarConta(<?= $c['id'] ?>)" style="color: #ffc107;">↩️ Estornar</button>
+                                <?php else: ?>
+                                    <button type="button" onclick="abrirModalBaixa(<?= $c['id'] ?>, '', <?= $c['valor'] ?>, '<?= htmlspecialchars($c['fornecedor'], ENT_QUOTES) ?>', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅ Dar Baixa</button>
+                                    <button type="button" onclick='editarConta(<?= json_encode($c) ?>)'>✏️ Editar</button>
+                                    <button type="button" onclick="excluirConta(<?= $c['id'] ?>)" style="color: red;">🗑️ Excluir</button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </td>
                 </tr>
 
                 <?php if (isset($c['is_group'])): ?>
@@ -206,10 +232,6 @@ usort($contas_finais, function ($a, $b) {
                             data-parent="<?= $c['grupo_id'] ?>"
                             style="display:none;">
                             <td></td>
-                            <td class="text-center">
-                                <button class="btn-acao" onclick='editarConta(<?= json_encode($filha) ?>)'>✏️</button>
-                                <button class="btn-acao" onclick="excluirConta(<?= $filha['id'] ?>)">🗑️</button>
-                            </td>
                             <td><?= date('d/m/Y', strtotime($filha['vencimento'])) ?></td>
                             <td class="col-fornecedor"><?= htmlspecialchars($filha['fornecedor']) ?></td>
                             <td class="col-nf"><?= htmlspecialchars($filha['nota_fiscal'] ?? '-') ?></td>
@@ -218,8 +240,27 @@ usort($contas_finais, function ($a, $b) {
                                 <?= htmlspecialchars($filha['descricao']) ?>
                             </td>
                             <td>R$ <?= number_format($filha['valor'], 2, ',', '.') ?></td>
-                            <td><?= htmlspecialchars($filha['categoria_nome']) ?></td>
-                            <td> <span class="status-badge pendente">Pendente</span></td>
+                            <td class="col-categoria"><?= htmlspecialchars($filha['categoria_nome']) ?></td>
+                            <td class="col-status">
+                                <?php if ($status_filtro === 'Pago'): ?>
+                                    <span class="status-badge" style="background: #28a745; color: white;">Pago</span>
+                                <?php else: ?>
+                                    <span class="status-badge pendente">Pendente</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <div class="kebab-menu">
+                                    <button class="btn-kebab" onclick="toggleKebab(this)">⋮</button>
+                                    <div class="kebab-dropdown">
+                                        <?php if ($status_filtro === 'Pago'): ?>
+                                            <button type="button" onclick="estornarConta(<?= $filha['id'] ?>)" style="color: #ffc107;">↩️ Estornar Pagto</button>
+                                        <?php else: ?>
+                                            <button type="button" onclick='editarConta(<?= json_encode($filha) ?>)'>✏️ Editar</button>
+                                            <button type="button" onclick="excluirConta(<?= $filha['id'] ?>)" style="color: red;">🗑️ Excluir</button>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -236,7 +277,7 @@ usort($contas_finais, function ($a, $b) {
         </div>
 
         <form id="formBaixa" class="form-body" onsubmit="salvarBaixa(event)">
-            <input type="hidden" name="action" value="baixa">
+            <input type="hidden" name="action" value="baixa_pagamento">
             <input type="hidden" name="id_baixa" id="id_baixa">
             <input type="hidden" name="vencimento_baixa" id="vencimento_baixa">
             <input type="hidden" name="fornecedor_baixa" id="fornecedor_baixa">
@@ -301,7 +342,7 @@ usort($contas_finais, function ($a, $b) {
         </div>
 
         <form id="formConta" class="form-body" onsubmit="salvarConta(event)">
-            <input type="hidden" name="action" value="salvar">
+            <input type="hidden" name="action" value="salvar_pagar">
             <input type="hidden" name="id" id="conta_id">
 
             <div class="form-grid">

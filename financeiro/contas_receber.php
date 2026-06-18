@@ -70,6 +70,7 @@ usort($contas, function ($a, $b) {
 <link rel="stylesheet" href="../static/css/global.css">
 <link rel="stylesheet" href="../static/css/style.css">
 <link rel="stylesheet" href="../static/css/financeiro.css">
+<link rel="stylesheet" href="../static/css/contas_receber.css">
 
 <div class="financeiro-nav">
     <div class="nav-dropdown">

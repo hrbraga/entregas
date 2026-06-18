@@ -1,12 +1,21 @@
 <?php
+// Puxa a sua conexão com o banco de dados
 require '../config.php';
+
 try {
-    $db_financeiro->exec("ALTER TABLE contas_pagar ADD COLUMN data_pagamento DATE;");
-    $db_financeiro->exec("ALTER TABLE contas_pagar ADD COLUMN forma_pagamento TEXT;");
-    $db_financeiro->exec("ALTER TABLE contas_pagar ADD COLUMN banco_pagamento TEXT;");
-    $db_financeiro->exec("ALTER TABLE contas_pagar ADD COLUMN valor_pago REAL;");
-    echo "<h3 style='color:green'>Banco de dados atualizado com sucesso! Já podes apagar este ficheiro.</h3>";
-} catch (Exception $e) {
-    echo "Aviso: " . $e->getMessage() . " (Se disser 'duplicate column name', significa que já estava atualizado).";
+    // Comando para adicionar a coluna nova na tabela do caixa
+    $sql = "ALTER TABLE movimentacoes_caixa ADD COLUMN id_origem INT NULL";
+    
+    // Executa o comando
+    $db_financeiro->exec($sql);
+    
+    echo "<h1>Sucesso!</h1>";
+    echo "<p>A coluna 'id_origem' foi adicionada com sucesso na tabela movimentacoes_caixa.</p>";
+    echo "<p>Você já pode fechar esta tela e deletar este arquivo (atualizar_banco.php) por segurança.</p>";
+
+} catch (PDOException $e) {
+    echo "<h1>Aviso</h1>";
+    echo "<p>Se der erro, provavelmente a coluna já existe ou há um problema de conexão.</p>";
+    echo "<p>Detalhe do erro: " . $e->getMessage() . "</p>";
 }
 ?>
