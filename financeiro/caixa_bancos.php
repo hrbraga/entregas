@@ -49,6 +49,7 @@ foreach ($categorias as $cat) {
                 <a href="relatorio_contas.php">Pagamentos</a>
                 <a href="#">Recebimentos</a>
                 <a href="dre.php" style="font-weight: bold; background: #f8f9fa;">📊 DRE</a>
+                   <a href="fluxo_caixa.php" style="font-weight: bold; background: #f8f9fa;">📈 Fluxo de Caixa</a>
             </div>
         </div>
     </div>

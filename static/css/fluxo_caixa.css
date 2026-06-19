@@ -1,0 +1,190 @@
+/* Container de Filtros */
+.filtros-box {
+    padding: 20px;
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.filtros-box .form-control,
+.filtros-box .ts-wrapper {
+    margin-bottom: 0 !important;
+}
+
+.filtro-item {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 1. Labels maiores e alinhados */
+.filtro-item label {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #444;
+}
+
+/* 2. Inputs de data com altura padronizada e cursor pointer para o calendário */
+.input-data {
+    width: 150px;
+    height: 42px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* 3. O Container de contas preenche todo o espaço vazio */
+.filtro-contas {
+    flex: 1;
+
+}
+
+/* 4. Botão alinhado perfeitamente na base dos inputs */
+.btn-gerar {
+    height: 42px;
+    margin: 0 !important;
+    min-width: 100px;
+    padding: 0 20px;
+}
+
+/* 5. DOMINANDO O TOM SELECT: Altura cravada em 42px para alinhar com os outros */
+.ts-wrapper {
+    height: 42px;
+    width: 100% !important;
+}
+
+.ts-control {
+    min-height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    padding: 0 12px !important;
+    background: #fff !important;
+}
+
+/* Ajusta as "tags" azuis dentro do seletor para não expandirem a caixa */
+.ts-control .item {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    padding: 2px 8px !important;
+}
+
+/* Gráfico */
+.grafico-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    height: 300px;
+}
+
+/* Tabela Sintética */
+.tabela-container {
+    overflow-x: auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.table-fluxo {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+}
+
+.table-fluxo th {
+    background: #f8f9fa;
+    color: #444;
+    padding: 15px;
+    text-align: right;
+    font-size: 12px;
+    border-bottom: 2px solid #ddd;
+    white-space: nowrap;
+}
+
+.table-fluxo th:first-child {
+    text-align: left;
+}
+
+.table-fluxo td {
+    padding: 12px 15px;
+    text-align: right;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.table-fluxo td:first-child {
+    text-align: left;
+}
+
+/* Linhas Mães (Expansores) */
+.row-master {
+    background: #fdfdfd;
+    cursor: pointer;
+    transition: 0.2s;
+    font-weight: bold;
+}
+
+.row-master:hover {
+    background: #f1f3f5;
+}
+
+.row-master td:first-child {
+    color: #333;
+}
+
+.row-master .icon-expander {
+    display: inline-block;
+    width: 15px;
+    color: #007bff;
+    transition: 0.3s;
+}
+
+/* Linhas Filhas (Categorias) */
+.row-child {
+    background: #fff;
+}
+
+.row-child td {
+    color: #666;
+    font-size: 12px;
+}
+
+.row-child td:first-child {
+    padding-left: 35px;
+    border-left: 3px solid #e9ecef;
+    color: #555;
+}
+
+/* Cores Financeiras */
+.val-entrada {
+    color: #28a745;
+}
+
+.val-saida {
+    color: #dc3545;
+}
+
+.val-neutro {
+    color: #333;
+}
+
+.bg-saldo-positivo {
+    background: #d4edda !important;
+    font-weight: bold;
+    color: #155724 !important;
+}
+
+.bg-saldo-negativo {
+    background: #f8d7da !important;
+    font-weight: bold;
+    color: #721c24 !important;
+}

@@ -15,7 +15,6 @@ $data_inicio = $_GET['data_inicio'] ?? date('Y-m-01');
 $data_fim = $_GET['data_fim'] ?? date('Y-m-t');
 
 try {
-    // Adicionada a exclusão de Retiradas Proprietário direto no banco de dados
     $sql_dre = "
         SELECT 'Caixa' as origem, mc.tipo as fluxo, mc.valor, COALESCE(cat.nome, 'Sem Categoria') as categoria, COALESCE(cat.grupo, 'Outros') as grupo
         FROM movimentacoes_caixa mc
@@ -24,7 +23,6 @@ try {
           AND mc.data_movimento BETWEEN ? AND ?
           AND cat.nome != 'Transferência'
           AND mc.origem != 'Transferência'
-          AND cat.nome NOT LIKE '%Retirada%Proprietário%'
 
         UNION ALL
         
@@ -43,41 +41,53 @@ try {
     $deducoes = [];
     $custos = [];
     $despesas = [];
+    $retiradas = []; 
 
-    $tot_receita = 0; $tot_deducao = 0; $tot_custo = 0; $tot_despesa = 0;
+    $tot_receita = 0; $tot_deducao = 0; $tot_custo = 0; $tot_despesa = 0; $tot_retirada = 0;
 
     foreach ($movimentos as $m) {
         $val = (float) $m['valor'];
         $cat = $m['categoria'];
         $grupo = !empty($m['grupo']) ? $m['grupo'] : 'Outros';
         
-        $cat_low = mb_strtolower($cat, 'UTF-8');
-        $grupo_low = mb_strtolower($grupo, 'UTF-8');
+        // 1. FILTRO ARRASTÃO: Apanha qualquer variação de Retirada, Pró-labore, Lucros ou Sócios
+        $is_retirada = (
+            mb_stripos($cat, 'retirada', 0, 'UTF-8') !== false || 
+            mb_stripos($cat, 'propriet', 0, 'UTF-8') !== false || 
+            mb_stripos($cat, 'lucro', 0, 'UTF-8') !== false ||
+            mb_stripos($cat, 'sócio', 0, 'UTF-8') !== false ||
+            mb_stripos($cat, 'socio', 0, 'UTF-8') !== false ||
+            mb_stripos($cat, 'labore', 0, 'UTF-8') !== false ||
+            mb_stripos($grupo, 'retirada', 0, 'UTF-8') !== false ||
+            mb_stripos($grupo, 'lucro', 0, 'UTF-8') !== false ||
+            mb_stripos($grupo, 'sócio', 0, 'UTF-8') !== false
+        );
 
-        // Filtro de segurança extra no PHP para distribuições de lucro
-        if (strpos($cat_low, 'retirada') !== false && strpos($cat_low, 'propriet') !== false) {
+        // Se for Saída e cair no filtro de retiradas, força para a Secção 8 e passa ao próximo
+        if ($m['fluxo'] === 'Saida' && $is_retirada) {
+            $retiradas[$grupo][$cat] = ($retiradas[$grupo][$cat] ?? 0) + $val;
+            $tot_retirada += $val;
             continue; 
         }
 
+        // Distribuição normal do restante DRE
         if ($m['fluxo'] === 'Entrada') {
             $receitas[$grupo][$cat] = ($receitas[$grupo][$cat] ?? 0) + $val;
             $tot_receita += $val;
         } else {
-            // REGRA 1: Taxas da Cacau Show -> Deduções
-            // REGRA 2: 'Taxas' (genérico) -> Custos Variáveis
-            if (strpos($cat_low, 'cacau show') !== false) {
+            if (mb_stripos($cat, 'cacau show', 0, 'UTF-8') !== false) {
                 $deducoes['Deduções da Receita'][$cat] = ($deducoes['Deduções da Receita'][$cat] ?? 0) + $val;
                 $tot_deducao += $val;
             } 
-            elseif (strpos($cat_low, 'taxa') !== false && strpos($cat_low, 'cacau show') === false) {
+            elseif (mb_stripos($cat, 'taxa', 0, 'UTF-8') !== false && mb_stripos($cat, 'cacau show', 0, 'UTF-8') === false) {
                 $custos['Custos Variáveis'][$cat] = ($custos['Custos Variáveis'][$cat] ?? 0) + $val;
                 $tot_custo += $val;
             } 
-            elseif (strpos($grupo_low, 'deduç') !== false || strpos($grupo_low, 'imposto') !== false || strpos($cat_low, 'desconto') !== false) {
+            elseif (mb_stripos($grupo, 'deduç', 0, 'UTF-8') !== false || mb_stripos($grupo, 'imposto', 0, 'UTF-8') !== false || mb_stripos($cat, 'desconto', 0, 'UTF-8') !== false) {
                 $deducoes[$grupo][$cat] = ($deducoes[$grupo][$cat] ?? 0) + $val;
                 $tot_deducao += $val;
             } 
-            elseif (strpos($grupo_low, 'custo') !== false || strpos($grupo_low, 'fornecedor') !== false || strpos($grupo_low, 'variá') !== false || strpos($cat_low, 'mercadoria') !== false) {
+            elseif (mb_stripos($grupo, 'custo', 0, 'UTF-8') !== false || mb_stripos($grupo, 'fornecedor', 0, 'UTF-8') !== false || mb_stripos($grupo, 'variá', 0, 'UTF-8') !== false || mb_stripos($cat, 'mercadoria', 0, 'UTF-8') !== false) {
                 $custos[$grupo][$cat] = ($custos[$grupo][$cat] ?? 0) + $val;
                 $tot_custo += $val;
             } else {
@@ -92,6 +102,8 @@ try {
 
 // Função para desenhar a árvore já com a lógica de abrir/fechar
 function desenharArvoreDRE($agrupado, $is_subtracao = true, $prefixo = 'grp') {
+    if (empty($agrupado)) return;
+
     $sinal = $is_subtracao ? '- R$ ' : 'R$ ';
     $cor = $is_subtracao ? '#dc3545' : '#333';
     $contador = 0;
@@ -100,7 +112,6 @@ function desenharArvoreDRE($agrupado, $is_subtracao = true, $prefixo = 'grp') {
         $contador++;
         $id_grupo = $prefixo . '_' . $contador; 
         
-        // Linha Mãe (Clicável)
         echo "<tr style='background: #f8f9fa; cursor: pointer; transition: 0.2s;' onclick=\"toggleDREGroup('{$id_grupo}')\" onmouseover=\"this.style.background='#f1f3f5'\" onmouseout=\"this.style.background='#f8f9fa'\">
                 <td style='padding: 10px 20px; font-weight: bold; font-size: 13px; color: #444; user-select: none;'>
                     <span id='icon_{$id_grupo}' style='display: inline-block; width: 15px; color: #007bff;'>▶</span> 📂 " . htmlspecialchars($grupo) . "
@@ -108,7 +119,6 @@ function desenharArvoreDRE($agrupado, $is_subtracao = true, $prefixo = 'grp') {
                 <td style='text-align: right; font-weight: bold; color: $cor; padding: 10px 20px;'>" . $sinal . number_format(array_sum($itens), 2, ',', '.') . "</td>
               </tr>";
               
-        // Linhas Filhas (Ocultas por padrão)
         foreach ($itens as $nome => $valor) {
             echo "<tr class='child-of-{$id_grupo}' style='display: none;'>
                     <td style='padding: 6px 20px 6px 45px; font-size: 12px; color: #666; border-left: 3px solid #e9ecef;'>↳ " . htmlspecialchars($nome) . "</td>
@@ -140,6 +150,7 @@ function desenharArvoreDRE($agrupado, $is_subtracao = true, $prefixo = 'grp') {
             <a href="relatorio_contas.php">Pagamentos</a>
             <a href="#">Recebimentos</a>
             <a href="dre.php" style="font-weight: bold; background: #f8f9fa;">📊 DRE</a>
+              <a href="fluxo_caixa.php" style="font-weight: bold; background: #f8f9fa;">📈 Fluxo de Caixa</a>
         </div>
     </div>
 </div>
@@ -206,8 +217,23 @@ function desenharArvoreDRE($agrupado, $is_subtracao = true, $prefixo = 'grp') {
                 $bg_resultado = $lucro >= 0 ? '#28a745' : '#dc3545';
             ?>
             <tr style="background: <?= $bg_resultado ?>; color: #fff; border-top: 2px solid #fff;">
-                <td style="padding: 20px; font-weight: bold; font-size: 18px;">7. (=) RESULTADO DO EXERCÍCIO</td>
+                <td style="padding: 20px; font-weight: bold; font-size: 18px;">7. (=) RESULTADO DO EXERCÍCIO (LUCRO OPERACIONAL)</td>
                 <td style="padding: 20px; text-align: right; font-weight: bold; font-size: 20px;">R$ <?= number_format($lucro, 2, ',', '.') ?></td>
+            </tr>
+
+            <tr style="background: #e9ecef; border-top: 2px solid #fff;">
+                <td style="padding: 12px 20px; font-weight: bold; font-size: 15px; color: #000;">8. (-) RETIRADAS DE SÓCIOS / PROPRIETÁRIO</td>
+                <td style="padding: 12px 20px; text-align: right; font-weight: bold; font-size: 15px; color: #dc3545;">- R$ <?= number_format($tot_retirada, 2, ',', '.') ?></td>
+            </tr>
+            <?php desenharArvoreDRE($retiradas, true, 'ret'); ?>
+
+            <?php 
+                $saldo_final = $lucro - $tot_retirada; 
+                $bg_saldo = $saldo_final >= 0 ? '#17a2b8' : '#343a40'; 
+            ?>
+            <tr style="background: <?= $bg_saldo ?>; color: #fff; border-top: 2px solid #fff;">
+                <td style="padding: 20px; font-weight: bold; font-size: 18px;">9. (=) SALDO FINAL PÓS-RETIRADAS</td>
+                <td style="padding: 20px; text-align: right; font-weight: bold; font-size: 20px;">R$ <?= number_format($saldo_final, 2, ',', '.') ?></td>
             </tr>
         </table>
     </div>

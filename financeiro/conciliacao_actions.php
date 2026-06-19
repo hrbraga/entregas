@@ -17,13 +17,25 @@ try {
         if (empty($id_conta) || !isset($_FILES['arquivo_ofx'])) throw new Exception("Dados inválidos.");
 
         $conteudo = file_get_contents($_FILES['arquivo_ofx']['tmp_name']);
-        $conteudo = mb_convert_encoding($conteudo, 'UTF-8', mb_detect_encoding($conteudo, 'UTF-8, ISO-8859-1', true));
+        
+        // 1. Deteção inteligente do CHARSET (Procura ativamente pelo 1252 do Sicoob)
+        $encoding = 'UTF-8';
+        if (preg_match('/CHARSET:(1252|ISO-8859-1)/i', $conteudo, $matches)) {
+            $encoding = ($matches[1] == '1252') ? 'Windows-1252' : 'ISO-8859-1';
+        } elseif (mb_detect_encoding($conteudo, 'UTF-8, ISO-8859-1, Windows-1252', true)) {
+            $encoding = mb_detect_encoding($conteudo, 'UTF-8, ISO-8859-1, Windows-1252', true);
+        }
 
-$transacoes_ofx = [];
+        // 2. Converte para UTF-8 garantindo que acentos (É, ã, ç) fiquem perfeitos
+        $conteudo = mb_convert_encoding($conteudo, 'UTF-8', $encoding);
+
+        // 3. Limpeza preventiva de caracteres de controlo invisíveis que corrompem o JSON
+        $conteudo = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $conteudo);
+
+        $transacoes_ofx = [];
         $ignoradas = 0;
 
-        // 1. OTIMIZAÇÃO: Buscar todos os FITIDs do banco numa ÚNICA consulta (muito mais rápido)
-        // Isso também já resolve a leitura de múltiplos IDs separados por vírgula da conciliação N-para-1
+        // OTIMIZAÇÃO: Buscar todos os FITIDs do banco numa ÚNICA consulta
         $stmt_existentes = $db_financeiro->prepare("SELECT id_transacao_banco FROM movimentacoes_caixa WHERE id_usuario = ? AND id_conta = ? AND id_transacao_banco IS NOT NULL AND id_transacao_banco != ''");
         $stmt_existentes->execute([$id_usuario, $id_conta]);
         $registos_banco = $stmt_existentes->fetchAll(PDO::FETCH_COLUMN);
@@ -36,7 +48,7 @@ $transacoes_ofx = [];
             }
         }
 
-        // 2. Processamento do arquivo OFX na memória (Instantâneo)
+        // Processamento do arquivo OFX na memória
         if (preg_match_all('/<STMTTRN>(.*?)<\/STMTTRN>/s', $conteudo, $blocos)) {
             foreach ($blocos[1] as $bloco) {
                 $data_raw = extrairTagOFX('DTPOSTED', $bloco);
@@ -46,12 +58,14 @@ $transacoes_ofx = [];
                 $descricao = extrairTagOFX('MEMO', $bloco);
                 if (empty($descricao)) $descricao = extrairTagOFX('NAME', $bloco);
 
+                // Garantia final: limpa qualquer lixo que tenha sobrado apenas na descrição
+                $descricao = trim(preg_replace('/[\x00-\x1F\x7F]/', '', $descricao));
+
                 $data_formatada = substr($data_raw, 0, 4) . '-' . substr($data_raw, 4, 2) . '-' . substr($data_raw, 6, 2);
                 $valor_float = (float) $valor_raw;
                 $tipo = ($valor_float < 0) ? 'Saida' : 'Entrada';
                 $valor_absoluto = abs($valor_float);
 
-                // Verifica na memória (Array PHP) em vez de ir ao banco de dados repetidamente
                 if (isset($fitids_ja_importados[$fitid])) {
                     $ignoradas++;
                 } elseif (!empty($fitid) && $valor_absoluto > 0) {
@@ -101,10 +115,8 @@ $transacoes_ofx = [];
         exit;
     }
 
-
     if ($action === 'confirmar_match_multiplo') {
         $id_caixa = $_POST['id_caixa'] ?? '';
-
         $fitids = isset($_POST['fitids']) ? json_decode($_POST['fitids'], true) : [];
 
         if (empty($id_caixa) || empty($fitids)) {
@@ -130,7 +142,6 @@ $transacoes_ofx = [];
         exit;
     }
 
-    // NOVA ROTA: ADICIONAR LOTE DE PIX
     if ($action === 'adicionar_ofx_lote') {
         $id_conta = $_POST['id_conta'] ?? ''; $id_categoria = $_POST['id_categoria'] ?? '';
         $transacoes = json_decode($_POST['transacoes'], true);
