@@ -24,9 +24,9 @@ if (strpos($_SESSION['username'], 'loja-') === 0) {
         </a>
     </div>
         <div class="campanha-2 campanha">
-        <a href="../financeiro/contas_pagar.php"><img src="../static/img/fachada.webp"
+        <a href="../financeiro/dashboard.php"><img src="../static/img/fachada.webp"
                 alt="Loja">
-            <p>Contas a Pagar</p>
+            <p>ERP Financeiro</p>
         </a>
     </div>
         <div class="campanha-2 campanha">
