@@ -11,14 +11,14 @@ $hoje = date('Y-m-d');
 $hoje_br = date('d/m/Y');
 
 try {
-    $stmt_usuarios = $db_financeiro->query("SELECT id, nome, email FROM usuarios");
+    $stmt_usuarios = $db_users->query("SELECT id, username, email FROM user");
     $usuarios = $stmt_usuarios->fetchAll(PDO::FETCH_ASSOC);
     $emails_enviados = 0;
 
     foreach ($usuarios as $user) {
         $id_usuario = $user['id'];
         $email_destino = $user['email'];
-        $nome_usuario = htmlspecialchars($user['nome'] ?? 'Usuário');
+        $nome_usuario = htmlspecialchars($user['username'] ?? 'Usuário');
 
         if (empty($email_destino)) continue;
 

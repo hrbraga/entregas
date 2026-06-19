@@ -8,13 +8,20 @@ $id_usuario = $_SESSION['user_id'];
 $hoje = date('Y-m-d');
 $mes_atual = date('Y-m');
 
-// Verifica se o usuário precisa da pergunta do e-mail
+
 try {
-    $stmt_verifica_email = $db_financeiro->prepare("SELECT email, COALESCE(recusou_alerta_email, 0) as recusou FROM usuarios WHERE id = ?");
+    $db_users->exec("ALTER TABLE user ADD COLUMN recusou_alerta_email INTEGER DEFAULT 0");
+} catch (Throwable $e) {}
+
+try {
+    $stmt_verifica_email = $db_users->prepare("SELECT email, COALESCE(recusou_alerta_email, 0) as recusou FROM user WHERE id = ?");
     $stmt_verifica_email->execute([$id_usuario]);
     $user_info = $stmt_verifica_email->fetch(PDO::FETCH_ASSOC);
+    
     $pedir_email = (empty($user_info['email']) && $user_info['recusou'] == 0);
-} catch (Exception $e) { $pedir_email = false; }
+} catch (Exception $e) { 
+    $pedir_email = false; 
+}
 
 try {
     // ==========================================
