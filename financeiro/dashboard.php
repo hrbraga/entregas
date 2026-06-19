@@ -8,6 +8,14 @@ $id_usuario = $_SESSION['user_id'];
 $hoje = date('Y-m-d');
 $mes_atual = date('Y-m');
 
+// Verifica se o usuário precisa da pergunta do e-mail
+try {
+    $stmt_verifica_email = $db_financeiro->prepare("SELECT email, COALESCE(recusou_alerta_email, 0) as recusou FROM usuarios WHERE id = ?");
+    $stmt_verifica_email->execute([$id_usuario]);
+    $user_info = $stmt_verifica_email->fetch(PDO::FETCH_ASSOC);
+    $pedir_email = (empty($user_info['email']) && $user_info['recusou'] == 0);
+} catch (Exception $e) { $pedir_email = false; }
+
 try {
     // ==========================================
     // ROBÔ: ALERTAS DE CONTAS HOJE
@@ -45,17 +53,19 @@ try {
     // ==========================================
     // BLOCO 2 & 3: GRÁFICOS
     // ==========================================
-    
+
     // Gráfico 1: Evolução 6 Meses
-    $meses_evolucao = []; $receitas_evolucao = []; $despesas_evolucao = [];
+    $meses_evolucao = [];
+    $receitas_evolucao = [];
+    $despesas_evolucao = [];
     for ($i = 5; $i >= 0; $i--) {
         $mes_alvo = date('Y-m', strtotime("-$i months"));
         $mes_nome = date('M/Y', strtotime("-$i months"));
-        
+
         $stmt_evo = $db_financeiro->prepare("SELECT tipo, SUM(valor) FROM movimentacoes_caixa WHERE id_usuario = ? AND data_movimento LIKE ? GROUP BY tipo");
         $stmt_evo->execute([$id_usuario, $mes_alvo . '%']);
         $dados_evo = $stmt_evo->fetchAll(PDO::FETCH_KEY_PAIR);
-        
+
         $meses_evolucao[] = $mes_nome;
         $receitas_evolucao[] = $dados_evo['Entrada'] ?? 0;
         $despesas_evolucao[] = $dados_evo['Saida'] ?? 0;
@@ -75,9 +85,10 @@ try {
     $rosca_valores = array_column($dados_rosca_brutos, 'total');
 
     // Gráfico 3: Radar 30 Dias (Calcula todo dia, plota a cada 2)
-    $dias_radar = []; $saldos_radar = [];
+    $dias_radar = [];
+    $saldos_radar = [];
     $saldo_simulado = $saldo_disponivel;
-    
+
     for ($i = 1; $i <= 30; $i++) {
         $dia_alvo = date('Y-m-d', strtotime("+$i days"));
 
@@ -95,7 +106,6 @@ try {
             $saldos_radar[] = $saldo_simulado;
         }
     }
-
 } catch (Exception $e) {
     die("Erro ao carregar dashboard: " . $e->getMessage());
 }
@@ -109,41 +119,29 @@ try {
 
 <!-- MODAL DO ROBÔ -->
 <?php if ($tem_alerta_hoje): ?>
-<div id="modalRobo" class="modal-robo-overlay">
-    <div class="modal-robo-box">
-        <h2>🤖 Lembrete do Robô</h2>
-        <p>Atenção! Você tem <strong><?= count($contas_hoje) ?> conta(s)</strong> vencendo hoje:</p>
-        
-        <ul class="lista-contas-hoje">
-            <?php foreach ($contas_hoje as $conta): ?>
-                <li>
-                    <span><?= htmlspecialchars($conta['fornecedor'] ?: $conta['descricao']) ?></span>
-                    <strong>R$ <?= number_format($conta['valor'], 2, ',', '.') ?></strong>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-        
-        <button onclick="fecharModalRobo()" class="btn btn-primary" style="width: 100%; height: 42px;">Entendido!</button>
-    </div>
-</div>
-<?php endif; ?>
+    <div id="modalRobo" class="modal-robo-overlay">
+        <div class="modal-robo-box">
+            <h2>Lembretes do dia</h2>
+            <p>Atenção! Você tem <strong><?= count($contas_hoje) ?> conta(s)</strong> vencendo hoje:</p>
 
-<div class="financeiro-nav" style="margin-bottom: 30px;">
-    <a href="dashboard.php" style="font-weight: bold; background: #f8f9fa;">🏠 Dashboard</a>
-    <a href="caixa_bancos.php">Caixa e Bancos</a>
-    <a href="contas_pagar.php">Contas a Pagar</a>
-    <a href="contas_receber.php">Contas a Receber</a>
-    <div class="nav-dropdown">
-        <button class="nav-dropbtn">Relatórios ▾</button>
-        <div class="nav-dropdown-content">
-            <a href="dre.php">📊 DRE</a>
-            <a href="fluxo_caixa.php">📈 Fluxo de Caixa</a>
+            <ul class="lista-contas-hoje">
+                <?php foreach ($contas_hoje as $conta): ?>
+                    <li>
+                        <span><?= htmlspecialchars($conta['fornecedor'] ?: $conta['descricao']) ?></span>
+                        <strong>R$ <?= number_format($conta['valor'], 2, ',', '.') ?></strong>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+
+            <button onclick="fecharModalRobo()" class="btn btn-primary" style="width: 100%; height: 42px;">Entendido!</button>
         </div>
     </div>
-</div>
+<?php endif; ?>
+
+<?php require 'nav.php'; ?>
 
 <div class="financeiro-wrapper" style="max-width: 1200px; margin: 0 auto;">
-    
+
     <!-- BLOCO 1: TERMÔMETROS -->
     <div class="dashboard-grid">
         <div class="card-dash borda-azul">
@@ -181,7 +179,7 @@ try {
         <div class="grafico-box">
             <h3>Para onde vai o dinheiro? (Neste Mês)</h3>
             <div style="height: 280px;">
-                <?php if(empty($rosca_valores)): ?>
+                <?php if (empty($rosca_valores)): ?>
                     <p style="text-align: center; color: #999; margin-top: 100px;">Sem saídas neste mês ainda.</p>
                 <?php else: ?>
                     <canvas id="graficoDespesas"></canvas>
@@ -205,7 +203,7 @@ try {
         receitas: <?= json_encode($receitas_evolucao) ?>,
         despesas: <?= json_encode($despesas_evolucao) ?>
     };
-    
+
     const dadosRosca = {
         categorias: <?= json_encode($rosca_labels) ?>,
         valores: <?= json_encode($rosca_valores) ?>
@@ -216,6 +214,24 @@ try {
         saldos: <?= json_encode($saldos_radar) ?>
     };
 </script>
+
+
+<?php if (isset($pedir_email) && $pedir_email): ?>
+<div id="modalColetaEmail" class="modal-robo-overlay">
+    <div class="modal-robo-box" style="border-top-color: #007bff;">
+        <h2>📧 Alertas Automáticos</h2>
+        <p>Gostaria de receber um resumo diário das suas contas a pagar diretamente no seu e-mail?</p>
+        
+        <input type="email" id="inputEmailAlerta" class="input-email-robo" placeholder="Digite seu melhor e-mail...">
+        
+        <div class="botoes-modal-email">
+            <button onclick="recusarEmailAlerta()" class="btn-recusar">Não, obrigado</button>
+            <button onclick="salvarEmailAlerta()" class="btn btn-primary" style="flex: 1; height: 42px; margin: 0;">Salvar e-mail</button>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 
 <!-- Chama o script com o novo nome _financeiro -->
 <script src="../static/js/dashboard_financeiro.js"></script>

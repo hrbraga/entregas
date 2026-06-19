@@ -29,28 +29,7 @@ try {
 <link rel="stylesheet" href="../static/css/financeiro.css">
 <link rel="stylesheet" href="../static/css/conciliacao.css">
 
-<div class="financeiro-nav">
-<div class="nav-dropdown">
-        <button class="nav-dropbtn">Cadastros ▾</button>
-        <div class="nav-dropdown-content">
-            <a href="gerenciar_contas.php">Contas Correntes</a>
-            <a href="#">Fornecedores</a>
-            <a href="#">Clientes</a>
-        </div>
-    </div>
-    <a href="caixa_bancos.php">Caixa e Bancos</a>
-    <a href="contas_pagar.php">Contas a Pagar</a>
-    <a href="contas_receber.php">Contas a Receber</a>
-    <div class="nav-dropdown">
-        <button class="nav-dropbtn">Relatórios ▾</button>
-        <div class="nav-dropdown-content">
-            <a href="relatorio_contas.php">Pagamentos</a>
-            <a href="#">Recebimentos</a>
-            <a href="dre.php" style="font-weight: bold; background: #f8f9fa;">📊 DRE</a>
-              <a href="fluxo_caixa.php" style="font-weight: bold; background: #f8f9fa;">📈 Fluxo de Caixa</a>
-        </div>
-    </div>
-</div>
+<?php require 'nav.php'; ?>
 
 <div class="financeiro-container" style="max-width: 1400px; margin: 0 auto;">
     

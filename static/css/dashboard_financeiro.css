@@ -136,6 +136,35 @@
     to { opacity: 1; transform: scale(1); }
 }
 
+
+/* Modal de Coleta de E-mail */
+.input-email-robo {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.botoes-modal-email {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-recusar {
+    background: #f8f9fa;
+    color: #666;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    flex: 1;
+}
+
+.btn-recusar:hover { background: #e2e6ea; }
+
 /* Responsividade para telas menores */
 @media (max-width: 768px) {
     .graficos-row { grid-template-columns: 1fr; }

@@ -101,27 +101,7 @@ try {
 <link rel="stylesheet" href="../static/css/financeiro.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="financeiro-nav">
-    <div class="nav-dropdown">
-        <button class="nav-dropbtn">Cadastros ▾</button>
-        <div class="nav-dropdown-content">
-            <a href="gerenciar_contas.php">Contas Correntes</a>
-            <a href="#">Fornecedores</a>
-            <a href="#">Clientes</a>
-        </div>
-    </div>
-    <a href="caixa_bancos.php">Caixa e Bancos</a>
-    <a href="contas_pagar.php">Contas a Pagar</a>
-    <a href="contas_receber.php">Contas a Receber</a>
-    <div class="nav-dropdown">
-        <button class="nav-dropbtn">Relatórios ▾</button>
-        <div class="nav-dropdown-content">
-            <a href="relatorio_contas.php">Pagamentos</a>
-            <a href="#">Recebimentos</a>
-            <a href="dre.php" style="font-weight: bold; background: #f8f9fa;">📊 DRE</a>
-        </div>
-    </div>
-</div>
+<?php require 'nav.php'; ?>
 
 <div class="financeiro-wrapper">
     <form class="composicao-box" method="GET" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; padding: 20px;">

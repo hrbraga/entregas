@@ -90,3 +90,39 @@ function fecharModalRobo() {
         modal.style.display = 'none';
     }
 }
+
+// Funções do Modal de Captura de E-mail
+function salvarEmailAlerta() {
+    const email = document.getElementById('inputEmailAlerta').value;
+    if(!email || !email.includes('@')) {
+        return alert('Por favor, digite um e-mail válido.');
+    }
+
+    const formData = new FormData();
+    formData.append('acao', 'salvar_email');
+    formData.append('email', email);
+
+    fetch('salvar_email.php', { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'success') {
+            document.getElementById('modalColetaEmail').style.display = 'none';
+            alert('Excelente! O Robô passará a enviar alertas para este e-mail.');
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    });
+}
+
+function recusarEmailAlerta() {
+    const formData = new FormData();
+    formData.append('acao', 'recusar');
+
+    fetch('salvar_email.php', { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'success') {
+            document.getElementById('modalColetaEmail').style.display = 'none';
+        }
+    });
+}
