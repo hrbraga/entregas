@@ -36,6 +36,12 @@ try {
     $stmt = $db_financeiro->prepare($sql_contas);
     $stmt->execute($params);
     $contas = $stmt->fetchAll();
+
+
+    $total_receber_periodo = 0;
+    foreach ($contas as $c) {
+        $total_receber_periodo += (float)$c['valor'];
+    }
 } catch (Exception $e) {
     $contas = [];
 }
@@ -95,9 +101,14 @@ usort($contas, function ($a, $b) {
             <?php endif; ?>
         </form>
 
-        <button class="btn-column-filter" onclick="toggleColumnSidebar()">
-            ⚙ Filtrar Colunas
-        </button>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="background: #d4edda; color: #155724; padding: 8px 15px; border-radius: 6px; font-weight: bold; border: 1px solid #c3e6cb; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                Total no Período: R$ <?= number_format($total_receber_periodo, 2, ',', '.') ?>
+            </div>
+            <button class="btn-column-filter" onclick="toggleColumnSidebar()" style="margin: 0;">
+                ⚙ Filtrar Colunas
+            </button>
+        </div>
     </div>
 
     <div class="table-responsive">

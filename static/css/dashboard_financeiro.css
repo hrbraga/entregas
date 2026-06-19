@@ -104,6 +104,13 @@
 .modal-robo-box p {
     color: #666;
     margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.modal-robo-box p strong {
+    font-size: 16px; /* Deixa o número bem maior */
+    color: #dc3545; /* Mantém o vermelho de alerta */
+    font-weight: 900;
 }
 
 .lista-contas-hoje {
@@ -123,7 +130,7 @@
     border-left: 4px solid #dc3545;
     display: flex;
     justify-content: space-between;
-    font-size: 14px;
+    font-size: 22px;
     color: #444;
 }
 
@@ -154,6 +161,11 @@
 .botoes-modal-email {
     display: flex;
     gap: 10px;
+}
+
+.btn-primary{
+    font-size: 14px;
+    padding: 10px 15px;
 }
 
 .btn-recusar {

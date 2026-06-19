@@ -128,7 +128,7 @@ try {
 <?php if ($tem_alerta_hoje): ?>
     <div id="modalRobo" class="modal-robo-overlay">
         <div class="modal-robo-box">
-            <h2>Lembretes do dia</h2>
+            <h2>🔔 Lembretes do dia 🔔</h2>
             <p>Atenção! Você tem <strong><?= count($contas_hoje) ?> conta(s)</strong> vencendo hoje:</p>
 
             <ul class="lista-contas-hoje">
