@@ -28,56 +28,49 @@ $hoje_br = date('d/m/Y');
 // BLOCO 2: FINANCEIRO E DISPARO DE E-MAIL
 // ==========================================
 try {
-    $stmt_usuarios = $db_users->query("SELECT id, username, email FROM user");
-    $usuarios = $stmt_usuarios->fetchAll(PDO::FETCH_ASSOC);
-    $emails_enviados = 0;
+    $stmt_usuarios = $db_users->query("SELECT id, username, email FROM user"); //
+    $usuarios = $stmt_usuarios->fetchAll(PDO::FETCH_ASSOC); //
+    $emails_enviados = 0; //
 
-    foreach ($usuarios as $user) {
-        $id_usuario = $user['id'];
-        $email_destino = $user['email'];
-        $nome_usuario = htmlspecialchars($user['username'] ?? 'Usuário');
+    foreach ($usuarios as $user) { //
+        $id_usuario = $user['id']; //
+        $email_destino = $user['email']; //
+        $nome_usuario = htmlspecialchars($user['username'] ?? 'Usuário'); //
 
-        if (empty($email_destino)) continue;
+        if (empty($email_destino)) continue; //
 
         // Buscas Financeiras
-        $stmt_hoje = $db_financeiro->prepare("SELECT descricao, valor, fornecedor FROM contas_pagar WHERE id_usuario = ? AND status != 'Pago' AND vencimento = ?");
-        $stmt_hoje->execute([$id_usuario, $hoje]);
-        $contas_hoje = $stmt_hoje->fetchAll(PDO::FETCH_ASSOC);
+        $stmt_hoje = $db_financeiro->prepare("SELECT descricao, valor, fornecedor FROM contas_pagar WHERE id_usuario = ? AND status != 'Pago' AND vencimento = ?"); //
+        $stmt_hoje->execute([$id_usuario, $hoje]); //
+        $contas_hoje = $stmt_hoje->fetchAll(PDO::FETCH_ASSOC); //
 
-        $stmt_atraso = $db_financeiro->prepare("SELECT descricao, valor, fornecedor, vencimento FROM contas_pagar WHERE id_usuario = ? AND status != 'Pago' AND vencimento < ? ORDER BY vencimento ASC");
-        $stmt_atraso->execute([$id_usuario, $hoje]);
-        $contas_atrasadas = $stmt_atraso->fetchAll(PDO::FETCH_ASSOC);
+        $stmt_atraso = $db_financeiro->prepare("SELECT descricao, valor, fornecedor, vencimento FROM contas_pagar WHERE id_usuario = ? AND status != 'Pago' AND vencimento < ? ORDER BY vencimento ASC"); //
+        $stmt_atraso->execute([$id_usuario, $hoje]); //
+        $contas_atrasadas = $stmt_atraso->fetchAll(PDO::FETCH_ASSOC); //
 
-        $total_hoje = count($contas_hoje);
-        $total_atrasadas = count($contas_atrasadas);
-        $total_extranet = count($avisos_extranet);
+        // CORREÇÃO 1: Definindo a variável vazia para evitar Erro Fatal do PHP
+        $avisos_extranet = []; // <--- ADICIONADO AQUI
+
+        $total_hoje = count($contas_hoje); //
+        $total_atrasadas = count($contas_atrasadas); //
+        $total_extranet = count($avisos_extranet); //
 
         // Só envia e-mail se tiver conta cobrando ou aviso na CS
-        if ($total_hoje > 0 || $total_atrasadas > 0 || $total_extranet > 0) {
+        if ($total_hoje > 0 || $total_atrasadas > 0 || $total_extranet > 0) { //
             
-            $stmt_saldo = $db_financeiro->prepare("SELECT SUM(saldo_inicial) FROM contas_bancarias WHERE id_usuario = ? AND (status = 'Ativa' OR status IS NULL)");
-            $stmt_saldo->execute([$id_usuario]);
-            $saldo_inicial = (float) $stmt_saldo->fetchColumn();
+            $stmt_saldo = $db_financeiro->prepare("SELECT SUM(saldo_inicial) FROM contas_bancarias WHERE id_usuario = ? AND (status = 'Ativa' OR status IS NULL)"); //
+            $stmt_saldo->execute([$id_usuario]); //
+            $saldo_inicial = (float) $stmt_saldo->fetchColumn(); //
 
-            $stmt_mov = $db_financeiro->prepare("SELECT tipo, SUM(valor) FROM movimentacoes_caixa WHERE id_usuario = ? AND data_movimento <= ? GROUP BY tipo");
-            $stmt_mov->execute([$id_usuario, $hoje]);
-            $movs = $stmt_mov->fetchAll(PDO::FETCH_KEY_PAIR);
-            $saldo_disponivel = $saldo_inicial + ($movs['Entrada'] ?? 0) - ($movs['Saida'] ?? 0);
+            $stmt_mov = $db_financeiro->prepare("SELECT tipo, SUM(valor) FROM movimentacoes_caixa WHERE id_usuario = ? AND data_movimento <= ? GROUP BY tipo"); //
+            $stmt_mov->execute([$id_usuario, $hoje]); //
+            $movs = $stmt_mov->fetchAll(PDO::FETCH_KEY_PAIR); //
+            $saldo_disponivel = $saldo_inicial + ($movs['Entrada'] ?? 0) - ($movs['Saida'] ?? 0); //
             
-            $saldo_str = number_format($saldo_disponivel, 2, ',', '.');
-            $cor_saldo = $saldo_disponivel >= 0 ? '#28a745' : '#dc3545';
+            $saldo_str = number_format($saldo_disponivel, 2, ',', '.'); //
+            $cor_saldo = $saldo_disponivel >= 0 ? '#28a745' : '#dc3545'; //
             
-            $html_corpo = "";
-
-            // HTML: EXTRANET (Azul)
-            if ($total_extranet > 0) {
-                $html_corpo .= "<h3 style='color: #004085; margin-top: 20px; border-bottom: 2px solid #b8daff; padding-bottom: 5px;'>🔔 Comunicados Extranet ({$total_extranet})</h3>";
-                $html_corpo .= "<ul style='margin-bottom: 20px; color: #333;'>";
-                foreach ($avisos_extranet as $av) {
-                    $html_corpo .= "<li style='margin-bottom: 8px;'><strong>{$av['data']}</strong>: {$av['titulo']} - <a href='{$av['url']}' style='color: #0056b3; text-decoration: none;'>Ler aviso</a></li>";
-                }
-                $html_corpo .= "</ul>";
-            }
+            $html_corpo = ""; 
 
             // HTML: CONTAS ATRASADAS (Vermelho)
             if ($total_atrasadas > 0) {
@@ -131,43 +124,40 @@ try {
                         
                         {$html_corpo}
 
-                        <div style='background: #f8f9fa; padding: 20px; border-radius: 6px; text-align: center; border: 1px solid #e9ecef; margin-top: 30px;'>
-                            <span style='font-size: 13px; text-transform: uppercase; font-weight: bold; color: #666; display: block; margin-bottom: 5px;'>Seu Saldo Atual em Caixa</span>
-                            <span style='font-size: 24px; font-weight: 900; color: {$cor_saldo};'>R$ {$saldo_str}</span>
-                        </div>
                     </div>
                 </div>
             </body>
             </html>";
 
-            // CONFIGURAÇÃO PHPMAILER
-            $mail = new PHPMailer(true);
+           $mail = new PHPMailer(true); //
             try {
-                $mail->isSMTP();                                            
-                $mail->Host       = 'sh00102.hostgator.com.br';                     
-                $mail->SMTPAuth   = true;                                   
-                $mail->Username   = 'robozinho@caixadeferramentascs.online'; 
-                $mail->Password   = 'Cshugo*20'; // <-- COLOQUE A SENHA DA HOSTGATOR AQUI
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;            
-                $mail->Port       = 587;
-                $mail->CharSet    = 'UTF-8'; 
+                $mail->isSMTP(); //                                            
+                $mail->Host       = 'sh00102.hostgator.com.br'; //                     
+                $mail->SMTPAuth   = true; //                                   
+                $mail->Username   = 'robozinho@caixadeferramentascs.online'; // 
+                $mail->Password   = 'Cshugo*20'; //
+                
+                // CORREÇÃO 2: Portas e Criptografia iguais ao do teste que funcionou
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Alterado de STARTTLS para SMTPS
+                $mail->Port       = 465; // Alterado de 587 para 465
+                
+                $mail->CharSet    = 'UTF-8'; // 
 
-                $mail->setFrom('robozinho@caixadeferramentascs.online', 'Robô Diário'); 
-                $mail->addAddress($email_destino, $nome_usuario);     
+                $mail->setFrom('robozinho@caixadeferramentascs.online', 'Robô Diário'); // 
+                $mail->addAddress($email_destino, $nome_usuario); //     
 
-                $mail->isHTML(true);                                  
-                $mail->Subject = $assunto;
-                $mail->Body    = $mensagem;
+                $mail->isHTML(true); //                                  
+                $mail->Subject = $assunto; //
+                $mail->Body    = $mensagem; //
 
-                $mail->send();
-                $emails_enviados++;
-            } catch (Exception $e) {
+                $mail->send(); //
+                $emails_enviados++; //
+            } catch (Exception $e) { //
                 // Erro ao enviar para este usuário específico, o loop continua
-                error_log("Erro no envio para {$email_destino}: {$mail->ErrorInfo}");
+                error_log("Erro no envio para {$email_destino}: {$mail->ErrorInfo}"); //
             }
         }
     }
-    echo "<h3>✅ Fim de turno. Foram enviados {$emails_enviados} e-mails de alerta via SMTP.</h3>";
+    echo "<h3>✅ Fim de turno. Foram enviados {$emails_enviados} e-mails de alerta via SMTP.</h3>"; //
 
-} catch (Exception $e) { die("Erro: " . $e->getMessage()); }
-?>
+} catch (Exception $e) { die("Erro: " . $e->getMessage()); } //

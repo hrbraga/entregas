@@ -1,6 +1,6 @@
 let movimentacoesGlobais = []; 
-
-// Variáveis globais para o TomSelect e backup do HTML das categorias
+let paginaAtual = 1;
+let limitePorPagina = 25;
 let tomSelectCategoria = null;
 let backupCategoriasHTML = '';
 
@@ -131,23 +131,52 @@ async function carregarMovimentacoes() {
         document.getElementById('cardSaidas').textContent = formatarMoeda(dados.saidas);
         document.getElementById('cardSaldoFinal').textContent = formatarMoeda(dados.saldo_final);
 
-        movimentacoesGlobais = dados.movimentacoes; 
-
         if (dados.movimentacoes.length === 0) {
+            movimentacoesGlobais = [];
             corpoTabela.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">Nenhuma movimentação encontrada neste período.</td></tr>';
+            atualizarControlesPaginacao();
             return;
         }
 
-        let htmlTabela = '';
+        // PRÉ-CÁLCULO DOS SALDOS: Calculamos tudo antes de fatiar as páginas
         let saldoAtualLinha = parseFloat(dados.saldo_inicial); 
-
         dados.movimentacoes.forEach(mov => {
             const valorFloat = parseFloat(mov.valor);
-            
             if (mov.tipo === 'Entrada') { saldoAtualLinha += valorFloat; } else { saldoAtualLinha -= valorFloat; }
+            mov.saldoCalculadoDaLinha = saldoAtualLinha; // Guarda o saldo no objeto
+        });
 
+        movimentacoesGlobais = dados.movimentacoes; 
+        paginaAtual = 1; // Ao buscar novos dados, sempre volta para a página 1
+        
+        renderizarTabela(); // Renderiza a página atual
+
+    } catch (erro) { 
+        corpoTabela.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">Erro ao carregar os dados.</td></tr>'; 
+    }
+}
+
+// NOVA FUNÇÃO: Renderiza apenas a quantidade estabelecida pela paginação
+function renderizarTabela() {
+    const corpoTabela = document.getElementById('corpoTabelaCaixa');
+    let htmlTabela = '';
+
+    const totalPaginas = Math.ceil(movimentacoesGlobais.length / limitePorPagina);
+    if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+    if (paginaAtual < 1) paginaAtual = 1;
+
+    // Fatiando os dados
+    const inicio = (paginaAtual - 1) * limitePorPagina;
+    const fim = inicio + limitePorPagina;
+    const movsPagina = movimentacoesGlobais.slice(inicio, fim);
+
+    if (movsPagina.length === 0) {
+        corpoTabela.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">Nenhuma movimentação encontrada.</td></tr>';
+    } else {
+        movsPagina.forEach(mov => {
+            const valorFloat = parseFloat(mov.valor);
             const classeValor = mov.tipo === 'Entrada' ? 'valor-entrada' : 'valor-saida';
-            const corSaldo = saldoAtualLinha >= 0 ? '#1565c0' : '#c62828';
+            const corSaldo = mov.saldoCalculadoDaLinha >= 0 ? '#1565c0' : '#c62828';
             const sinal = mov.tipo === 'Entrada' ? '+' : '-';
             const nomeCategoria = mov.categoria_nome || '<span style="color:#999">Sem Categoria</span>';
             const nomeBanco = mov.banco_nome ? `<br><small style="color: #6c757d; font-weight: 500;">🏦 ${mov.banco_nome}</small>` : '';
@@ -164,7 +193,7 @@ async function carregarMovimentacoes() {
                     <td><span class="badge ${badgeClass}" style="background-color: ${mov.origem === 'Transferencia' ? '#17a2b8' : ''}">${mov.origem}</span></td>
                     <td>${mov.tipo}</td>
                     <td class="${classeValor}">${sinal} ${formatarMoeda(valorFloat)}</td>
-                    <td style="font-weight: bold; color: ${corSaldo}">${formatarMoeda(saldoAtualLinha)}</td>
+                    <td style="font-weight: bold; color: ${corSaldo}">${formatarMoeda(mov.saldoCalculadoDaLinha)}</td>
                     <td style="text-align: center;">
                         <div class="dropdown-acoes">
                             <button onclick="toggleMenuAcoes(event, ${mov.id})" class="btn-dots">⋮</button>
@@ -178,7 +207,53 @@ async function carregarMovimentacoes() {
             `;
         });
         corpoTabela.innerHTML = htmlTabela;
-    } catch (erro) { corpoTabela.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">Erro ao carregar os dados.</td></tr>'; }
+    }
+
+    atualizarControlesPaginacao(totalPaginas);
+}
+
+// NOVA FUNÇÃO: Atualiza os botões do rodapé (Habilita/Desabilita)
+function atualizarControlesPaginacao(totalPaginas = 1) {
+    const texto = document.getElementById('textoPaginacao');
+    const btnPrim = document.getElementById('btnPagPrimeira');
+    const btnAnt = document.getElementById('btnPagAnterior');
+    const btnProx = document.getElementById('btnPagProxima');
+    const btnUlt = document.getElementById('btnPagUltima');
+
+    if (!texto) return;
+
+    if (movimentacoesGlobais.length === 0) {
+        texto.innerText = `Página 0 de 0`;
+        btnPrim.disabled = true; btnAnt.disabled = true; btnProx.disabled = true; btnUlt.disabled = true;
+        return;
+    }
+
+    texto.innerText = `Página ${paginaAtual} de ${totalPaginas}`;
+    
+    // Desabilita botões se tiver na primeira ou última página
+    btnPrim.disabled = (paginaAtual === 1);
+    btnAnt.disabled = (paginaAtual === 1);
+    btnProx.disabled = (paginaAtual === totalPaginas);
+    btnUlt.disabled = (paginaAtual === totalPaginas);
+}
+
+// NOVA FUNÇÃO: Responde aos cliques dos botões de Próxima/Anterior
+function mudarPagina(acao) {
+    const totalPaginas = Math.ceil(movimentacoesGlobais.length / limitePorPagina);
+    
+    if (acao === 'primeira') paginaAtual = 1;
+    else if (acao === 'anterior' && paginaAtual > 1) paginaAtual--;
+    else if (acao === 'proxima' && paginaAtual < totalPaginas) paginaAtual++;
+    else if (acao === 'ultima') paginaAtual = totalPaginas;
+
+    renderizarTabela();
+}
+
+// NOVA FUNÇÃO: Responde quando o usuário escolhe 25, 50 ou 100 itens no select
+function mudarLimite(novoLimite) {
+    limitePorPagina = parseInt(novoLimite);
+    paginaAtual = 1; // Volta pra 1ª página pra não bugar caso o cálculo reduza o total de páginas
+    renderizarTabela();
 }
 
 function abrirModalLancamento() {

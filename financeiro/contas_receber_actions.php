@@ -177,6 +177,37 @@ try {
     }
 
     // ==========================================
+    // ESTORNO DE RECEBIMENTO
+    // ==========================================
+    if ($action === 'estornar') {
+        $id = $_POST['id'] ?? '';
+        if (empty($id)) throw new Exception("ID inválido.");
+
+        $db_financeiro->beginTransaction();
+
+        // Pega as informações da conta antes do estorno para saber o que deletar no caixa
+        $stmt_dados = $db_financeiro->prepare("SELECT cliente, valor, descricao, data_pagamento FROM contas_receber WHERE id = ? AND id_usuario = ?");
+        $stmt_dados->execute([$id, $id_usuario]);
+        $conta = $stmt_dados->fetch();
+
+        if ($conta) {
+            // 1. Atualiza status de volta para Pendente
+            $stmt_up = $db_financeiro->prepare("UPDATE contas_receber SET status = 'Pendente', data_pagamento = NULL, forma_pagamento = NULL, banco_pagamento = NULL, valor_pago = NULL WHERE id = ?");
+            $stmt_up->execute([$id]);
+
+            // 2. Remove a movimentação que foi gerada na tabela do caixa
+            // A busca aqui é feita usando a mesma lógica de concatenação que usamos no momento de baixar a conta
+            $desc_caixa = "Rec: " . $conta['cliente'] . " - " . $conta['descricao'];
+            $stmt_del_caixa = $db_financeiro->prepare("DELETE FROM movimentacoes_caixa WHERE id_usuario = ? AND descricao = ? AND valor = ? AND data_movimento = ? AND origem = 'Contas a Receber' AND tipo = 'Entrada'");
+            $stmt_del_caixa->execute([$id_usuario, $desc_caixa, $conta['valor'], $conta['data_pagamento']]);
+        }
+
+        $db_financeiro->commit();
+        echo json_encode(['status' => 'success', 'message' => 'Recebimento estornado com sucesso!']);
+        exit;
+    }
+
+    // ==========================================
     // 4. DAR BAIXA (CORRIGIDO: Taxa invisível não vai para o Banco)
     // ==========================================
     if ($action === 'baixa_recebimento') {

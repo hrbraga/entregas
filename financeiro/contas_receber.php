@@ -6,6 +6,8 @@ $sessao_nome = "Contas a Receber";
 require '../includes/header.php';
 
 $id_usuario = $_SESSION['user_id'];
+// Pega o status da URL, se não tiver, o padrão é 'Pendente'
+$status_filtro = $_GET['status'] ?? 'Pendente';
 
 // ==========================================
 // 1. BUSCA CONTAS A RECEBER (ISOLADO)
@@ -14,13 +16,14 @@ try {
     $data_inicio = $_GET['data_inicio'] ?? '';
     $data_fim = $_GET['data_fim'] ?? '';
 
+    // Filtra as contas de acordo com o status selecionado
     $sql_contas = "
         SELECT cr.*, cat.nome as categoria_nome 
         FROM contas_receber cr 
         LEFT JOIN categorias_financeiras cat ON cr.id_categoria = cat.id 
-        WHERE cr.id_usuario = ? AND cr.status != 'Recebido'
+        WHERE cr.id_usuario = ? AND cr.status = ?
     ";
-    $params = [$id_usuario];
+    $params = [$id_usuario, $status_filtro];
 
     if (!empty($data_inicio)) {
         $sql_contas .= " AND cr.vencimento >= ?";
@@ -37,7 +40,6 @@ try {
     $stmt->execute($params);
     $contas = $stmt->fetchAll();
 
-
     $total_receber_periodo = 0;
     foreach ($contas as $c) {
         $total_receber_periodo += (float)$c['valor'];
@@ -47,7 +49,7 @@ try {
 }
 
 // ==========================================
-// 2. BUSCA CATEGORIAS (ISOLADO E BLINDADO)
+// 2. BUSCA CATEGORIAS
 // ==========================================
 try {
     $stmt_cat = $db_financeiro->query("SELECT * FROM categorias_financeiras WHERE tipo LIKE '%Receita%' OR tipo LIKE '%receita%' ORDER BY grupo ASC, nome ASC");
@@ -57,7 +59,7 @@ try {
 }
 
 // ==========================================
-// 3. BUSCA CONTAS BANCÁRIAS (ISOLADO)
+// 3. BUSCA CONTAS BANCÁRIAS
 // ==========================================
 try {
     $stmt_bancos_ativos = $db_financeiro->prepare("SELECT id, nome_conta, banco FROM contas_bancarias WHERE id_usuario = ? AND (status = 'Ativa' OR status IS NULL)");
@@ -81,43 +83,63 @@ usort($contas, function ($a, $b) {
 <?php require 'nav.php'; ?>
 
 <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
-    <button class="btn btn-primary" onclick="abrirModalConta()">+ INCLUIR CONTA</button>
-    <button class="btn" onclick="abrirModalImportar()" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+    <button class="btn" onclick="abrirModalConta()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+        + INCLUIR CONTA
+    </button>
+    <button class="btn" onclick="abrirModalImportar()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;">
         📂 IMPORTAR CIELO
     </button>
 </div>
 
 <div class="financeiro-container financeiro-wrapper">
 
-    <div class="header-actions" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 15px;">
-        <form method="GET" action="contas_receber.php" style="display: flex; align-items: center; gap: 10px; margin: 0;">
-            <label style="font-size: 14px; font-weight: bold;">Período:</label>
-            <input type="date" name="data_inicio" class="form-control" style="font-size: 12px;  value=" <?= htmlspecialchars($data_inicio) ?>" style="max-width: 140px; cursor: pointer;" onclick="this.showPicker()">
-            <span style="font-size: 14px;">até</span>
-            <input type="date" name="data_fim" class="form-control" style="font-size: 12px; value=" <?= htmlspecialchars($data_fim) ?>" style="max-width: 140px; cursor: pointer;" onclick="this.showPicker()">
-            <button type="submit" class="btn btn-primary" style="margin: 0; padding: 8px 15px;">🔍 Buscar</button>
+    <!-- ==========================================
+         FILTROS PADRONIZADOS (IDÊNTICO AO PAGAR)
+         ========================================== -->
+    <div class="header-actions" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; gap: 10px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; overflow-x: auto;">
+
+        <form method="GET" action="contas_receber.php" style="display: flex; align-items: center; gap: 8px; margin: 0; white-space: nowrap;">
+
+            <label style="font-size: 14px; font-weight: bold; color: #333;">Exibir:</label>
+            <select name="status" class="form-control" style="font-size: 13px; max-width: 140px; cursor: pointer; border-radius: 4px; padding: 6px;" onchange="this.form.submit()">
+                <option value="Pendente" <?= $status_filtro === 'Pendente' ? 'selected' : '' ?>>🗓️ Pendentes</option>
+                <option value="Recebido" <?= $status_filtro === 'Recebido' ? 'selected' : '' ?>>✅ Recebidas</option>
+            </select>
+
+            <label style="font-size: 14px; font-weight: bold; margin-left: 5px; color: #333;">Período:</label>
+            <input type="date" name="data_inicio" class="form-control" value="<?= htmlspecialchars($data_inicio) ?>" style="font-size: 13px; max-width: 130px; cursor: pointer; padding: 6px;" onclick="this.showPicker()">
+            <span style="font-size: 13px; color: #555;">até</span>
+            <input type="date" name="data_fim" class="form-control" value="<?= htmlspecialchars($data_fim) ?>" style="font-size: 13px; max-width: 130px; cursor: pointer; padding: 6px;" onclick="this.showPicker()">
+
+            <button type="submit" class="btn" style="background: #28a745; color: white; font-weight: bold; margin: 0; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">🔍 BUSCAR</button>
+
             <?php if (!empty($data_inicio) || !empty($data_fim)): ?>
-                <a href="contas_receber.php" class="btn-cancel" style="padding: 8px 15px; text-decoration: none; display: flex; align-items: center;">Limpar</a>
+                <a href="contas_receber.php?status=<?= htmlspecialchars($status_filtro) ?>" class="btn-cancel" style="padding: 6px 12px; text-decoration: none; display: flex; align-items: center; border-radius: 4px; font-size: 13px;">Limpar</a>
             <?php endif; ?>
         </form>
 
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="background: #d4edda; color: #155724; padding: 8px 15px; border-radius: 6px; font-weight: bold; border: 1px solid #c3e6cb; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+        <div style="display: flex; align-items: center; gap: 10px; white-space: nowrap;">
+            <div style="background: #fff3cd; color: #856404; padding: 6px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #ffeeba; font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                 Total no Período: R$ <?= number_format($total_receber_periodo, 2, ',', '.') ?>
             </div>
-            <button class="btn-column-filter" onclick="toggleColumnSidebar()" style="margin: 0;">
-                ⚙ Filtrar Colunas
+            <button class="btn" onclick="toggleColumnSidebar()" style="margin: 0; background: #fff; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; font-weight: bold; color: #333; cursor: pointer; font-size: 13px;">
+                ⚙ FILTRAR COLUNAS
             </button>
         </div>
     </div>
+    <!-- ========================================== -->
 
     <div class="table-responsive">
         <table class="table-financeiro">
             <thead>
                 <tr>
-                    <th class="text-center"><input type="checkbox" id="selecionar_todos"></th>
-                    <th>Emissão</th>
+                    <th class="text-center">
+                        <?php if ($status_filtro === 'Pendente'): ?>
+                            <input type="checkbox" id="selecionar_todos">
+                        <?php endif; ?>
+                    </th>
                     <th>Vencimento</th>
+                    <th>Emissão</th>
                     <th class="col-cliente"> Cliente <span class="filtro-icon" onclick="toggleFiltro('cliente')"> 🔽 </span>
                         <div id="filtro-cliente" class="filtro-dropdown"></div>
                     </th>
@@ -134,27 +156,45 @@ usort($contas, function ($a, $b) {
             <tbody>
                 <?php if (count($contas) == 0): ?>
                     <tr>
-                        <td colspan="10" class="empty-state">Nenhum lançamento a receber encontrado para este período. 🎉</td>
+                        <td colspan="10" class="empty-state">Nenhum lançamento encontrado para este período. 🎉</td>
                     </tr>
                 <?php endif; ?>
 
                 <?php foreach ($contas as $c): ?>
                     <tr>
-                        <td class="text-center"><input type="checkbox" class="check-titulo" data-id="<?= $c['id'] ?>" data-valor="<?= $c['valor'] ?>"></td>
-                        <td><?= date('d/m/Y', strtotime($c['emissao'] ?? $c['vencimento'])) ?></td>
+                        <td class="text-center">
+                            <?php if ($status_filtro === 'Pendente'): ?>
+                                <input type="checkbox" class="check-titulo" data-id="<?= $c['id'] ?>" data-valor="<?= $c['valor'] ?>">
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </td>
                         <td><?= date('d/m/Y', strtotime($c['vencimento'])) ?></td>
+                        <td><?= date('d/m/Y', strtotime($c['emissao'] ?? $c['vencimento'])) ?></td>
                         <td class="col-cliente"><?= htmlspecialchars($c['cliente']) ?></td>
                         <td class="col-nf"><?= htmlspecialchars($c['nota_fiscal'] ?? '-') ?></td>
                         <td class="col-descricao"><?= htmlspecialchars($c['descricao']) ?></td>
                         <td style="font-weight: bold; color: #28a745;">R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
                         <td class="col-categoria"><?= htmlspecialchars($c['categoria_nome'] ?? 'Venda de Mercadorias') ?></td>
-                        <td class="col-status"><span class="status-badge pendente">Pendente</span></td>
+
+                        <td class="col-status">
+                            <?php if ($c['status'] == 'Recebido'): ?>
+                                <span class="status-badge" style="background: #28a745; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">Paga</span>
+                            <?php else: ?>
+                                <span class="status-badge pendente" style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; border: 1px solid #ffeeba;">Pendente</span>
+                            <?php endif; ?>
+                        </td>
+
                         <td class="text-center">
                             <div class="kebab-menu">
                                 <button class="btn-kebab" onclick="toggleKebab(this)">⋮</button>
                                 <div class="kebab-dropdown">
-                                    <button onclick="abrirModalBaixa(<?= $c['id'] ?>, '', <?= $c['valor'] ?>, '<?= htmlspecialchars($c['cliente'], ENT_QUOTES) ?>', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅ Liquidar Lote</button>
-                                    <button onclick='editarConta(<?= json_encode($c) ?>)'>✏️ Editar</button>
+                                    <?php if ($status_filtro === 'Pendente'): ?>
+                                        <button onclick="abrirModalBaixa(<?= $c['id'] ?>, '', <?= $c['valor'] ?>, '<?= htmlspecialchars($c['cliente'], ENT_QUOTES) ?>', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅ Liquidar Lote</button>
+                                        <button onclick='editarConta(<?= json_encode($c) ?>)'>✏️ Editar</button>
+                                    <?php else: ?>
+                                        <button onclick="estornarRecebimento(<?= $c['id'] ?>)" style="color: #d39e00;">↩️ Estornar</button>
+                                    <?php endif; ?>
                                     <button onclick="excluirConta(<?= $c['id'] ?>)" style="color: red;">🗑️ Excluir</button>
                                 </div>
                             </div>
@@ -166,6 +206,7 @@ usort($contas, function ($a, $b) {
     </div>
 </div>
 
+<!-- INÍCIO DOS MODAIS -->
 <div id="modalBaixa" class="modal-financeiro dark-overlay">
     <div class="modal-content modal-md">
         <div class="modal-header success">
@@ -255,7 +296,6 @@ usort($contas, function ($a, $b) {
                             $grupo_atual = null;
                             foreach ($lista_categorias as $cat) {
                                 $grupo_linha = trim((string)$cat['grupo']);
-
                                 if (empty($grupo_linha)) {
                                     $grupo_linha = 'Outras Receitas';
                                 }
@@ -265,7 +305,6 @@ usort($contas, function ($a, $b) {
                                     $grupo_atual = $grupo_linha;
                                     echo '<optgroup label="📂 ' . htmlspecialchars($grupo_atual) . '">';
                                 }
-
                                 echo '<option value="' . $cat['id'] . '">&nbsp;&nbsp;↳ ' . htmlspecialchars(trim($cat['nome'])) . '</option>';
                             }
                             if ($grupo_atual !== null) echo '</optgroup>';
@@ -345,16 +384,18 @@ usort($contas, function ($a, $b) {
     </div>
 </div>
 
-<div id="footerLote" class="footer-lote">
-    <div class="footer-lote-info">
-        <strong id="qtdSelecionados">0 títulos</strong>
-        <span id="valorSelecionado">R$ 0,00</span>
+<?php if ($status_filtro === 'Pendente'): ?>
+    <div id="footerLote" class="footer-lote">
+        <div class="footer-lote-info">
+            <strong id="qtdSelecionados">0 títulos</strong>
+            <span id="valorSelecionado">R$ 0,00</span>
+        </div>
+        <div class="footer-lote-actions">
+            <button class="btn-cancel" onclick="limparSelecaoLote()">Cancelar</button>
+            <button class="btn-confirm" onclick="abrirBaixaLote()">Confirmar Recebimento em Lote</button>
+        </div>
     </div>
-    <div class="footer-lote-actions">
-        <button class="btn-cancel" onclick="limparSelecaoLote()">Cancelar</button>
-        <button class="btn-confirm" onclick="abrirBaixaLote()">Confirmar Recebimento em Lote</button>
-    </div>
-</div>
+<?php endif; ?>
 
 <div id="columnSidebar" class="column-sidebar">
     <div class="sidebar-header">
@@ -375,5 +416,34 @@ usort($contas, function ($a, $b) {
 <div id="toast-notification" class="toast-notification"></div>
 
 <script src="../static/js/contas_receber.js"></script>
+
+<!-- SCRIPT DO ESTORNO -->
+<script>
+    function estornarRecebimento(id) {
+        if (confirm('Tem certeza que deseja ESTORNAR este recebimento? A movimentação de entrada será cancelada do caixa.')) {
+            fetch('contas_receber_actions.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        action: 'estornar',
+                        id: id
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Ocorreu um erro ao processar o estorno.');
+                });
+        }
+    }
+</script>
 
 <?php require '../includes/footer.php'; ?>

@@ -126,6 +126,26 @@ foreach ($categorias as $cat) {
             </tr>
         </tbody>
     </table>
+    <div class="paginacao-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6; flex-wrap: wrap; gap: 15px;">
+        <div class="paginacao-limite" style="display: flex; align-items: center;">
+            <label for="limiteItens" style="font-weight: 600; color: #495057; margin-right: 8px; margin-bottom: 0;">Mostrar:</label>
+            <select id="limiteItens" onchange="mudarLimite(this.value)" class="form-control" style="display: inline-block; width: auto; padding: 4px 8px; height: 32px;">
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <span style="color: #6c757d; margin-left: 8px;">por página</span>
+        </div>
+        <div class="paginacao-controles" style="display: flex; gap: 5px; align-items: center;">
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" id="btnPagPrimeira" onclick="mudarPagina('primeira')">Primeira</button>
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" id="btnPagAnterior" onclick="mudarPagina('anterior')">Anterior</button>
+            
+            <span id="textoPaginacao" style="margin: 0 10px; font-weight: bold; color: #495057;">Página 1 de 1</span>
+            
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" id="btnPagProxima" onclick="mudarPagina('proxima')">Próxima</button>
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" id="btnPagUltima" onclick="mudarPagina('ultima')">Última</button>
+        </div>
+    </div>
 </div>
 
 <div id="modalLancamento" class="modal" style="display: none;">
