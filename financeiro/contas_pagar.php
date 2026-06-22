@@ -186,11 +186,14 @@ usort($contas_finais, function ($a, $b) {
                         <td class="col-fornecedor"><?= htmlspecialchars($c['fornecedor']) ?></td>
                         <td class="col-nf"><?= htmlspecialchars($c['nota_fiscal'] ?? '-') ?></td>
                         <td class="col-descricao">
-                            <?= htmlspecialchars($c['descricao']) ?>
-                            <?php if (isset($c['is_group'])): ?>
-                                <br><small class="text-primary">(<?= count($grupos_royalties[$c['vencimento']]['detalhes']) ?> parcelas)</small>
-                            <?php endif; ?>
-                        </td>
+                        <?php if (isset($c['is_group'])): ?>
+                            <span style="cursor: pointer; color: #007bff; font-size: 16px; margin-right: 5px; text-decoration: none;" onclick="toggleGrupo('<?= $c['grupo_id'] ?>')" title="Ver detalhes das parcelas">🔍</span>
+                        <?php endif; ?>
+                        <?= htmlspecialchars($c['descricao']) ?>
+                        <?php if (isset($c['is_group'])): ?>
+                            <br><small class="text-primary">(<?= count($grupos_royalties[$c['vencimento']]['detalhes']) ?> parcelas)</small>
+                        <?php endif; ?>
+                    </td>
                         <td>R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
                         <td class="col-categoria"><?= htmlspecialchars($c['categoria_nome']) ?></td>
                         <td class="col-status">
@@ -201,19 +204,28 @@ usort($contas_finais, function ($a, $b) {
                             <?php endif; ?>
                         </td>
                         <td class="text-center">
-                            <div class="kebab-menu">
-                                <button class="btn-kebab" onclick="toggleKebab(this)">⋮</button>
-                                <div class="kebab-dropdown">
-                                    <?php if (isset($_GET['status_filtro']) && $_GET['status_filtro'] === 'Pago'): ?>
-                                        <button type="button" onclick="estornarConta(<?= $c['id'] ?>)" style="color: #ffc107;">↩️ Estornar</button>
+                        <div class="kebab-menu">
+                            <button class="btn-kebab" onclick="toggleKebab(this)">⋮</button>
+                            <div class="kebab-dropdown">
+                                <?php if (isset($_GET['status_filtro']) && $_GET['status_filtro'] === 'Pago'): ?>
+                                    <?php if (isset($c['is_group'])): ?>
+                                        <span style="padding: 10px; display: block; font-size: 12px; color: #999;">🔍 Abra a lupa para estornar individualmente</span>
                                     <?php else: ?>
-                                        <button type="button" onclick="abrirModalBaixa(<?= $c['id'] ?>, '', <?= $c['valor'] ?>, '<?= htmlspecialchars($c['fornecedor'], ENT_QUOTES) ?>', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅ Dar Baixa</button>
-                                        <button type="button" onclick='editarConta(<?= json_encode($c) ?>)'>✏️ Editar</button>
-                                        <button type="button" onclick="excluirConta(<?= $c['id'] ?>)" style="color: red;">🗑️ Excluir</button>
+                                        <button type="button" onclick="estornarConta('<?= $c['id'] ?>')" style="color: #ffc107;">↩️ Estornar</button>
                                     <?php endif; ?>
-                                </div>
+                                <?php else: ?>
+                                    <?php if (isset($c['is_group'])): ?>
+                                        <?php $ids_filhas = implode(',', array_column($grupos_royalties[$c['vencimento']]['detalhes'], 'id')); ?>
+                                        <button type="button" onclick="abrirModalBaixa('<?= $ids_filhas ?>', '', <?= $c['valor'] ?>, 'Royalties Agrupados', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅ Pagar Lote Inteiro</button>
+                                    <?php else: ?>
+                                        <button type="button" onclick="abrirModalBaixa('<?= $c['id'] ?>', '', <?= $c['valor'] ?>, '<?= htmlspecialchars($c['fornecedor'], ENT_QUOTES) ?>', '<?= htmlspecialchars($c['descricao'], ENT_QUOTES) ?>')">✅ Dar Baixa</button>
+                                        <button type="button" onclick='editarConta(<?= json_encode($c) ?>)'>✏️ Editar</button>
+                                        <button type="button" onclick="excluirConta('<?= $c['id'] ?>')" style="color: red;">🗑️ Excluir</button>
+                                    <?php endif; ?>
+                                <?php endif; ?>
                             </div>
-                        </td>
+                        </div>
+                    </td>
                     </tr>
 
                     <?php if (isset($c['is_group'])): ?>
