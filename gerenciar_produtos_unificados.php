@@ -15,17 +15,20 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão Unificada de Produtos</title>
-    <link rel="stylesheet" href="../static/css/global.css">
-    <link rel="stylesheet" href="../static/css/gerenciar_produtos.css">
+    <link rel="stylesheet" href=".static/css/global.css">
+    <link rel="stylesheet" href="static/css/gerenciar_produtos.css">
 </head>
 
 <body>
     <div class="container">
         <div class="cabecalho-gestao">
             <h1>Produtos Unificados</h1>
-            <button class="btn btn-primary" onclick="abrirModal()">+ Novo Produto</button>
+            <div>
+                <input type="file" id="xmlInput" accept=".xml" style="display: none;" onchange="processarXML(event)">
+                <button class="btn btn-primary" onclick="document.getElementById('xmlInput').click()">Importar Custos (XML)</button>
+                <button class="btn btn-primary" onclick="abrirModal()">+ Novo Produto</button>
+            </div>
         </div>
-
         <?php if (isset($erro)): ?>
             <p style="color: red;"><?= $erro ?></p>
         <?php endif; ?>
@@ -84,6 +87,33 @@ try {
                     <button type="submit" class="btn btn-primary">Guardar Produto</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="modalFaltantes" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <h2>Produtos não encontrados no sistema</h2>
+            <p>Os itens abaixo estão no XML mas não existem no sistema. Marque os que deseja cadastrar automaticamente.</p>
+
+            <table style="margin-top: 15px;">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="checkTodos" checked onchange="toggleAll(this)"></th>
+                        <th>Cód. Interno</th>
+                        <th>Nome do Produto (XML)</th>
+                        <th>Valor Cx</th>
+                        <th>ST</th>
+                        <th>IPI</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-faltantes">
+                </tbody>
+            </table>
+
+            <div style="margin-top: 25px; text-align: right;">
+                <button type="button" class="btn btn-danger" onclick="fecharModalFaltantes()">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="cadastrarFaltantes()">Cadastrar Selecionados</button>
+            </div>
         </div>
     </div>
 

@@ -114,3 +114,114 @@ function excluirProduto(id) {
 
 // Arranca a função assim que a página é lida
 renderizarTabela();
+
+// --- IMPORTAÇÃO DE XML ---
+
+function processarXML(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('action', 'importar_xml');
+    formData.append('file', file);
+
+    alert("Processando XML, aguarde...");
+
+    fetch('api/produtos_unificados_actions.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('xmlInput').value = ''; 
+
+        if (data.status === 'success') {
+            // Monta a mensagem base
+            let mensagemAlerta = `XML Processado! ${data.atualizados} produtos atualizados.\n`;
+            
+            // Se houver produtos atualizados, adiciona os nomes na mensagem
+            if (data.nomes_atualizados && data.nomes_atualizados.length > 0) {
+                mensagemAlerta += `\nItens atualizados:\n- ` + data.nomes_atualizados.join(`\n- `);
+            }
+            
+            // Exibe o alerta detalhado
+            alert(mensagemAlerta);
+            
+            if (data.faltantes && data.faltantes.length > 0) {
+                abrirModalFaltantes(data.faltantes);
+            } else {
+                location.reload(); 
+            }
+        } else {
+            alert('Erro ao processar: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Ocorreu um erro na importação.');
+    });
+}
+
+function abrirModalFaltantes(faltantes) {
+    const tbody = document.getElementById('lista-faltantes');
+    tbody.innerHTML = '';
+
+    faltantes.forEach((item, index) => {
+        // Guarda os dados no atributo value em JSON para facilitar o resgate
+        const itemJSON = JSON.stringify(item).replace(/'/g, "&#39;");
+        
+        tbody.innerHTML += `
+            <tr>
+                <td><input type="checkbox" class="check-item-faltante" value='${itemJSON}' checked></td>
+                <td>${item.codigo_interno}</td>
+                <td>${item.nome_produto}</td>
+                <td>R$ ${item.valorUn.toFixed(2)}</td>
+                <td>R$ ${item.st.toFixed(2)}</td>
+                <td>R$ ${item.ipi.toFixed(2)}</td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('modalFaltantes').style.display = 'block';
+}
+
+function fecharModalFaltantes() {
+    document.getElementById('modalFaltantes').style.display = 'none';
+    location.reload(); // Recarrega a página para mostrar os atualizados
+}
+
+function toggleAll(source) {
+    const checkboxes = document.querySelectorAll('.check-item-faltante');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+}
+
+function cadastrarFaltantes() {
+    const checkboxes = document.querySelectorAll('.check-item-faltante:checked');
+    if (checkboxes.length === 0) {
+        alert("Nenhum item selecionado.");
+        return;
+    }
+
+    const produtosParaCadastrar = [];
+    checkboxes.forEach(cb => {
+        produtosParaCadastrar.push(JSON.parse(cb.value));
+    });
+
+    const formData = new FormData();
+    formData.append('action', 'cadastrar_lote');
+    formData.append('produtos', JSON.stringify(produtosParaCadastrar));
+
+    fetch('api/produtos_unificados_actions.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Produtos cadastrados com sucesso!');
+            location.reload();
+        } else {
+            alert('Erro ao cadastrar: ' + data.message);
+        }
+    });
+}
