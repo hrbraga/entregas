@@ -39,6 +39,12 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
                         <p>Etiquetas Prateleira</p>
                     </a>
                 </div>
+                  <div class="campanha-2 campanha">
+                    <a href="gestao/quadro_gestao.php">
+                        <img src="static/img/gestao.jfif" alt="Quadro de Gestão">
+                        <p>Quadro de Gestão</p>
+                    </a>
+                </div>
                 <div class="campanha-2 campanha">
                     <a href="validades/validades.php">
                         <img src="static/img/trufas.webp" alt="Controle de Validades">

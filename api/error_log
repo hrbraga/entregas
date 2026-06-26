@@ -1,0 +1,72 @@
+[10-Jan-2026 15:04:37 America/Fortaleza] Erro no upload de XML: NF 3273136 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[15-Jan-2026 16:55:18 America/Fortaleza] Erro no upload de XML: NF 3300531 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[15-Jan-2026 16:55:18 America/Fortaleza] Erro no upload de XML: NF 3289705 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[15-Jan-2026 16:55:18 America/Fortaleza] Erro no upload de XML: NF 3289706 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[15-Jan-2026 16:55:18 America/Fortaleza] Erro no upload de XML: NF 3293593 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[15-Jan-2026 16:55:18 America/Fortaleza] Erro no upload de XML: NF 3293592 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[15-Jan-2026 16:55:18 America/Fortaleza] Erro no upload de XML: NF 2411244 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[15-Jan-2026 16:55:18 America/Fortaleza] Erro no upload de XML: NF 3277019 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[15-Jan-2026 16:55:18 America/Fortaleza] Erro no upload de XML: NF 3277020 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[28-Jan-2026 11:39:25 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000]: General error: 1 no such table: itens_validade in /home1/c2e14736/public_html/api/validades_actions.php:39
+Stack trace:
+#0 /home1/c2e14736/public_html/api/validades_actions.php(39): PDO->prepare('SELECT * FROM i...')
+#1 {main}
+  thrown in /home1/c2e14736/public_html/api/validades_actions.php on line 39
+[28-Jan-2026 11:43:57 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000]: General error: 1 no such table: itens_validade in /home1/c2e14736/public_html/api/validades_actions.php:39
+Stack trace:
+#0 /home1/c2e14736/public_html/api/validades_actions.php(39): PDO->prepare('SELECT * FROM i...')
+#1 {main}
+  thrown in /home1/c2e14736/public_html/api/validades_actions.php on line 39
+[28-Jan-2026 11:44:16 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000]: General error: 1 no such table: itens_validade in /home1/c2e14736/public_html/api/validades_actions.php:27
+Stack trace:
+#0 /home1/c2e14736/public_html/api/validades_actions.php(27): PDO->prepare('INSERT INTO ite...')
+#1 {main}
+  thrown in /home1/c2e14736/public_html/api/validades_actions.php on line 27
+[28-Jan-2026 11:44:56 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000]: General error: 1 no such table: itens_validade in /home1/c2e14736/public_html/api/validades_actions.php:27
+Stack trace:
+#0 /home1/c2e14736/public_html/api/validades_actions.php(27): PDO->prepare('INSERT INTO ite...')
+#1 {main}
+  thrown in /home1/c2e14736/public_html/api/validades_actions.php on line 27
+[10-Feb-2026 13:51:15 America/Sao_Paulo] Erro no upload de XML: NF 3388613 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[10-Feb-2026 14:01:14 America/Sao_Paulo] Erro no upload de XML: NF 3388307 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[10-Feb-2026 14:03:51 America/Sao_Paulo] Erro no upload de XML: NF 3388307 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[04-Mar-2026 17:44:23 America/Sao_Paulo] Erro no upload de XML: NF 3484186 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:35:23 America/Sao_Paulo] Erro no upload de XML: NF 3414879 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:36:36 America/Sao_Paulo] Erro no upload de XML: NF 3314228 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3514876 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3500725 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3499450 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3496938 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3438906 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3483323 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3415439 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3419071 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3416276 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3434095 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3414879 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:38:52 America/Sao_Paulo] Erro no upload de XML: NF 3439882 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:39:14 America/Sao_Paulo] Erro no upload de XML: NF 3438672 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:39:14 America/Sao_Paulo] Erro no upload de XML: NF 3451884 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:39:14 America/Sao_Paulo] Erro no upload de XML: NF 3388640 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:39:14 America/Sao_Paulo] Erro no upload de XML: NF 3388163 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:39:14 America/Sao_Paulo] Erro no upload de XML: NF 3397993 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:39:14 America/Sao_Paulo] Erro no upload de XML: NF 3386967 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:39:14 America/Sao_Paulo] Erro no upload de XML: NF 3386877 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:39:14 America/Sao_Paulo] Erro no upload de XML: NF 3302646 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:39:14 America/Sao_Paulo] Erro no upload de XML: NF 3295379 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:39:14 America/Sao_Paulo] Erro no upload de XML: NF 3295266 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[14-Mar-2026 17:39:14 America/Sao_Paulo] Erro no upload de XML: NF 3290039 já importada no ficheiro /home1/c2e14736/public_html/api/upload_xml.php na linha 63
+[24-Jun-2026 16:44:16 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[24-Jun-2026 16:47:06 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[24-Jun-2026 16:48:12 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[25-Jun-2026 08:34:42 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[25-Jun-2026 08:36:07 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[25-Jun-2026 09:21:42 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[25-Jun-2026 10:31:30 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[25-Jun-2026 10:31:32 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[25-Jun-2026 10:31:58 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[25-Jun-2026 12:55:02 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[25-Jun-2026 16:06:10 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[26-Jun-2026 08:31:12 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[26-Jun-2026 08:31:19 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
+[26-Jun-2026 10:06:58 America/Sao_Paulo] PHP Warning:  Undefined variable $acumulado_v in /home1/c2e14736/public_html/api/get_quadro_gestao.php on line 104
