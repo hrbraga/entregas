@@ -1,6 +1,6 @@
 <?php
 require_once '../config.php';
-require_once '../auth/auth_check.php';
+require '../auth/auth_franqueado_check.php';
 $page_title = "Caixa e Bancos";
 $sessao_nome = "Caixa e Bancos";
 require_once '../includes/header.php';

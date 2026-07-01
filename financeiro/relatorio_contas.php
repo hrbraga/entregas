@@ -1,6 +1,6 @@
 <?php
 require '../config.php';
-require '../auth/auth_check.php';
+require '../auth/auth_franqueado_check.php';
 $page_title = "Relatório de Contas a Pagar";
 $sessao_nome = "Pagamentos e Despesas";
 require '../includes/header.php';

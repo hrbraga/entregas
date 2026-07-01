@@ -1,7 +1,7 @@
 <?php
 // O seu auth_check já embute o config.php que trata a sessão
 require '../config.php';
-require_once '../auth/auth_check.php';
+require '../auth/auth_franqueado_check.php';
 
 $page_title = "Planejador de Páscoa";
 $sessao_nome = "Planejador de Páscoa";

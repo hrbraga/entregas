@@ -1,6 +1,6 @@
 <?php
 require '../config.php';       // 1. Inclui a configuração e sessão
-require '../auth/auth_check.php'; // 2. Protege a página
+require '../auth/auth_franqueado_check.php';
 ?>
 
 <!DOCTYPE html>

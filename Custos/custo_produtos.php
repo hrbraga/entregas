@@ -1,6 +1,7 @@
 <?php
 require '../config.php';
 require '../auth/custos_auth_check.php';
+require '../auth/auth_franqueado_check.php';
 
 try {
     // A MÁGICA ACONTECE AQUI: 

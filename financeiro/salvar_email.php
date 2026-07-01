@@ -1,6 +1,6 @@
 <?php
 require '../config.php';
-require '../auth/auth_check.php';
+require '../auth/auth_franqueado_check.php';
 header('Content-Type: application/json');
 
 $id_usuario = $_SESSION['user_id'];

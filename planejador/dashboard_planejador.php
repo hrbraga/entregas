@@ -1,6 +1,6 @@
 <?php
 require '../config.php';
-require_once '../auth/auth_check.php';
+require '../auth/auth_franqueado_check.php';
 
 $page_title = "Dashboard";
 $sessao_nome = "Dashboard Pedido Páscoa";

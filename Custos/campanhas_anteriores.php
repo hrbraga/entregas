@@ -1,6 +1,7 @@
 <?php 
     require '../config.php'; 
     require '../auth/custos_auth_check.php'; // MUDANÇA 1: Usar o novo "porteiro"
+    require '../auth/auth_franqueado_check.php';
 ?>
 
 <!DOCTYPE html>

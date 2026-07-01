@@ -1,6 +1,7 @@
 <?php
 require '../config.php';
 require 'auth_check.php'; // Garante que está logado
+require 'auth_franqueado_check.php';
 
 // Só permite o utilizador master
 if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'hugo_admin') {
@@ -74,6 +75,14 @@ try {
             <?php endforeach; ?>
         </tbody>
     </table>
+</div>
+
+<div class="form-group">
+    <label>Perfil de Acesso</label>
+    <select name="perfil" class="form-control">
+        <option value="colaborador">Colaborador</option>
+        <option value="franqueado">Franqueado</option>
+    </select>
 </div>
 
 <div id="modalSenha" class="modal-financeiro" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center;">

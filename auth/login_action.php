@@ -6,6 +6,7 @@ $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
 $redirect = $_POST['redirect'] ?? '';
 
+
 if (empty($username) || empty($password)) {
     die("ERRO: Formulário vazio.");
 }
@@ -42,6 +43,7 @@ try {
         // As variáveis que controlam o sistema inteiro
         $_SESSION['user_id'] = $id_sessao; 
         $_SESSION['username'] = $username_atual; 
+        $_SESSION['perfil'] = $user['perfil'];
 
         // --- REDIRECIONAMENTO INTELIGENTE ---
         $redirect_memoria = $_SESSION['redirect_apos_login'] ?? '';

@@ -1,6 +1,7 @@
 <?php
 require '../config.php';
 require '../auth/restrito_check.php'; // Esta é a sua nova e única barreira de segurança
+require '../auth/auth_franqueado_check.php';
 $sessao_nome = "Custos de Produtos"; 
 $page_title = "Gerenciar Custos";
 require '../includes/header.php';

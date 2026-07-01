@@ -1,6 +1,6 @@
 <?php
 require '../config.php';
-require '../auth/auth_check.php';
+require '../auth/auth_franqueado_check.php';
 $page_title = "Conciliação Bancária";
 $sessao_nome = "Conciliação Bancária";
 require '../includes/header.php';

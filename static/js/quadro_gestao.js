@@ -265,11 +265,15 @@ document.getElementById('importar_metas').addEventListener('change', function(e)
     reader.readAsText(file);
 });
 
+// Abre o modal preenchendo o texto
 function enviarWhatsApp() {
     const d = window.dadosGlobais;
     if(!d || !d.meta_total) return alert("Os dados ainda não foram carregados completamente.");
     
     const statusMetaTexto = d.gap > 0 ? `📉 *GAP para meta:* ${formatarBRL(d.gap)}` : `📈 *Acima da Meta:* ${formatarBRL(Math.abs(d.gap))}`;
+    
+    // Define o rótulo mostrando a data exata se ela existir
+    const rotuloUltimoDia = d.data_ultimo_dia ? `Último Dia (${d.data_ultimo_dia})` : `Último Dia`;
 
     const texto = `📅 *Meta do Mês:* ${formatarBRL(d.meta_total)}
 🗓️ *Meta acumulada:* ${formatarBRL(d.meta_acumulada)}
@@ -278,8 +282,8 @@ function enviarWhatsApp() {
 
 ${statusMetaTexto}
 
-⏪ *Meta de Ontem:* ${formatarBRL(d.meta_ontem)}
-✅ *Venda de Ontem:* ${formatarBRL(d.venda_ontem)}
+⏪ *Meta - ${rotuloUltimoDia}:* ${formatarBRL(d.meta_ontem)}
+✅ *Venda - ${rotuloUltimoDia}:* ${formatarBRL(d.venda_ontem)}
 
 💪🏼 *Meta de Hoje:* ${formatarBRL(d.meta_hoje)}
 🎯 *Meta Ajustada:* ${formatarBRL(d.meta_ajustada)}`;

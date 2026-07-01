@@ -1,6 +1,6 @@
 <?php
 require '../config.php';
-require '../auth/auth_check.php';
+require '../auth/auth_franqueado_check.php';
 $page_title = "Contas a Receber";
 $sessao_nome = "Contas a Receber";
 require '../includes/header.php';

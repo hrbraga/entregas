@@ -223,27 +223,99 @@ try {
         exit;
     }
 
-    if ($action === 'salvar_pagar') {
-        $id = $_POST['id'] ?? '';
-        $valor = converterMoeda($_POST['valor'] ?? '0');
+if ($action === 'salvar_pagar') {
+        $id = trim($_POST['id'] ?? '');
         $fornecedor = trim($_POST['fornecedor'] ?? '');
         $emissao = $_POST['emissao'] ?? date('Y-m-d');
-        $vencimento = $_POST['vencimento'] ?? date('Y-m-d');
         $nota_fiscal = trim($_POST['nota_fiscal'] ?? '');
         $descricao = trim($_POST['descricao'] ?? '');
-        $id_categoria = $_POST['id_categoria'] ?? null;
+        
+        $id_categoria = !empty($_POST['id_categoria']) ? $_POST['id_categoria'] : null;
+        $gerar_royalties = $_POST['gerar_royalties'] ?? '0';
+
+        // --- NOVA TRAVA DE DUPLICIDADE ---
+        // Só verifica duplicidade se o usuário tiver digitado ou importado uma Nota Fiscal
+        if (!empty($nota_fiscal)) {
+            $check_sql = "SELECT COUNT(*) FROM contas_pagar WHERE id_usuario = ? AND fornecedor = ? AND nota_fiscal = ?";
+            $params = [$id_usuario, $fornecedor, $nota_fiscal];
+            
+            // Se estiver editando, exclui a própria conta da verificação para permitir salvar as edições
+            if (!empty($id)) {
+                $check_sql .= " AND id != ?";
+                $params[] = $id;
+            }
+            
+            $stmt_check = $db_financeiro->prepare($check_sql);
+            $stmt_check->execute($params);
+            
+            if ($stmt_check->fetchColumn() > 0) {
+                // Retorna um erro para o Front-end avisando que a nota já existe
+                echo json_encode(['status' => 'error', 'message' => 'Esta Nota Fiscal já foi lançada para este fornecedor.']);
+                exit;
+            }
+        }
+        // ---------------------------------
 
         if (!empty($id)) {
+            // MODO EDIÇÃO
+            $valor = converterMoeda($_POST['valor'] ?? '0');
+            $vencimento = $_POST['vencimento'] ?? date('Y-m-d');
+            
             $sql = "UPDATE contas_pagar SET fornecedor=?, emissao=?, vencimento=?, nota_fiscal=?, descricao=?, valor=?, id_categoria=? WHERE id=? AND id_usuario=?";
             $db_financeiro->prepare($sql)->execute([$fornecedor, $emissao, $vencimento, $nota_fiscal, $descricao, $valor, $id_categoria, $id, $id_usuario]);
         } else {
-            $sql = "INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, nota_fiscal, descricao, valor, id_categoria) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            $db_financeiro->prepare($sql)->execute([$id_usuario, $fornecedor, $emissao, $vencimento, $nota_fiscal, $descricao, $valor, $id_categoria]);
+            // MODO INSERÇÃO
+            
+            // 1. LÓGICA DE PARCELAMENTO
+            if (isset($_POST['parcela_vencimento']) && is_array($_POST['parcela_vencimento']) && count($_POST['parcela_vencimento']) > 0) {
+                $sql = "INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, nota_fiscal, descricao, valor, id_categoria) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                $stmt = $db_financeiro->prepare($sql);
+                
+                $total_parcelas = count($_POST['parcela_vencimento']);
+                foreach ($_POST['parcela_vencimento'] as $index => $venc_parcela) {
+                    $val_parcela = converterMoeda($_POST['parcela_valor'][$index] ?? '0');
+                    $desc_parcela = $descricao . " (" . ($index + 1) . "/$total_parcelas)";
+                    
+                    $stmt->execute([$id_usuario, $fornecedor, $emissao, $venc_parcela, $nota_fiscal, $desc_parcela, $val_parcela, $id_categoria]);
+                }
+            } else {
+                // Inserção Única Normal
+                $valor = converterMoeda($_POST['valor'] ?? '0');
+                $vencimento = $_POST['vencimento'] ?? date('Y-m-d');
+                
+                $sql = "INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, nota_fiscal, descricao, valor, id_categoria) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                $db_financeiro->prepare($sql)->execute([$id_usuario, $fornecedor, $emissao, $vencimento, $nota_fiscal, $descricao, $valor, $id_categoria]);
+            }
+            
+            // 2. LÓGICA DOS ROYALTIES DA CACAU SHOW
+            if ($gerar_royalties === '1') {
+                $id_cat_royalties = obterCategoriaDRE($db_financeiro, 'Royalties', 'Despesa', 'Despesas Operacionais');
+                
+                $venc_royalties = date('Y-m-d', strtotime($emissao . ' + 7 days'));
+                $valor_royalties = 0;
+                
+                if (isset($_FILES['arquivo_xml']) && $_FILES['arquivo_xml']['error'] === UPLOAD_ERR_OK) {
+                    $xml_content = file_get_contents($_FILES['arquivo_xml']['tmp_name']);
+                    $xml_content = preg_replace('/xmlns[^=]*="[^"]*"/i', '', $xml_content);
+                    $xml = @simplexml_load_string($xml_content);
+                    
+                    $infNFe = $xml->NFe->infNFe ?? $xml->infNFe ?? null;
+                    if ($infNFe && isset($infNFe->cobr->dup[1])) {
+                        $venc_royalties = substr((string) $infNFe->cobr->dup[1]->dVenc, 0, 10);
+                        $valor_royalties = (float) $infNFe->cobr->dup[1]->vDup;
+                    }
+                }
+                
+                $desc_royalties = "Royalties | NF " . $nota_fiscal;
+                $sql_roy = "INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, nota_fiscal, descricao, valor, id_categoria) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                $db_financeiro->prepare($sql_roy)->execute([$id_usuario, $fornecedor, $emissao, $venc_royalties, $nota_fiscal, $desc_royalties, $valor_royalties, $id_cat_royalties]);
+            }
         }
+        
         echo json_encode(['status' => 'success', 'message' => 'Salvo com sucesso!']);
         exit;
     }
-
+    
 } catch (Throwable $e) {
     if (isset($db_financeiro) && $db_financeiro->inTransaction()) $db_financeiro->rollBack();
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);

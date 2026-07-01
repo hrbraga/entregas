@@ -81,7 +81,7 @@ require_once '../includes/header.php';
         <!-- Cabeçalho e Botões de Ação -->
         <div class="qg-header">
             <div class="qg-actions">
-                <a href="http://caixadeferramentascs.online/metas_modelo.csv" class="qg-btn qg-btn-outline" download>
+                <a href="../api/baixar_modelo.php" class="qg-btn qg-btn-outline" >
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>

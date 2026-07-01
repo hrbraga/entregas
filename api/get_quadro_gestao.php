@@ -51,24 +51,38 @@ try {
     $atingimento = $meta_acumulada > 0 ? ($venda_acumulada / $meta_acumulada) * 100 : 0;
     $gap = $meta_acumulada - $venda_acumulada;
 
-    // 4. Ontem e Hoje (Filtro por user_id)
-    $stmtOntemHoje = $db_financeiro->prepare("SELECT data, meta_dia, venda_dia FROM gestao_metas WHERE user_id = ? AND data IN (?, ?)");
-    $stmtOntemHoje->execute([$user_id, $ontem, $hoje]);
+    // ====================================================
+    // CORREÇÃO: Buscar a Meta de Hoje ANTES de usar
+    // ====================================================
+    $stmtHoje = $db_financeiro->prepare("SELECT meta_dia FROM gestao_metas WHERE user_id = ? AND data = ?");
+    $stmtHoje->execute([$user_id, $hoje]);
+    $meta_hoje = (float)($stmtHoje->fetchColumn() ?: 0);
 
-    $meta_ontem = 0;
-    $venda_ontem = 0;
-    $meta_hoje = 0;
-    while ($row = $stmtOntemHoje->fetch(PDO::FETCH_ASSOC)) {
-        if ($row['data'] === $ontem) {
-            $meta_ontem = (float)$row['meta_dia'];
-            $venda_ontem = (float)$row['venda_dia'];
-        }
-        if ($row['data'] === $hoje) {
-            $meta_hoje = (float)$row['meta_dia'];
-        }
+    // ====================================================
+    // 4. Último Dia Útil (Substitui a lógica de "Ontem")
+    // ====================================================
+    
+    // Busca o último dia antes de hoje que tenha uma meta maior que zero
+    $stmtUltimoDia = $db_financeiro->prepare("
+        SELECT data, meta_dia, venda_dia 
+        FROM gestao_metas 
+        WHERE user_id = ? AND data < ? AND data LIKE ? AND meta_dia > 0
+        ORDER BY data DESC LIMIT 1
+    ");
+    $stmtUltimoDia->execute([$user_id, $hoje, $mes_atual . '-%']);
+    $ultimo = $stmtUltimoDia->fetch(PDO::FETCH_ASSOC);
+
+    if ($ultimo) {
+        $meta_ontem = (float)$ultimo['meta_dia'];
+        $venda_ontem = (float)$ultimo['venda_dia'];
+        $data_ultimo_dia = date('d/m', strtotime($ultimo['data'])); 
+    } else {
+        $meta_ontem = 0;
+        $venda_ontem = 0;
+        $data_ultimo_dia = '';
     }
 
-   // ====================================================
+    // ====================================================
     // 5. Meta de Hoje Ajustada (Regra: Meta Hoje + (GAP / Dias Restantes))
     // ====================================================
     
@@ -97,6 +111,9 @@ try {
     $grafico_metas = [];
     $grafico_vendas = [];
     $acumulado_m = 0;
+    
+    // CORREÇÃO: Inicializar a variável de venda acumulada do gráfico
+    $acumulado_v = 0; 
 
     while ($row = $stmtGrafico->fetch(PDO::FETCH_ASSOC)) {
         $grafico_datas[] = date('d/m', strtotime($row['data']));
@@ -122,6 +139,7 @@ try {
         'gap' => $gap,
         'meta_ontem' => $meta_ontem,
         'venda_ontem' => $venda_ontem,
+        'data_ultimo_dia' => $data_ultimo_dia, // CORREÇÃO: Adicionada a data aqui
         'meta_hoje' => $meta_hoje,
         'meta_ajustada' => $meta_ajustada,
         'grafico_datas' => $grafico_datas,
@@ -132,3 +150,4 @@ try {
     ob_clean();
     echo json_encode(['error' => 'Erro interno BD: ' . $e->getMessage()]);
 }
+?>

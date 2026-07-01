@@ -1,6 +1,6 @@
 <?php
 require '../config.php';
-require '../auth/custos_auth_check.php';
+require '../auth/auth_franqueado_check.php';
 
 // Busca para a lista
 $stmt = $db_produtos->query("SELECT * FROM custos_produtos ORDER BY id DESC");
