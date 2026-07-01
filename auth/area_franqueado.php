@@ -1,6 +1,6 @@
 <?php
 require '../config.php';
-require './auth_check.php'; // Proteção básica de login
+require 'auth_franqueado_check.php';
 $page_title = "Painel do Franqueado"; // Define o nome aqui
 $sessao_nome = "Área do Franqueado"; // Isso vai aparecer na barra azul
 require '../includes/header.php';
@@ -33,6 +33,12 @@ if (strpos($_SESSION['username'], 'loja-') === 0) {
         <a href="../Recebimentos/recebimentos.php"><img src="../static/img/caminhoes.jfif"
                 alt="caminhões">
             <p>Recebimentos</p>
+        </a>
+    </div>
+    <div class="campanha-2 campanha">
+        <a href="../auth/minha_equipe.php"><img src="../static/img/colaboradora.png"
+                alt="Loja">
+            <p>Minha Equipe</p>
         </a>
     </div>
       <div class="campanha-2 campanha">

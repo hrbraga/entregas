@@ -12,27 +12,24 @@ if (empty($username) || empty($password)) {
 }
 
 try {
-    $stmt = $db_users->prepare("SELECT id, username, password_hash FROM user WHERE username = :u LIMIT 1");
+    $stmt = $db_users->prepare("SELECT id, username, password_hash, perfil FROM user WHERE username = :u LIMIT 1");
     $stmt->bindValue(':u', $username);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    // ... parte do password_verify ...
     if ($user && password_verify($password, $user['password_hash'])) {
         
         $id_real = $user['id'];
         $username_atual = $user['username'];
+        $perfil = $user['perfil'];
+        $id_dono = $user['id_dono'] ?? null;
         
-        // --- A MÁGICA DO VÍNCULO DE DADOS ---
-        if (strpos($username_atual, 'loja-') === 0) {
-            // É um funcionário! Vamos descobrir quem é o Franqueado Dono dele.
-            $username_dono = substr($username_atual, 5); // Tira o 'loja-'
-            
-            $stmt_dono = $db_users->prepare("SELECT id FROM user WHERE username = ?");
-            $stmt_dono->execute([$username_dono]);
-            $dono = $stmt_dono->fetch(PDO::FETCH_ASSOC);
-            
-            // O ID da sessão passa a ser o do DONO, para que o funcionário veja as mesmas Validades
-            $id_sessao = $dono ? $dono['id'] : $id_real; 
+        // --- A NOVA MÁGICA DO VÍNCULO DE DADOS ---
+        if ($perfil === 'colaborador' && !empty($id_dono)) {
+            // É um funcionário! O ID da sessão passa a ser o do Franqueado Dono
+            // Isso garante que ele veja exatamente o quadro e as validades da loja dele.
+            $id_sessao = $id_dono; 
         } else {
             // É o Franqueado ou o Admin. O ID é o dele mesmo.
             $id_sessao = $id_real;
@@ -43,8 +40,9 @@ try {
         // As variáveis que controlam o sistema inteiro
         $_SESSION['user_id'] = $id_sessao; 
         $_SESSION['username'] = $username_atual; 
-        $_SESSION['perfil'] = $user['perfil'];
+        $_SESSION['perfil'] = $perfil;
 
+        // ... código de redirecionamento continua igual ...
         // --- REDIRECIONAMENTO INTELIGENTE ---
         $redirect_memoria = $_SESSION['redirect_apos_login'] ?? '';
         

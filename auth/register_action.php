@@ -25,8 +25,9 @@ if ($stmt->fetch()) {
 
 // Cria o novo utilizador
 $password_hash = password_hash($password, PASSWORD_DEFAULT);
-$stmt = $db_users->prepare("INSERT INTO user (username, password_hash) VALUES (?, ?)");
-$stmt->execute([$username, $password_hash]);
+$perfil = 'colaborador'; // Trava de segurança: Todo mundo novo nasce como colaborador
+$stmt = $db_users->prepare("INSERT INTO user (username, password_hash, perfil) VALUES (?, ?, ?)");
+$stmt->execute([$username, $password_hash, $perfil]);
 
 // Redireciona para o login com mensagem de sucesso
 header('Location: login.php?registrado=1');
