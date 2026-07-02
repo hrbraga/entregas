@@ -2,10 +2,6 @@
 require '../config.php';
 require 'auth_franqueado_check.php';
 
-if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'CP1871') {
-    header("Location: area_franqueado.php");
-    exit;
-}
 $page_title = "Gestão de Equipas"; 
 $sessao_nome = "Acessos"; 
 

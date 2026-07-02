@@ -38,7 +38,7 @@ if (strpos($_SESSION['username'], 'loja-') === 0) {
     <div class="campanha-2 campanha">
         <a href="../auth/minha_equipe.php"><img src="../static/img/colaboradora.png"
                 alt="Loja">
-            <p>Minha Equipe</p>
+            <p>Minhas lojas</p>
         </a>
     </div>
       <div class="campanha-2 campanha">

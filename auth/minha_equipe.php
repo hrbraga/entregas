@@ -3,8 +3,8 @@
 require '../config.php';
 require 'auth_franqueado_check.php'; 
 
-$page_title = "Minha Equipe"; 
-$sessao_nome = "Colaboradores"; 
+$page_title = "Minhas lojas"; 
+$sessao_nome = "Lojas"; 
 
 require '../includes/header.php';
 
@@ -58,11 +58,11 @@ $equipe = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <?= $mensagem ?>
 
-    <p style="color: #555; font-size: 16px; margin-bottom: 25px;">Cadastre novos colaboradores para a sua loja. Eles terão acesso ao Quadro de Gestão e Controle de Validades.</p>
+    <p style="color: #555; font-size: 16px; margin-bottom: 25px;">Cadastre o acesso para os colaboradores da sua loja. Eles terão acesso APENAS ao Quadro de Gestão e Controle de Validades.</p>
 
     <!-- Bloco de Cadastro -->
     <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 35px;">
-        <h3 style="margin-top: 0; color: #333; font-size: 18px;">➕ Cadastrar Novo Colaborador</h3>
+        <h3 style="margin-top: 0; color: #333; font-size: 18px;">➕ Cadastrar Nova Loja</h3>
         <form method="POST" action="" style="display: flex; gap: 15px; margin-top: 15px; align-items: flex-end; flex-wrap: wrap;">
             <input type="hidden" name="action" value="criar_usuario">
             

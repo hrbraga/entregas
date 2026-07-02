@@ -66,6 +66,31 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
         </section>
     </main>
 
+<div id="modalAvisoAcesso" style="display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+    <div style="background: #fff; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+        <h2 style="color: #333; margin-top: 0;">Comunicado Importante</h2>
+        <p style="color: #555; font-size: 16px; line-height: 1.5; margin: 20px 0;">
+            Prezados, realizamos mudanças importantes na estrutura de acessos do sistema.
+            <br><br>
+            Caso você não consiga acessar a área do franqueado, <strong style="font-size: 16px;">entre em contato com o Hugo</strong> para que ele regularize o seu nível de acesso.
+        </p>
+        <button onclick="document.getElementById('modalAvisoAcesso').style.display='none'" 
+                style="font-size: 16px; padding: 10px 25px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            Entendido
+        </button>
+    </div>
+</div>
+
+<script>
+// Se na URL tiver o erro 'acesso_negado', abre o modal automaticamente
+window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('erro') && urlParams.get('erro') === 'acesso_negado') {
+        document.getElementById('modalAvisoAcesso').style.display = 'flex';
+    }
+};
+</script>
+
     <script src="static/js/campanha.js"></script>
 </body>
 
