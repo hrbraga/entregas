@@ -7,7 +7,7 @@ $stmt_lojas = $db_users->prepare("SELECT id, username FROM user WHERE id_dono = 
 $stmt_lojas->execute([$_SESSION['user_id']]);
 $lojas_equipe = $stmt_lojas->fetchAll(PDO::FETCH_ASSOC);
 
-$page_title = "Quadro Gestão Master";
+$page_title = "Quadro Corporativo";
 $sessao_nome = "Quadro Gestão Master";
 require_once '../includes/header_franq.php';
 ?>

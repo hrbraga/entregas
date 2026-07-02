@@ -4,12 +4,17 @@ require '../auth/auth_check.php';
 $page_title = "Quadro de Gestão";
 $sessao_nome = "Quadro de Gestão";
 require_once '../includes/header.php';
+
+$is_franqueado = ($_SESSION['perfil'] === 'franqueado');
+
 ?>
 <link rel="stylesheet" href="../static/css/global.css">
 <link rel="stylesheet" href="../static/css/style.css">
 <link rel="stylesheet" href="../static/css/quadro_gestao.css">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<body>
 
 <div class="container" style="position: relative; padding-bottom: 40px; margin-top: 20px;">
 
@@ -81,12 +86,6 @@ require_once '../includes/header.php';
         <!-- Cabeçalho e Botões de Ação -->
         <div class="qg-header">
             <div class="qg-actions">
-                <a href="../api/baixar_modelo.php" class="qg-btn qg-btn-outline" >
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                    Baixar Planilha Modelo
-                </a>
                 <button onclick="document.getElementById('importar_metas').click()" class="qg-btn qg-btn-primary">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -263,6 +262,8 @@ require_once '../includes/header.php';
     </div>
 </div>
 
+
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const target = document.getElementById('c-atingimento');
@@ -304,4 +305,26 @@ require_once '../includes/header.php';
 </script>
 
 <script src="../static/js/quadro_gestao.js"></script>
+
+<?php if ($is_franqueado): ?>
+<div id="modalRedirect" style="display: flex; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center;">
+    <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 400px; width: 90%;">
+        <h3>🏢 Acesso Corporativo</h3>
+        <p>Você é um <strong style="color: #0d6efd; font-size: 14px;">Franqueado</strong>. Para uma melhor gestão, você será redirecionado para o seu Quadro Corporativo.</p>
+        <button onclick="window.location.href='../gestao/quadro_gestao_franqueado.php'" 
+                style="padding: 10px 20px; background: #0d6efd; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Ir para Quadro Corporativo
+        </button>
+    </div>
+</div>
+
+<script>
+    // Redirecionamento automático após 5 segundos, caso o usuário não clique
+    setTimeout(function() {
+        window.location.href = '../gestao/quadro_gestao_franqueado.php';
+    }, 5000);
+</script>
+<?php endif; ?>
+
+</body> 
 <?php include '../includes/footer.php'; ?>
