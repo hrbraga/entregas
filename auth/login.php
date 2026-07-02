@@ -6,7 +6,7 @@
     
     // Se o utilizador já estiver logado, redireciona
     if (isset($_SESSION['user_id'])) {
-        header('Location: ../Recebimentos/recebimentos.php');
+        header('Location: ../selecao_ferramentas.php');
         exit;
     }
 

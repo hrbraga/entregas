@@ -28,6 +28,12 @@ if (strpos($_SESSION['username'], 'loja-') === 0) {
                 alt="Loja">
             <p>ERP Financeiro</p>
         </a>
+        </div>
+         <div class="campanha-2 campanha">
+        <a href="../gestao/quadro_gestao_franqueado.php"><img src="../static/img/gestao.jfif" alt="Quadro Gestão">
+            <p>Quadro Gestão Master</p>
+        </a>
+    
     </div>
         <div class="campanha-2 campanha">
         <a href="../Recebimentos/recebimentos.php"><img src="../static/img/caminhoes.jfif"

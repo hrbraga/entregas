@@ -1,86 +1,79 @@
 <?php
-// api/import_csv.php (Versão com Correção de Encoding UTF-8)
 require '../config.php';
 require '../auth/auth_check.php';
 
 header('Content-Type: application/json');
-$user_id = $_SESSION['user_id'];
 
 if (!isset($_FILES['file'])) {
-    echo json_encode(['success' => false, 'message' => 'Nenhum arquivo enviado.']);
+    echo json_encode(['error' => 'Nenhum arquivo enviado.']);
     exit;
 }
 
-$file = $_FILES['file']['tmp_name'];
-$file_name = $_FILES['file']['name'];
-
-if (!str_ends_with(strtolower($file_name), '.csv')) {
-    echo json_encode(['success' => false, 'message' => 'Formato de arquivo inválido. Use CSV.']);
-    exit;
-}
-
-// Inicia a transação
-$db_entregas->beginTransaction();
 try {
+    $handle = fopen($_FILES['file']['tmp_name'], "r");
+    $data_importada = [];
+    $timestamps = [];
+    $row = 0;
 
-    // 1. Limpa os dados de entrega anteriores do utilizador
-    $stmt_delete = $db_entregas->prepare("DELETE FROM item_entrega WHERE user_id = ?");
-    $stmt_delete->execute([$user_id]);
+    // Lê o arquivo CSV
+    while (($coluna = fgetcsv($handle, 1000, ";")) !== FALSE) {
+        $row++;
+        if ($row == 1) continue; // Pula o cabeçalho
 
-    // 2. Abre o arquivo CSV
-    if (($handle = fopen($file, "r")) === FALSE) {
-        throw new Exception("Não foi possível abrir o arquivo CSV.");
-    }
+        // Coluna A (Índice 0) = Data | Coluna G (Índice 6) = Meta
+        $data_raw = $coluna[0]; 
+        $meta_raw = $coluna[6]; 
 
-    // 3. Pula APENAS a linha de cabeçalho
-    fgetcsv($handle, 1000, ";");
+        if (empty($data_raw)) continue;
 
-    // 4. Prepara a query de inserção (SQL)
-    $stmt_insert = $db_entregas->prepare(
-        "INSERT INTO item_entrega 
-         (codigo_sap, item, grupo, pedido_loja, pedido_vd, total_caixa, a_receber, recebido, user_id) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)"
-    );
-
-    // 5. Lê o CSV linha por linha
-    while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-        if (empty($data[0]) || empty($data[1])) {
-            continue; // Pula linha mal formatada
-        }
-
-        // --- CORREÇÃO DE ENCODING AQUI ---
-        // Tenta detectar se é UTF-8, se não for, converte de ISO-8859-1 (Excel Padrão) para UTF-8
-        $item_utf8 = mb_convert_encoding(trim($data[1]), 'UTF-8', 'UTF-8, ISO-8859-1');
-        $grupo_utf8 = mb_convert_encoding(trim($data[2]), 'UTF-8', 'UTF-8, ISO-8859-1');
-        // ---------------------------------
-
-        $codigo_sap = ltrim(trim($data[0]), '0'); // Remove zeros à esquerda
-        $pedido_loja = (int) ($data[3] ?? 0);
-        $pedido_vd = (int) ($data[4] ?? 0);
-
-        $total_caixa = $pedido_loja + $pedido_vd;
-        $a_receber = $total_caixa;
-
-        $stmt_insert->execute([
-            $codigo_sap,
-            $item_utf8,  // Usa a variável convertida
-            $grupo_utf8, // Usa a variável convertida
-            $pedido_loja,
-            $pedido_vd,
-            $total_caixa,
-            $a_receber,
-            $user_id
-        ]);
+        // Formata data de DD/MM/YYYY para YYYY-MM-DD
+        $dt = DateTime::createFromFormat('d/m/Y', $data_raw);
+        if (!$dt) continue; 
+        
+        $data_iso = $dt->format('Y-m-d');
+        
+        // Limpa valor da meta (remove pontos e converte vírgula para ponto)
+        // Ex: "4.270,00" vira 4270.00
+        $meta_limpa = str_replace(['.', ','], ['', '.'], $meta_raw);
+        
+        $data_importada[$data_iso] = (float)$meta_limpa;
+        $timestamps[] = strtotime($data_iso);
     }
     fclose($handle);
 
-    // 6. Confirma as alterações
-    $db_entregas->commit();
-    echo json_encode(['success' => true, 'message' => 'Pedidos importados com sucesso! Encoding corrigido para UTF-8.']);
+    // --- LÓGICA DO DRIBLE NOS DIAS VAZIOS (Backfill) ---
+    $min_ts = min($timestamps);
+    $max_ts = max($timestamps);
+    $user_id = $_SESSION['user_id'];
+
+    $db_financeiro->beginTransaction();
+    
+    $stmtCheck = $db_financeiro->prepare("SELECT id FROM gestao_metas WHERE user_id = ? AND data = ?");
+    $stmtUpdate = $db_financeiro->prepare("UPDATE gestao_metas SET meta_dia = ? WHERE id = ?");
+    $stmtInsert = $db_financeiro->prepare("INSERT INTO gestao_metas (user_id, data, meta_dia) VALUES (?, ?, ?)");
+
+    // Percorre todos os dias entre a primeira e a última data da planilha
+    for ($ts = $min_ts; $ts <= $max_ts; $ts += 86400) {
+        $data_atual = date('Y-m-d', $ts);
+        
+        // Se o dia não estiver na planilha, o valor é 0
+        $meta = isset($data_importada[$data_atual]) ? $data_importada[$data_atual] : 0;
+
+        $stmtCheck->execute([$user_id, $data_atual]);
+        $existe = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+        if ($existe) {
+            $stmtUpdate->execute([$meta, $existe['id']]);
+        } else {
+            $stmtInsert->execute([$user_id, $data_atual, $meta]);
+        }
+    }
+
+    $db_financeiro->commit();
+    echo json_encode(['success' => true, 'message' => 'CSV processado e dias vazios preenchidos!']);
 
 } catch (Exception $e) {
-    // 7. Se algo deu errado, desfaz tudo
-    $db_entregas->rollBack();
-    echo json_encode(['success' => false, 'message' => 'Erro ao processar o arquivo: ' . $e->getMessage()]);
+    if(isset($db_financeiro)) $db_financeiro->rollBack();
+    echo json_encode(['error' => 'Erro: ' . $e->getMessage()]);
 }
 ?>
