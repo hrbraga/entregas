@@ -291,25 +291,83 @@ if ($action === 'salvar_pagar') {
             if ($gerar_royalties === '1') {
                 $id_cat_royalties = obterCategoriaDRE($db_financeiro, 'Royalties', 'Despesa', 'Despesas Operacionais');
                 
-                $venc_royalties = date('Y-m-d', strtotime($emissao . ' + 7 days'));
-                $valor_royalties = 0;
+                // O valor base para calcular royalties é o total da nota que está sendo inserida
+                $valor_total_nota = 0;
                 
-                if (isset($_FILES['arquivo_xml']) && $_FILES['arquivo_xml']['error'] === UPLOAD_ERR_OK) {
-                    $xml_content = file_get_contents($_FILES['arquivo_xml']['tmp_name']);
-                    $xml_content = preg_replace('/xmlns[^=]*="[^"]*"/i', '', $xml_content);
-                    $xml = @simplexml_load_string($xml_content);
-                    
-                    $infNFe = $xml->NFe->infNFe ?? $xml->infNFe ?? null;
-                    if ($infNFe && isset($infNFe->cobr->dup[1])) {
-                        $venc_royalties = substr((string) $infNFe->cobr->dup[1]->dVenc, 0, 10);
-                        $valor_royalties = (float) $infNFe->cobr->dup[1]->vDup;
-                    }
+                if (isset($_POST['parcela_vencimento']) && is_array($_POST['parcela_vencimento']) && count($_POST['parcela_vencimento']) > 0) {
+                     // Se parcelou a compra original, soma as parcelas para achar o valor total da nota
+                     foreach ($_POST['parcela_valor'] as $val_parc) {
+                         $valor_total_nota += converterMoeda($val_parc ?? '0');
+                     }
+                } else {
+                     // Conta normal (1 parcela)
+                     $valor_total_nota = converterMoeda($_POST['valor'] ?? '0');
                 }
+
+                $valor_royalties_total = $valor_total_nota * 0.50; // Royalties = 50% da nota
+
+                // --- VERIFICA SE É NOTA DE CAMPANHA ---
+                $is_campanha = false;
+                $venc_roy_campanha = null;
                 
-                $desc_royalties = "Royalties | NF " . $nota_fiscal;
+                // Pega a data da primeira parcela que o usuário digitou (ou do vencimento unico)
+                $vencimento_base = $_POST['vencimento'] ?? (isset($_POST['parcela_vencimento'][0]) ? $_POST['parcela_vencimento'][0] : date('Y-m-d'));
+
+                try {
+                    // Procura na tabela campanhas_niveis se existe um vencimento de NF igual ao digitado
+                    $stmt_campanha = $db_financeiro->prepare("SELECT vencimento_royalties FROM campanhas_niveis WHERE vencimento_nf = ? LIMIT 1");
+                    $stmt_campanha->execute([$vencimento_base]);
+                    $res_campanha = $stmt_campanha->fetch();
+
+                    if ($res_campanha && !empty($res_campanha['vencimento_royalties'])) {
+                        $is_campanha = true;
+                        $venc_roy_campanha = $res_campanha['vencimento_royalties'];
+                    }
+                } catch (Exception $e) {
+                    // Se a tabela não existir, apenas segue como linha
+                }
+
                 $sql_roy = "INSERT INTO contas_pagar (id_usuario, fornecedor, emissao, vencimento, nota_fiscal, descricao, valor, id_categoria) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-                $db_financeiro->prepare($sql_roy)->execute([$id_usuario, $fornecedor, $emissao, $venc_royalties, $nota_fiscal, $desc_royalties, $valor_royalties, $id_cat_royalties]);
+                $stmt_insert_roy = $db_financeiro->prepare($sql_roy);
+
+                if ($is_campanha) {
+                    // REGRA 2: NOTA DE CAMPANHA (Lançamento único na data cadastrada no admin)
+                    $desc_royalties = "Royalties Campanha | NF " . $nota_fiscal;
+                    $stmt_insert_roy->execute([$id_usuario, $fornecedor, $emissao, $venc_roy_campanha, $nota_fiscal, $desc_royalties, $valor_royalties_total, $id_cat_royalties]);
+                } else {
+                    // REGRA 1: NOTA DE LINHA (2 parcelas nos dias 07 e 21 do mês SUBSEQUENTE ao FATURAMENTO/EMISSÃO)
+                    
+                    // Descobre o mês e ano seguintes baseados na data de emissão
+                    $ano_emissao = date('Y', strtotime($emissao));
+                    $mes_emissao = date('m', strtotime($emissao));
+                    
+                    $mes_subsequente = $mes_emissao + 1;
+                    $ano_subsequente = $ano_emissao;
+                    
+                    if ($mes_subsequente > 12) {
+                        $mes_subsequente = 1;
+                        $ano_subsequente++;
+                    }
+                    
+                    $mes_subsequente_formatado = str_pad($mes_subsequente, 2, "0", STR_PAD_LEFT);
+                    
+                    // Monta as datas 07 e 21
+                    $data_parc_1 = "$ano_subsequente-$mes_subsequente_formatado-07";
+                    $data_parc_2 = "$ano_subsequente-$mes_subsequente_formatado-21";
+                    
+                    // Divide o valor 50% / 50%
+                    $valor_metade = $valor_royalties_total / 2;
+
+                    // Insere Parcela 1 (dia 07)
+                    $desc_roy_1 = "Royalties Linha (1/2) | NF " . $nota_fiscal;
+                    $stmt_insert_roy->execute([$id_usuario, $fornecedor, $emissao, $data_parc_1, $nota_fiscal, $desc_roy_1, $valor_metade, $id_cat_royalties]);
+                    
+                    // Insere Parcela 2 (dia 21)
+                    $desc_roy_2 = "Royalties Linha (2/2) | NF " . $nota_fiscal;
+                    $stmt_insert_roy->execute([$id_usuario, $fornecedor, $emissao, $data_parc_2, $nota_fiscal, $desc_roy_2, $valor_metade, $id_cat_royalties]);
+                }
             }
+            
         }
         
         echo json_encode(['status' => 'success', 'message' => 'Salvo com sucesso!']);
