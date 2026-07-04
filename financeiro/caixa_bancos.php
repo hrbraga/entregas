@@ -3,7 +3,7 @@ require_once '../config.php';
 require '../auth/auth_franqueado_check.php';
 $page_title = "Caixa e Bancos";
 $sessao_nome = "Caixa e Bancos";
-require_once '../includes/header.php';
+require_once '../includes/header_franq.php';
 
 $id_usuario = $_SESSION['user_id'];
 

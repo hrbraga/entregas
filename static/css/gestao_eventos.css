@@ -1,0 +1,96 @@
+       body {
+           background-color: burlywood;
+           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+       }
+
+       .painel-container {
+           max-width: 1000px;
+           margin: 0 auto;
+           background: white;
+              padding: 30px;
+           border-radius: 10px;
+           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+       }
+
+       .header-painel {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           margin-bottom: 30px;
+           border-bottom: 2px solid #eee;
+           padding-bottom: 15px;
+       }
+
+       .header-painel h2 {
+           color: #343a40;
+           margin: 0;
+       }
+
+       .tabela-eventos {
+           width: 100%;
+           border-collapse: collapse;
+           margin-top: 20px;
+       }
+
+       .tabela-eventos th {
+           background: #f8f9fa;
+           padding: 15px;
+           text-align: left;
+           border-bottom: 2px solid #dee2e6;
+           color: #495057;
+       }
+
+       .tabela-eventos td {
+           padding: 15px;
+           border-bottom: 1px solid #eee;
+           color: #333;
+           vertical-align: middle;
+       }
+
+       .tabela-eventos tr:hover {
+           background: #f8f9fa;
+       }
+
+       .badge {
+           padding: 5px 10px;
+           border-radius: 20px;
+           font-size: 0.85rem;
+           font-weight: bold;
+       }
+
+       .badge-ativo {
+           background: #d1e7dd;
+           color: #0f5132;
+       }
+
+       .badge-inativo {
+           background: #f8d7da;
+           color: #842029;
+       }
+
+       .btn-acao {
+           padding: 8px 15px;
+           border: none;
+           border-radius: 5px;
+           cursor: pointer;
+           font-weight: bold;
+           text-decoration: none;
+           display: inline-block;
+           font-size: 0.9rem;
+       }
+
+       .btn-novo {
+           background: #0d6efd;
+           color: white;
+           padding: 12px 20px;
+       }
+
+       .btn-estoque {
+           background: #ffc107;
+           color: #000;
+       }
+
+       .btn-relatorio {
+           background: #198754;
+           color: white;
+       }
