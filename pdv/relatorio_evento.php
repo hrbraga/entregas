@@ -40,7 +40,7 @@ foreach($itens_raw as $it) {
 
 // 3. RESUMO DE PRODUTOS VENDIDOS
 $stmtResumo = $db_financeiro->prepare("
-    SELECT p.nome_produto, SUM(i.quantidade) as total_qtd, SUM(i.subtotal) as total_valor 
+    SELECT p.codigo_interno, p.nome_produto, SUM(i.quantidade) as total_qtd, SUM(i.subtotal) as total_valor 
     FROM pdv_itens i
     JOIN pdv_vendas v ON i.venda_id = v.id
     JOIN p_db.produtos_unificados p ON i.produto_id = p.id
@@ -130,15 +130,17 @@ $estoque = $stmtEstoque->fetchAll(PDO::FETCH_ASSOC);
         <p>Nenhuma venda registrada para este evento ainda.</p>
     <?php endif; ?>
 
-    <h2>2. Resumo de Produtos Vendidos</h2>
+   <h2>2. Resumo de Produtos Vendidos</h2>
     <table>
         <tr>
+            <th width="15%">Cód. Produto</th>
             <th>Produto</th>
             <th class="text-center">Qtd Vendida</th>
             <th class="text-right">Total Faturado</th>
         </tr>
         <?php foreach($resumo as $r): ?>
         <tr>
+            <td><?php echo htmlspecialchars($r['codigo_interno']); ?></td>
             <td><?php echo htmlspecialchars($r['nome_produto']); ?></td>
             <td class="text-center"><?php echo $r['total_qtd']; ?></td>
             <td class="text-right">R$ <?php echo number_format($r['total_valor'], 2, ',', '.'); ?></td>

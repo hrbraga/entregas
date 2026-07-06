@@ -121,11 +121,16 @@ function limparCamposBuscaManual() {
     document.getElementById('qtd_produto_manual').value = 1;
 }
 
-// BUSCA: INSERÇÃO MANUAL
+// ==========================================
+// BUSCA: INSERÇÃO MANUAL (COM NAVEGAÇÃO POR TECLADO)
+// ==========================================
+let focoBuscaManual = -1;
+
 document.getElementById('busca_produto_manual').addEventListener('input', (e) => {
     clearTimeout(debounceBuscaManual);
     const termo = e.target.value.trim();
     const dropdown = document.getElementById('dropdown_busca_manual');
+    focoBuscaManual = -1; // Reseta o foco do teclado
     
     if (termo.length < 2) { dropdown.style.display = 'none'; return; }
 
@@ -136,18 +141,24 @@ document.getElementById('busca_produto_manual').addEventListener('input', (e) =>
             dropdown.innerHTML = '';
             
             if (json.success && json.produtos.length > 0) {
-                json.produtos.forEach(p => {
+                json.produtos.forEach((p, index) => {
                     let div = document.createElement('div');
+                    div.className = 'item-busca-manual'; // Classe para o teclado achar
                     div.style.cssText = "padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;";
                     div.innerHTML = `<strong>${p.nome}</strong> <small style="color:#666;">(${p.codigo_interno})</small>`;
-                    // Clica para selecionar, MAS NÃO INSERE na lista ainda
+                    
+                    // Clica para selecionar
                     div.onclick = () => {
                         document.getElementById('produto_selecionado_id_manual').value = p.id;
                         document.getElementById('produto_selecionado_nome_manual').value = p.nome;
                         document.getElementById('busca_produto_manual').value = p.nome;
                         dropdown.style.display = 'none';
-                        document.getElementById('qtd_produto_manual').focus(); // Joga pro campo qtd
+                        document.getElementById('qtd_produto_manual').focus(); 
                     };
+
+                    // Efeito de hover para o mouse também interagir com o teclado
+                    div.onmouseover = () => { focoBuscaManual = index; atualizarFocoManual(); };
+
                     dropdown.appendChild(div);
                 });
                 dropdown.style.display = 'block';
@@ -155,6 +166,42 @@ document.getElementById('busca_produto_manual').addEventListener('input', (e) =>
         } catch(err) { console.error(err); }
     }, 300);
 });
+
+// NAVEGAÇÃO PELO TECLADO (Manual)
+document.getElementById('busca_produto_manual').addEventListener('keydown', (e) => {
+    const dropdown = document.getElementById('dropdown_busca_manual');
+    const itens = dropdown.getElementsByClassName('item-busca-manual');
+
+    if (dropdown.style.display === 'block' && itens.length > 0) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            focoBuscaManual++;
+            if (focoBuscaManual >= itens.length) focoBuscaManual = 0;
+            atualizarFocoManual(itens);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            focoBuscaManual--;
+            if (focoBuscaManual < 0) focoBuscaManual = itens.length - 1;
+            atualizarFocoManual(itens);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (focoBuscaManual > -1) itens[focoBuscaManual].click(); // Clica no focado
+            else document.getElementById('qtd_produto_manual').focus();
+        }
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('qtd_produto_manual').focus();
+    }
+});
+
+function atualizarFocoManual(itens = null) {
+    if(!itens) itens = document.getElementById('dropdown_busca_manual').getElementsByClassName('item-busca-manual');
+    for (let i = 0; i < itens.length; i++) itens[i].style.backgroundColor = "white"; // Limpa todos
+    if (focoBuscaManual >= 0 && focoBuscaManual < itens.length) {
+        itens[focoBuscaManual].style.backgroundColor = "#e9ecef"; // Destaca o atual
+        itens[focoBuscaManual].scrollIntoView({ block: "nearest" }); // Rola o scroll junto
+    }
+}
 
 // AÇÃO: INSERIR NA LISTA MANUAL
 function adicionarItemManualLista() {
@@ -241,11 +288,16 @@ async function abrirGerenciarEstoque(id) {
     carregarEstoqueGerenciamento();
 }
 
-// BUSCA: DENTRO DO GERENCIAR ESTOQUE
+// ==========================================
+// BUSCA: DENTRO DO GERENCIAR ESTOQUE (COM NAVEGAÇÃO POR TECLADO)
+// ==========================================
+let focoBuscaGerenciar = -1;
+
 document.getElementById('busca_produto_gerenciar').addEventListener('input', (e) => {
     clearTimeout(debounceBuscaGerenciar);
     const termo = e.target.value.trim();
     const dropdown = document.getElementById('dropdown_busca_gerenciar');
+    focoBuscaGerenciar = -1;
     
     if (termo.length < 2) { dropdown.style.display = 'none'; return; }
 
@@ -256,16 +308,21 @@ document.getElementById('busca_produto_gerenciar').addEventListener('input', (e)
             dropdown.innerHTML = '';
             
             if (json.success && json.produtos.length > 0) {
-                json.produtos.forEach(p => {
+                json.produtos.forEach((p, index) => {
                     let div = document.createElement('div');
+                    div.className = 'item-busca-gerenciar';
                     div.style.cssText = "padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;";
                     div.innerHTML = `<strong>${p.nome}</strong> <small style="color:#666;">(${p.codigo_interno})</small>`;
+                    
                     div.onclick = () => {
                         document.getElementById('produto_selecionado_id_gerenciar').value = p.id;
                         document.getElementById('busca_produto_gerenciar').value = p.nome;
                         dropdown.style.display = 'none';
                         document.getElementById('qtd_produto_gerenciar').focus();
                     };
+
+                    div.onmouseover = () => { focoBuscaGerenciar = index; atualizarFocoGerenciar(); };
+
                     dropdown.appendChild(div);
                 });
                 dropdown.style.display = 'block';
@@ -273,6 +330,42 @@ document.getElementById('busca_produto_gerenciar').addEventListener('input', (e)
         } catch(err) { console.error(err); }
     }, 300);
 });
+
+// NAVEGAÇÃO PELO TECLADO (Gerenciar)
+document.getElementById('busca_produto_gerenciar').addEventListener('keydown', (e) => {
+    const dropdown = document.getElementById('dropdown_busca_gerenciar');
+    const itens = dropdown.getElementsByClassName('item-busca-gerenciar');
+
+    if (dropdown.style.display === 'block' && itens.length > 0) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            focoBuscaGerenciar++;
+            if (focoBuscaGerenciar >= itens.length) focoBuscaGerenciar = 0;
+            atualizarFocoGerenciar(itens);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            focoBuscaGerenciar--;
+            if (focoBuscaGerenciar < 0) focoBuscaGerenciar = itens.length - 1;
+            atualizarFocoGerenciar(itens);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (focoBuscaGerenciar > -1) itens[focoBuscaGerenciar].click();
+            else document.getElementById('qtd_produto_gerenciar').focus();
+        }
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('qtd_produto_gerenciar').focus();
+    }
+});
+
+function atualizarFocoGerenciar(itens = null) {
+    if(!itens) itens = document.getElementById('dropdown_busca_gerenciar').getElementsByClassName('item-busca-gerenciar');
+    for (let i = 0; i < itens.length; i++) itens[i].style.backgroundColor = "white";
+    if (focoBuscaGerenciar >= 0 && focoBuscaGerenciar < itens.length) {
+        itens[focoBuscaGerenciar].style.backgroundColor = "#e9ecef";
+        itens[focoBuscaGerenciar].scrollIntoView({ block: "nearest" });
+    }
+}
 
 // AÇÃO: INSERE DIRETO NO BANCO PELO GERENCIAR ESTOQUE
 async function adicionarNovoItemGerenciamento() {
@@ -301,14 +394,6 @@ async function adicionarNovoItemGerenciamento() {
         }
     } catch(e) { alert('Erro de comunicação.'); }
 }
-
-// HABILITA A TECLA ENTER (Gerenciar)
-document.getElementById('qtd_produto_gerenciar').addEventListener('keypress', (e) => {
-    if(e.key === 'Enter') { e.preventDefault(); adicionarNovoItemGerenciamento(); }
-});
-document.getElementById('busca_produto_gerenciar').addEventListener('keypress', (e) => {
-    if(e.key === 'Enter') { e.preventDefault(); document.getElementById('qtd_produto_gerenciar').focus(); }
-});
 
 // FUNÇÕES DE CARREGAR, ATUALIZAR E EXCLUIR QUE JÁ ESTAVAM FUNCIONANDO
 async function carregarEstoqueGerenciamento() {
