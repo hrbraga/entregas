@@ -319,7 +319,27 @@ $eventosAtivos = $stmtEventos->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
+<?php
+    $hoje = date('Y-m-d');
+    $stmtPromos = $db_financeiro->prepare("
+        SELECT id, nome_campanha, tipo_mecanica, qtd_gatilho, valor_beneficio 
+        FROM motor_promocoes 
+        WHERE status = 'ativo' 
+        AND data_inicio <= ? AND data_fim >= ?
+    ");
+    $stmtPromos->execute([$hoje, $hoje]);
+    $promocoes_ativas = $stmtPromos->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($promocoes_ativas as $key => $promo) {
+        $stmtProd = $db_financeiro->prepare("SELECT produto_id FROM motor_promocoes_produtos WHERE promocao_id = ?");
+        $stmtProd->execute([$promo['id']]);
+        $produtos = $stmtProd->fetchAll(PDO::FETCH_COLUMN);
+        $promocoes_ativas[$key]['produtos'] = $produtos;
+    }
+    ?>
+    <script>
+        const PROMOCOES_ATIVAS = <?php echo json_encode($promocoes_ativas); ?>;
+    </script>
     <script src="../static/js/pdv.js"></script>
 </body>
-
 </html>
