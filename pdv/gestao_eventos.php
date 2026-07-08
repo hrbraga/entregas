@@ -139,6 +139,9 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
+
+
+
     <div id="modalEstoqueManual" class="modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 9999;">
         <div class="modal-content" style="width: 650px; padding: 25px; box-sizing: border-box; border-radius: 8px; height: auto;">
             <h3 style="margin-bottom: 20px;">⌨️ Inserção Manual de Estoque</h3>
@@ -162,7 +165,7 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
 
-            <div style="width: 100%; margin-bottom: 20px;">
+            <div class="caixa-scroll-estoque" style="width: 100%; margin-bottom: 20px;">
                 <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                     <thead style="background: #f8f9fa;">
                         <tr>
@@ -227,22 +230,63 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
+
 <style>
-        /* Tira a trava de 800px das tabelas apenas dentro destes modais */
+        /* GARANTE QUE O FUNDO ESCURO CUBRA TUDO E FIXE O MODAL NO ECRÃ */
+        .modal-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background-color: rgba(0, 0, 0, 0.7) !important;
+            z-index: 9999 !important;
+        }
+
+        /* TRAVA A ALTURA DOS DOIS MODAIS (ESTOQUE MANUAL E GERENCIAR) */
+        #modalEstoqueManual .modal-content,
+        #modalGerenciarEstoque .modal-content {
+            max-height: 90vh !important; /* Limite máximo de 90% do ecrã */
+            display: flex !important;
+            flex-direction: column !important;
+            max-width: 95vw !important;
+        }
+
+        /* --- ANTÍDOTO PARA AS TABELAS (LARGURA E QUEBRA DE LINHA) --- */
         #modalEstoqueManual table,
         #modalGerenciarEstoque table {
-            min-width: 0 !important;
+            min-width: 0 !important; 
+            width: 100% !important;
+            table-layout: fixed !important;
         }
-        
-        /* Permite que o nome do produto quebre linha se for muito grande */
-        #modalEstoqueManual td,
-        #modalGerenciarEstoque td {
-            white-space: normal !important;
+
+        #modalEstoqueManual th, #modalEstoqueManual td,
+        #modalGerenciarEstoque th, #modalGerenciarEstoque td {
+            white-space: normal !important; 
             word-wrap: break-word !important;
             padding: 10px !important;
         }
-    </style>
 
+        /* --- CONTROLO DO SCROLL VERTICAL DINÂMICO --- */
+        .caixa-scroll-estoque {
+            flex: 1 !important; /* Faz a tabela crescer apenas até ao limite do modal */
+            overflow-y: auto !important; /* Ativa a barra de scroll */
+            border: 1px solid #eee;
+            margin-bottom: 15px;
+            min-height: 200px;
+        }
+
+        /* Cabeçalho fixo no topo enquanto se faz scroll */
+        #modalEstoqueManual thead th,
+        #modalGerenciarEstoque thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 2;
+            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
+        }
+    </style>
+    
     <script src="../static/js/gestao_eventos.js"></script>
 
 </body>

@@ -30,11 +30,15 @@ let totalFechamentoGaveta = 0;
 let totalDescontoPromocoes = 0;
 
 /* =========================================
-   MOTOR DE PROMOÇÕES
+   MOTOR DE PROMOÇÕES (BLINDADO)
 ========================================= */
 function calcularMotorPromocoes() {
-    totalDescontoPromocoes = 0;
-    if (!window.PROMOCOES_ATIVAS || PROMOCOES_ATIVAS.length === 0) return;
+    let descontoCalculado = 0; // Variável local, muito mais segura!
+    
+    if (typeof PROMOCOES_ATIVAS === 'undefined' || PROMOCOES_ATIVAS.length === 0) {
+        console.warn("🔍 Motor: PROMOCOES_ATIVAS não encontrada.");
+        return 0;
+    }
 
     PROMOCOES_ATIVAS.forEach(promo => {
         let produtosPromoIds = promo.produtos.map(id => parseInt(id)); 
@@ -42,44 +46,50 @@ function calcularMotorPromocoes() {
         
         if (itensElegiveis.length === 0) return;
 
-        let qtdTotal = itensElegiveis.reduce((sum, item) => sum + item.quantidade, 0);
-        if (qtdTotal < promo.qtd_gatilho) return;
+        let qtdTotal = itensElegiveis.reduce((sum, item) => sum + parseInt(item.quantidade), 0);
+        let gatilho = parseInt(promo.qtd_gatilho);
+        
+        if (qtdTotal < gatilho) return;
 
-        let multiplicador = Math.floor(qtdTotal / promo.qtd_gatilho);
+        let multiplicador = Math.floor(qtdTotal / gatilho);
+        let mecanica = String(promo.tipo_mecanica).trim();
+        let beneficio = parseFloat(promo.valor_beneficio);
 
-        if (promo.tipo_mecanica === 'leve_x_pague_y') {
-            let itensOrdenados = [...itensElegiveis].sort((a, b) => a.preco - b.preco);
-            let qtdGratisRestante = multiplicador * parseFloat(promo.valor_beneficio);
-            let descontoDestaPromo = 0;
-            
+        if (mecanica === 'leve_x_pague_y') {
+            let itensOrdenados = [...itensElegiveis].sort((a, b) => parseFloat(a.preco) - parseFloat(b.preco));
+            let qtdGratisRestante = multiplicador * beneficio;
+            let desc = 0;
             for (let item of itensOrdenados) {
                 if (qtdGratisRestante <= 0) break;
-                let qtdDescontar = Math.min(item.quantidade, qtdGratisRestante);
-                descontoDestaPromo += qtdDescontar * item.preco;
+                let qtdDescontar = Math.min(parseInt(item.quantidade), qtdGratisRestante);
+                desc += qtdDescontar * parseFloat(item.preco);
                 qtdGratisRestante -= qtdDescontar;
             }
-            totalDescontoPromocoes += descontoDestaPromo;
+            descontoCalculado += desc;
         }
-        else if (promo.tipo_mecanica === 'preco_fixo_combo') {
-            let itensOrdenados = [...itensElegiveis].sort((a, b) => b.preco - a.preco);
-            let qtdParaCombo = multiplicador * promo.qtd_gatilho;
+        else if (mecanica === 'preco_fixo_combo') {
+            let itensOrdenados = [...itensElegiveis].sort((a, b) => parseFloat(b.preco) - parseFloat(a.preco));
+            let qtdParaCombo = multiplicador * gatilho;
             let valorOriginalDosItensDoCombo = 0;
-            
             for (let item of itensOrdenados) {
                 if (qtdParaCombo <= 0) break;
-                let qtdUsar = Math.min(item.quantidade, qtdParaCombo);
-                valorOriginalDosItensDoCombo += qtdUsar * item.preco;
+                let qtdUsar = Math.min(parseInt(item.quantidade), qtdParaCombo);
+                valorOriginalDosItensDoCombo += qtdUsar * parseFloat(item.preco);
                 qtdParaCombo -= qtdUsar;
             }
-            let valorPromocional = multiplicador * parseFloat(promo.valor_beneficio);
-            let descontoDestaPromo = valorOriginalDosItensDoCombo - valorPromocional;
-            if(descontoDestaPromo > 0) totalDescontoPromocoes += descontoDestaPromo;
+            let valorPromocional = multiplicador * beneficio;
+            if((valorOriginalDosItensDoCombo - valorPromocional) > 0) {
+                descontoCalculado += (valorOriginalDosItensDoCombo - valorPromocional);
+            }
         }
-        else if (promo.tipo_mecanica === 'desconto_valor') {
-            totalDescontoPromocoes += (multiplicador * parseFloat(promo.valor_beneficio));
+        else if (mecanica === 'desconto_valor') {
+            descontoCalculado += (multiplicador * beneficio);
         }
     });
+    
+    return descontoCalculado; // A mágica acontece aqui!
 }
+
 
 /* =========================================
    FUNÇÕES DO CARRINHO (CUPOM)
@@ -141,20 +151,27 @@ function atualizarTelaCupom() {
         tbody.appendChild(tr);
     });
 
-    calcularMotorPromocoes();
-
-    let totalLiquido = totalVenda - totalDescontoPromocoes;
+    // RECEBE O DESCONTO DIRETAMENTE DA FUNÇÃO
+    let descontoFinal = calcularMotorPromocoes();
+    
+    // --- RASTREADOR ---
+    console.log("🕵️ ATUALIZANDO TELA - Desconto calculado:", descontoFinal);
+    
+    let totalLiquido = totalVenda - descontoFinal;
     if (totalLiquido < 0) totalLiquido = 0;
 
-    if (totalDescontoPromocoes > 0) {
+    if (descontoFinal > 0) {
+        console.log("✅ Desconto positivo! Criando linha verde...");
         let trPromo = document.createElement('tr');
         trPromo.style.backgroundColor = '#d1e7dd';
         trPromo.style.color = '#0f5132';
         trPromo.innerHTML = `
             <td colspan="3" style="text-align: right; font-weight: bold;">Promoções Ativas:</td>
-            <td style="color: red; font-weight: bold;">- ${formatarMoeda(totalDescontoPromocoes)}</td>
+            <td style="color: red; font-weight: bold;">- ${formatarMoeda(descontoFinal)}</td>
         `;
         tbody.appendChild(trPromo);
+    } else {
+        console.log("❌ Desconto é 0 ou menor, linha não criada.");
     }
 
     document.querySelector('.total-value').innerText = formatarMoeda(totalLiquido);
@@ -428,8 +445,10 @@ if(inputBusca) {
         }, 250);
     });
 
-    inputBusca.addEventListener('keydown', (e) => {
+inputBusca.addEventListener('keydown', async (e) => { // Adicionamos o "async" aqui
         const itens = dropdownBusca.getElementsByClassName('item-busca-pdv');
+        
+        // SE A LISTA ESTIVER ABERTA (Busca manual por nome/código)
         if (dropdownBusca.style.display === 'block' && itens.length > 0) {
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
@@ -449,8 +468,35 @@ if(inputBusca) {
                 dropdownBusca.style.display = 'none';
             }
         } 
+        // SE A LISTA NÃO ESTIVER ABERTA E DER ENTER (Leitor de Código de Barras!)
         else if (e.key === 'Enter') {
             e.preventDefault();
+            const termo = e.target.value.trim();
+            if (!termo) return;
+
+            // 1. Cancela a abertura da lista suspensa
+            clearTimeout(debouncePDV); 
+
+            // 2. Faz uma busca relâmpago direta no banco
+            try {
+                let res = await fetch(`../api/buscar_produto_pdv.php?q=${termo}`);
+                let json = await res.json();
+                
+                if (json.success && json.produtos.length > 0) {
+                    // Pega o primeiro item (que será a correspondência exata do código de barras)
+                    let p = json.produtos[0];
+                    adicionarItem(p.id, p.nome, parseFloat(p.preco), p.estoque);
+                    
+                    // Limpa o campo instantaneamente para o próximo bipe
+                    inputBusca.value = ''; 
+                    dropdownBusca.style.display = 'none'; 
+                } else {
+                    mostrarAlerta('Aviso', 'Produto não encontrado.');
+                    inputBusca.value = '';
+                }
+            } catch(err) { 
+                console.error(err); 
+            }
         }
     });
 

@@ -41,8 +41,7 @@
             <input type="password" id="password" name="password" required>
         </div>
         <button type="submit" class="login-btn">Entrar</button>
-        <p class="toggle-link">Não tem uma conta? <a href="register.php">Cadastre-se</a></p>
-        <p class="toggle-link">Faça um cadastro para cada loja que queira gerenciar.</p>
+      
     </form>
 </div>
 

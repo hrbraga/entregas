@@ -340,6 +340,6 @@ $eventosAtivos = $stmtEventos->fetchAll(PDO::FETCH_ASSOC);
     <script>
         const PROMOCOES_ATIVAS = <?php echo json_encode($promocoes_ativas); ?>;
     </script>
-    <script src="../static/js/pdv.js"></script>
+    <script src="../static/js/pdv.js?v=2"></script>
 </body>
 </html>
