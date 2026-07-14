@@ -11,23 +11,40 @@ require_once '../auth/auth_franqueado_check.php';
 
 try {
     // Pega o ID da loja (franqueado logado)
-    $user_id = $_SESSION['user_id'];
-
-    if (!$user_id) {
-        throw new Exception('Usuário não autenticado.');
-    }
-
-    // Recebe o JSON enviado pelo JavaScript
     $inputJSON = file_get_contents('php://input');
     $input = json_decode($inputJSON, true);
 
+    $user_id = intval($input['loja_id']);
+
+  if (!$user_id || !isset($input['data']) || !isset($input['valor'])) {
+    throw new Exception('Dados inválidos.');
+}
+
     if (!isset($input['data']) || !isset($input['valor'])) {
-         throw new Exception('Data e valor são obrigatórios.');
+        throw new Exception('Data e valor são obrigatórios.');
     }
 
     $data = $input['data']; // Formato esperado: YYYY-MM-DD
     $valor_venda = floatval($input['valor']);
 
+
+$stmt = $db_users->prepare("
+    SELECT COUNT(*)
+    FROM user
+    WHERE id = ?
+      AND id_dono = ?
+");
+
+$stmt->execute([
+    $user_id,
+    $_SESSION['user_id']
+]);
+
+if (!$stmt->fetchColumn()) {
+
+    throw new Exception("Loja inválida.");
+
+}
 
     $sql = "INSERT INTO gestao_metas (user_id, data, venda_dia, meta_dia) 
             VALUES (:user_id, :data, :venda_dia, 0)
@@ -35,17 +52,15 @@ try {
             DO UPDATE SET venda_dia = :venda_dia";
 
     $stmt = $db_financeiro->prepare($sql);
-    
+
     $stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
     $stmt->bindValue(':data', $data, PDO::PARAM_STR);
     $stmt->bindValue(':venda_dia', $valor_venda, PDO::PARAM_STR);
 
     $stmt->execute();
 
-    echo json_json_encode(['success' => true]);
-
+    echo json_encode(['success' => true]);
 } catch (Exception $e) {
     // Retorna o erro em formato JSON
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>

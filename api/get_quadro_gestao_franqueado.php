@@ -8,9 +8,18 @@ $franqueado_id = $_SESSION['user_id'];
 $lojas_input = $_GET['lojas'] ?? 'todas';
 
 // 1. Busca os IDs das lojas permitidas no banco de usuários
-$stmt_ids = $db_users->prepare("SELECT id FROM user WHERE id_dono = ?");
+$stmt_ids = $db_users->prepare("SELECT id, username FROM user WHERE id_dono = ?");
 $stmt_ids->execute([$franqueado_id]);
-$ids_lojas = $stmt_ids->fetchAll(PDO::FETCH_COLUMN);
+
+$lojas = $stmt_ids->fetchAll(PDO::FETCH_ASSOC);
+
+$ids_lojas = [];
+$nomesLojas = [];
+
+foreach ($lojas as $loja) {
+    $ids_lojas[] = $loja['id'];
+    $nomesLojas[$loja['id']] = $loja['username'];
+}
 
 // Se não tiver lojas, bloqueia
 if (empty($ids_lojas)) {
@@ -73,9 +82,11 @@ try {
     if ($ultimo) {
         $meta_ontem = (float)$ultimo['meta_dia'];
         $venda_ontem = (float)$ultimo['venda_dia'];
-        $data_ultimo_dia = date('d/m', strtotime($ultimo['data'])); 
+        $data_ultimo_dia = date('d/m', strtotime($ultimo['data']));
     } else {
-        $meta_ontem = 0; $venda_ontem = 0; $data_ultimo_dia = '';
+        $meta_ontem = 0;
+        $venda_ontem = 0;
+        $data_ultimo_dia = '';
     }
 
     // 4. Meta de Hoje Ajustada
@@ -99,11 +110,22 @@ try {
     ");
     $stmtGrafico->execute([$mes_atual . '-%']);
 
-    $grafico_datas = []; $grafico_metas = []; $grafico_vendas = [];
-    $acumulado_m = 0; $acumulado_v = 0;
+    $grafico_datas = [];
+    $grafico_metas = [];
+    $grafico_vendas = [];
+    $daily_metas_brutas = []; // NOVO
+    $daily_vendas_brutas = []; // NOVO
+    $acumulado_m = 0;
+    $acumulado_v = 0;
 
-    while ($row = $stmtGrafico->fetch(PDO::FETCH_ASSOC)) {
-        $grafico_datas[] = date('d/m', strtotime($row['data']));
+        while ($row = $stmtGrafico->fetch(PDO::FETCH_ASSOC)) {
+        $grafico_datas[] = $row['data'];
+
+        // Adiciona os valores brutos do dia
+        $daily_metas_brutas[] = (float)$row['meta_dia'];
+        $daily_vendas_brutas[] = (float)$row['venda_dia'];
+
+        // Acumulados para o gráfico
         $acumulado_m += (float)$row['meta_dia'];
         $grafico_metas[] = $acumulado_m;
 
@@ -114,6 +136,47 @@ try {
             $grafico_vendas[] = null;
         }
     }
+
+// ======================================================================
+// DADOS DETALHADOS PARA AUDITORIA
+// ======================================================================
+
+$auditoria = [];
+
+$stmtAuditoria = $db_financeiro->prepare("
+    SELECT
+        data,
+        user_id,
+        meta_dia,
+        venda_dia
+    FROM gestao_metas
+    WHERE $condicao_lojas
+      AND data LIKE ?
+    ORDER BY data ASC, user_id ASC
+");
+
+$stmtAuditoria->execute([$mes_atual . '-%']);
+
+while ($row = $stmtAuditoria->fetch(PDO::FETCH_ASSOC)) {
+
+    $data = $row['data'];
+
+    if (!isset($auditoria[$data])) {
+        $auditoria[$data] = [
+            'data' => $data,
+            'lojas' => []
+        ];
+    }
+
+    $auditoria[$data]['lojas'][] = [
+        'id'    => (int)$row['user_id'],
+        'nome'  => $nomesLojas[$row['user_id']] ?? ('Loja '.$row['user_id']),
+        'meta'  => (float)$row['meta_dia'],
+        'venda' => (float)$row['venda_dia']
+    ];
+}
+
+$auditoria = array_values($auditoria);
 
     ob_clean();
     echo json_encode([
@@ -129,12 +192,14 @@ try {
         'data_ultimo_dia' => $data_ultimo_dia,
         'meta_hoje' => $meta_hoje,
         'meta_ajustada' => $meta_ajustada,
+        'daily_metas' => $daily_metas_brutas,
+        'daily_vendas' => $daily_vendas_brutas,
         'grafico_datas' => $grafico_datas,
         'grafico_metas' => $grafico_metas,
-        'grafico_vendas' => $grafico_vendas
+        'grafico_vendas' => $grafico_vendas,
+        'auditoria' => $auditoria
     ]);
 } catch (Exception $e) {
     ob_clean();
     echo json_encode(['error' => 'Erro interno BD: ' . $e->getMessage()]);
 }
-?>

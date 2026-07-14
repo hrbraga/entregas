@@ -286,52 +286,98 @@ hr {
     }
 }
 
-    .abas {
-        display: flex;
-        gap: 5px;
-        margin-bottom: 0;
-        position: relative;
-        z-index: 1;
-        padding-left: 10px;
-    }
-    .aba {
-        padding: 12px 25px;
-        cursor: pointer;
-        font-weight: bold;
-        color: #666;
-        background: #f8f9fa;
-        border: 1px solid #ddd;
-        border-bottom: none;
-        border-radius: 8px 8px 0 0;
-        opacity: 0.8;
-    }
-    .aba.ativa {
-        color: #0d6efd;
-        background: white;
-        opacity: 1;
-        padding-bottom: 13px;
-        margin-bottom: -1px;
-        border-bottom: 1px solid white;
-    }
-    .conteudo-aba {
-        display: none;
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        border: 1px solid #ddd;
-    }
-    .conteudo-aba.ativo {
-        display: block;
-    }
-    
-    /* Estilo para o input de edição ficar com cara de sistema */
-    .input-edicao-venda {
-        width: 120px;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        text-align: right;
-        font-weight: bold;
-        color: #198754;
-    }
+.abas {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1;
+    padding-left: 10px;
+}
+
+.aba {
+    padding: 15px 30px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 18px;
+    color: #666;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    opacity: .85;
+    transition: all .2s;
+}
+
+.aba:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+.aba.ativa{
+    color:#fff;
+    background:#0d6efd;
+    opacity:1;
+    padding-bottom:16px;
+    margin-bottom:-1px;
+    border-bottom:1px solid #0d6efd;
+}
+
+.conteudo-aba {
+    display: none;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #ddd;
+}
+
+.conteudo-aba.ativo {
+    display: block;
+}
+
+.input-edicao-venda{
+    width:130px;
+    padding:10px 12px;
+    border:1px solid #ced4da;
+    border-radius:6px;
+    text-align:right;
+    font-size:16px;
+    font-weight:700;
+    color:#198754;
+    background:#fff;
+    transition:.2s;
+}
+
+.input-edicao-venda:focus{
+    outline:none;
+    border-color:#0d6efd;
+    box-shadow:0 0 0 3px rgba(13,110,253,.15);
+}
+
+#auditoria-wrapper{
+
+    overflow:auto;
+
+    max-height:70vh;
+
+}
+
+#auditoria-wrapper table{
+
+    min-width:max-content;
+
+}
+
+thead th:first-child,
+tbody td:first-child{
+
+    position:sticky;
+
+    left:0;
+
+    z-index:6;
+
+    background:white;
+
+}
