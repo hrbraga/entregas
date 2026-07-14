@@ -96,6 +96,54 @@ $campanhas_motor = $stmtCampanhas->fetchAll(PDO::FETCH_ASSOC);
         border-radius: 5px;
         box-sizing: border-box;
     }
+
+/* --- MENU KEBAB (FORA DA PRISÃO DA TABELA) --- */
+    .kebab-menu {
+        display: inline-block;
+    }
+
+    .kebab-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 5px 10px;
+        color: #666;
+        font-weight: bold;
+    }
+
+    .kebab-content {
+        display: none;
+        background-color: #fff;
+        min-width: 190px;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+        z-index: 999999 !important; /* Maior possível */
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    .kebab-content button {
+        color: #333;
+        padding: 10px 15px;
+        text-decoration: none;
+        display: block;
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+        font-size: 0.9rem;
+    }
+
+    .kebab-content button:hover {
+        background-color: #f8f9fa;
+    }
+
+    .kebab-content button:last-child {
+        border-bottom: none;
+    }
 </style>
 
 <body>
@@ -231,8 +279,14 @@ $campanhas_motor = $stmtCampanhas->fetchAll(PDO::FETCH_ASSOC);
                                             </span>
                                         </td>
                                         <td style="padding: 10px; border: 1px solid #ccc; text-align: center;">
-                                            <button onclick="abrirModalProdutosPromo(<?php echo $c['id']; ?>, '<?php echo addslashes($c['nome_campanha']); ?>')" style="background: #ffc107; color: #000; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">📦 Adicionar Produtos</button>
-                                            <button onclick="excluirCampanha(<?php echo $c['id']; ?>)" style="background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer;">🗑️</button>
+                                            <div class="kebab-menu" id="kebab-wrapper-<?php echo $c['id']; ?>" onclick="toggleKebab(event, <?php echo $c['id']; ?>)">
+                                                <button class="kebab-btn">⋮</button>
+                                                <div class="kebab-content">
+                                                    <button onclick="abrirModalProdutosPromo(<?php echo $c['id']; ?>, '<?php echo addslashes($c['nome_campanha']); ?>')">📦 Adicionar Produtos</button>
+                                                    <button onclick="abrirModalEditarCampanha(<?php echo $c['id']; ?>, '<?php echo addslashes($c['nome_campanha']); ?>', '<?php echo $c['tipo_mecanica']; ?>', <?php echo $c['qtd_gatilho']; ?>, <?php echo $c['valor_beneficio']; ?>, '<?php echo $c['data_inicio']; ?>', '<?php echo $c['data_fim']; ?>')">✏️ Editar Campanha</button>
+                                                    <button onclick="excluirCampanha(<?php echo $c['id']; ?>)" style="color: #dc3545; font-weight: bold;">🗑️ Excluir</button>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -332,6 +386,50 @@ $campanhas_motor = $stmtCampanhas->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
+
+<div id="modalEditarPromo" class="modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 9999;">
+    <div class="modal-content" style="width: 500px; padding: 25px; box-sizing: border-box; border-radius: 8px;">
+        <h3 style="margin-bottom: 15px;">✏️ Editar Campanha</h3>
+        <input type="hidden" id="edit_promo_id">
+        
+        <div class="form-group">
+            <label>Nome da Campanha:</label>
+            <input type="text" id="edit_promo_nome">
+        </div>
+        <div class="form-group">
+            <label>Mecânica:</label>
+            <select id="edit_promo_mecanica">
+                <option value="leve_x_pague_y">Leve X Pague Y (Ex: Compre 6 Pague 5)</option>
+                <option value="preco_fixo_combo">Preço Fixo no Combo (Ex: 2 por R$ 26,90)</option>
+                <option value="desconto_valor">Desconto Fixo na 2ª Unid. (Ex: Desc. R$ 10)</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Qtd Gatilho:</label>
+                <input type="number" id="edit_promo_gatilho" min="1">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Benefício (R$ ou Unid):</label>
+                <input type="number" id="edit_promo_beneficio" step="0.01">
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Início:</label>
+                <input type="date" id="edit_promo_inicio">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Fim:</label>
+                <input type="date" id="edit_promo_fim">
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn-acao btn-pay" style="flex: 2; padding: 12px; background-color: #198754; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="salvarEdicaoCampanha()">Salvar Alterações</button>
+            <button style="flex: 1; padding: 12px; background-color: #6c757d; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="fecharModalEditarPromo()">Cancelar</button>
+        </div>
+    </div>
+</div>
 
     <script>
         // --- Controle de Abas ---
@@ -640,6 +738,91 @@ $campanhas_motor = $stmtCampanhas->fetchAll(PDO::FETCH_ASSOC);
                 });
                 carregarProdutosDaCampanha();
             } catch (e) {}
+        }
+
+      // --- MENU KEBAB (O CÓDIGO SUPREMO) ---
+        function toggleKebab(event, id) {
+            event.stopPropagation(); 
+            
+            const content = document.querySelector('#kebab-wrapper-' + id + ' .kebab-content');
+            const isAberto = content.style.display === 'block';
+
+            // 1. Fecha TODOS os menus primeiro
+            document.querySelectorAll('.kebab-content').forEach(menu => {
+                menu.style.display = 'none';
+            });
+
+            // 2. Se já estava aberto, ele fechou no passo anterior, então encerramos aqui
+            if (isAberto) return;
+
+            // 3. O PULO DO GATO: Calcula a posição exata do botão na tela
+            const btn = document.querySelector('#kebab-wrapper-' + id + ' .kebab-btn');
+            const rect = btn.getBoundingClientRect();
+            
+            // 4. Posiciona o menu livremente na tela, ignorando qualquer tabela
+            content.style.position = 'fixed'; // Desprende da página
+            content.style.top = (rect.bottom) + 'px'; // Cola exatamente embaixo do botão
+            content.style.left = (rect.right - 190) + 'px'; // 190 é a largura do menu, alinha à direita
+            content.style.display = 'block';
+        }
+
+        // Se clicar em qualquer lugar da tela, fecha os menus
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.kebab-content').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        });
+
+        // Se a pessoa rolar a página com o scroll do mouse, fecha o menu (para não ficar flutuando solto)
+        document.addEventListener('scroll', () => {
+            document.querySelectorAll('.kebab-content').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        }, true);
+
+        // --- EDIÇÃO DE CAMPANHAS ---
+        function abrirModalEditarCampanha(id, nome, mecanica, gatilho, beneficio, inicio, fim) {
+            document.getElementById('edit_promo_id').value = id;
+            document.getElementById('edit_promo_nome').value = nome;
+            document.getElementById('edit_promo_mecanica').value = mecanica;
+            document.getElementById('edit_promo_gatilho').value = gatilho;
+            document.getElementById('edit_promo_beneficio').value = beneficio;
+            document.getElementById('edit_promo_inicio').value = inicio;
+            document.getElementById('edit_promo_fim').value = fim;
+            document.getElementById('modalEditarPromo').style.display = 'flex';
+        }
+
+        function fecharModalEditarPromo() {
+            document.getElementById('modalEditarPromo').style.display = 'none';
+        }
+
+        async function salvarEdicaoCampanha() {
+            const payload = {
+                acao: 'editar_campanha',
+                id: document.getElementById('edit_promo_id').value,
+                nome: document.getElementById('edit_promo_nome').value,
+                mecanica: document.getElementById('edit_promo_mecanica').value,
+                gatilho: document.getElementById('edit_promo_gatilho').value,
+                beneficio: document.getElementById('edit_promo_beneficio').value,
+                inicio: document.getElementById('edit_promo_inicio').value,
+                fim: document.getElementById('edit_promo_fim').value
+            };
+
+            if (!payload.nome || !payload.gatilho || !payload.beneficio || !payload.inicio || !payload.fim) {
+                return alert("Preencha todos os campos da campanha!");
+            }
+
+            try {
+                const res = await fetch('../api/admin_motor_promocoes.php', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json();
+                if (json.success) window.location.reload();
+                else alert('Erro: ' + json.error);
+            } catch (e) {
+                alert('Erro ao salvar edição.');
+            }
         }
     </script>
 </body>

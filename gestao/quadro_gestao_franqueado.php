@@ -64,8 +64,11 @@ require_once '../includes/header_franq.php';
     </div>
 
     <h1 class="quadro_titulo">QUADRO DE GESTÃO MASTER</h1>
-    <hr>
-
+    <div class="abas">
+        <div class="aba ativa" onclick="mudarAba('aba_dashboard')">📊 Resumo Geral</div>
+        <div class="aba" onclick="mudarAba('aba_auditoria')">✏️ Auditoria e Correção</div>
+    </div>
+    <div id="aba_dashboard" class="conteudo-aba ativo">
     <div class="qg-grid-row-4" style="margin-bottom: 20px;">
         <div class="qg-card" style="border-left: 4px solid #3b82f6;">
             <div class="qg-card-header"><span>📅 Mês de Operação</span></div>
@@ -136,6 +139,37 @@ require_once '../includes/header_franq.php';
     <div style="background:#fff; border-radius:16px; padding:24px; height: 300px; box-shadow:0 4px 12px rgba(0,0,0,0.03);">
         <canvas id="graficoEvolucao"></canvas>
     </div>
+</div>
+<div id="aba_auditoria" class="conteudo-aba">
+    <h3 style="margin-bottom: 15px;">Auditoria de Vendas Diárias</h3>
+    <p style="color: #666; margin-bottom: 20px;">Corrija os valores de vendas lançados incorretamente pelas lojas.</p>
+
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead style="background: #f8f9fa;">
+            <tr>
+                <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">Data</th>
+                <th style="padding: 12px; border: 1px solid #ddd; text-align: right;">Meta Diária</th>
+                <th style="padding: 12px; border: 1px solid #ddd; text-align: right;">Venda Realizada</th>
+                <th style="padding: 12px; border: 1px solid #ddd; text-align: center;">Ação</th>
+            </tr>
+        </thead>
+        <tbody id="tbody_auditoria_vendas">
+            <!-- As linhas serão injetadas via JavaScript ou PHP aqui -->
+            
+            <!-- EXEMPLO DE COMO A LINHA VAI FICAR: -->
+            <tr>
+                <td style="padding: 12px; border: 1px solid #ddd;">13/07/2026</td>
+                <td style="padding: 12px; border: 1px solid #ddd; text-align: right; color: #666;">R$ 1.500,00</td>
+                <td style="padding: 12px; border: 1px solid #ddd; text-align: right;">
+                    <input type="text" id="venda_dia_13" class="input-edicao-venda" value="1250,00" onkeyup="mascaraMoeda(event)">
+                </td>
+                <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">
+                    <button onclick="salvarCorrecaoVenda('2026-07-13', 'venda_dia_13')" style="background: #0d6efd; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Salvar</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 </div>
 </div>
 

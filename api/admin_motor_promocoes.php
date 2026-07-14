@@ -12,6 +12,10 @@ try {
         $stmt = $db_financeiro->prepare("INSERT INTO motor_promocoes (nome_campanha, tipo_mecanica, qtd_gatilho, valor_beneficio, data_inicio, data_fim) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$data['nome'], $data['mecanica'], $data['gatilho'], $data['beneficio'], $data['inicio'], $data['fim']]);
     }
+    elseif ($acao === 'editar_campanha') {
+        $stmt = $db_financeiro->prepare("UPDATE motor_promocoes SET nome_campanha = ?, tipo_mecanica = ?, qtd_gatilho = ?, valor_beneficio = ?, data_inicio = ?, data_fim = ? WHERE id = ?");
+        $stmt->execute([$data['nome'], $data['mecanica'], $data['gatilho'], $data['beneficio'], $data['inicio'], $data['fim'], $data['id']]);
+    }
     elseif ($acao === 'excluir_campanha') {
         $stmt = $db_financeiro->prepare("DELETE FROM motor_promocoes WHERE id = ?");
         $stmt->execute([$data['id']]);

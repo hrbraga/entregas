@@ -202,5 +202,62 @@ async function copiarTexto() {
     }
 }
 
+    // --- Controle de Abas ---
+    function mudarAba(abaId) {
+        document.querySelectorAll('.aba').forEach(el => el.classList.remove('ativa'));
+        document.querySelectorAll('.conteudo-aba').forEach(el => el.classList.remove('ativo'));
+        event.currentTarget.classList.add('ativa');
+        document.getElementById(abaId).classList.add('ativo');
+    }
+
+    // --- Máscara de Moeda para o Input ---
+    function mascaraMoeda(event) {
+        let input = event.target;
+        let valor = input.value.replace(/\D/g, ''); 
+        if (valor === '') { input.value = ''; return; }
+        valor = (parseInt(valor) / 100).toFixed(2) + '';
+        valor = valor.replace('.', ',');
+        valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+        input.value = valor;
+    }
+
+    // --- Salvar a Edição ---
+    async function salvarCorrecaoVenda(dataVenda, inputId) {
+        const inputElement = document.getElementById(inputId);
+        const novoValorString = inputElement.value;
+        
+        // Converte a string "1.250,00" para decimal "1250.00"
+        const novoValorDecimal = parseFloat(novoValorString.replace(/\./g, '').replace(',', '.'));
+
+        if (isNaN(novoValorDecimal)) {
+            alert("Por favor, insira um valor válido.");
+            return;
+        }
+
+        if(confirm(`Tem certeza que deseja corrigir a venda do dia ${dataVenda} para R$ ${novoValorString}?`)) {
+            try {
+                // Aqui chamaremos a API do backend
+                const res = await fetch('../api/admin_salvar_correcao_venda.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: dataVenda, valor: novoValorDecimal })
+                });
+                
+                const json = await res.json();
+                
+                if(json.success) {
+                    alert('✅ Venda corrigida com sucesso!');
+                    inputElement.style.backgroundColor = '#d1e7dd'; // Pisca verde pra confirmar
+                    setTimeout(() => inputElement.style.backgroundColor = '', 1500);
+                } else {
+                    alert('Erro ao salvar: ' + json.error);
+                }
+            } catch (e) {
+                alert('Erro de comunicação com o servidor.');
+            }
+        }
+    }
+
+
 // Carrega os dados da opção "Todas as lojas" assim que a página abrir
 window.onload = carregarDashboard;
