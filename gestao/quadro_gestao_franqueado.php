@@ -19,6 +19,20 @@ require_once '../includes/header_franq.php';
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 
+
+<style>
+#seletorLojas {
+    position: relative;
+    z-index: 9999 !important;
+}
+
+
+.container-do-seletor {
+    position: relative;
+    z-index: 9999 !important;
+}
+</style>
+
 <div class="container" style="position: relative; padding-bottom: 40px; margin: 0 auto;">
 
     <div id="modalCopiar" class="modal-overlay" style="display:none;">

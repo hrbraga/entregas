@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Busca todos os utilizadores registados e seus perfis
 try {
-    $stmt = $db_users->query("SELECT id, username, perfil FROM user ORDER BY username ASC");
+    $stmt = $db_users->query("SELECT id, username, perfil, id_loja FROM user ORDER BY username ASC");
     $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     $usuarios = [];
@@ -56,7 +56,7 @@ try {
     <table class="table-financeiro">
         <thead>
             <tr style="background: #f4f4f4;">
-                <th>ID</th>
+                <th style="width: 50px;">ID</th>
                 <th>Nome de Utilizador</th>
                 <th>Perfil Atual</th>
                 <th style="text-align: center;">Ações de Segurança</th>
@@ -82,10 +82,14 @@ try {
                         </button>
                     </td>
                     <td>
-                        <button onclick="transferirUsuario(<?= $u['id'] ?>, '<?= $u['loja'] ?>')">Transferir Loja</button>
+                        <button type="button" class="btn btn-warning" onclick="abrirModalTransferencia(<?= $u['id'] ?>, '<?= htmlspecialchars($u['username'], ENT_QUOTES) ?>')">
+                            Alterar Franqueado
+                        </button>
                     </td>
                     <td>
-                        <button onclick="excluirUsuario(<?= $u['id'] ?>)" style="color: red;">Excluir</button>
+                        <button type="button" class="btn btn-danger" onclick="confirmarExclusao(<?= $u['id'] ?>)">
+                            Excluir
+                        </button>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -127,6 +131,39 @@ try {
     </div>
 </div>
 
+<!-- Modal de Transferência -->
+<div id="modalTransferencia" class="modal-financeiro" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center;">
+    <div class="modal-content" style="background: #fff; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+        <div class="modal-header" style="background: #ffc107; color: #000; padding: 15px 20px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; border-bottom: none;">
+            <h3 style="margin:0;">Transferir Loja</h3>
+            <button onclick="fecharModalTransferencia()" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+        </div>
+
+        <div style="padding: 20px;">
+            <input type="hidden" id="transf_id_usuario">
+            
+            <p style="margin-bottom: 15px; font-size: 14px;">Selecione o novo dono para o acesso: <strong id="transf_nome_usuario" style="color: #007bff;"></strong></p>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight:bold; font-size: 13px; display:block; margin-bottom:5px;">Novo Franqueado Proprietário</label>
+                <select id="transf_novo_franqueado" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="">-- Selecione o Franqueado --</option>
+                    <?php foreach ($usuarios as $f): ?>
+                        <?php if (isset($f['perfil']) && $f['perfil'] === 'franqueado'): ?>
+                            <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['username']) ?> (ID: <?= $f['id'] ?>)</option>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div style="text-align: right;">
+                <button type="button" onclick="fecharModalTransferencia()" style="padding:10px 15px; background:#6c757d; color:white; border:none; border-radius:4px; cursor:pointer; margin-right: 10px;">Cancelar</button>
+                <button type="button" onclick="executarTransferencia()" style="padding:10px 15px; background:#28a745; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">Transferir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function excluirUsuario(id) {
         if (confirm("Tem certeza que deseja excluir este usuário definitivamente?")) {
@@ -139,7 +176,8 @@ try {
                 });
         }
     }
-    // Função para Editar/Transferir
+
+
     function transferirUsuario(id, lojaAtual) {
         // Um prompt simples para digitar a nova loja
         let novaLoja = prompt("O usuário atualmente está na loja: " + lojaAtual + "\nDigite a nova loja para transferência (ex: Arena Esportes ou CS Revenda Show):");
@@ -172,6 +210,76 @@ try {
     function fecharModalEdicao() {
         document.getElementById('modalEdicao').style.display = 'none';
     }
+
+    function abrirModalTransferencia(idUsuario, username) {
+    if (!idUsuario) return;
+    
+    // Preenche os dados no modal
+    document.getElementById('transf_id_usuario').value = idUsuario;
+    document.getElementById('transf_nome_usuario').innerText = username;
+    document.getElementById('transf_novo_franqueado').value = ''; // Reseta o select
+    
+    // Exibe o modal
+    document.getElementById('modalTransferencia').style.display = 'flex';
+}
+
+function fecharModalTransferencia() {
+    document.getElementById('modalTransferencia').style.display = 'none';
+}
+
+function executarTransferencia() {
+    let idUsuario = document.getElementById('transf_id_usuario').value;
+    let novoIdFranqueado = document.getElementById('transf_novo_franqueado').value;
+
+    if (!novoIdFranqueado) {
+        alert("Por favor, selecione um franqueado na lista.");
+        return;
+    }
+
+    fetch('transferir_loja_action.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id_usuario=' + idUsuario + '&novo_id_franqueado=' + novoIdFranqueado
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.mensagem);
+        if(data.sucesso) location.reload();
+    });
+}
+
+    function alterarFranqueado(idUsuario, novoIdFranqueado) {
+        fetch('transferir_loja_action.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'id_usuario=' + idUsuario + '&novo_id_franqueado=' + novoIdFranqueado
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.mensagem);
+                if (data.sucesso) location.reload();
+            });
+    }
+
+    function confirmarExclusao(idUsuario) {
+        if (confirm("Tem certeza que deseja excluir este acesso definitivamente?")) {
+            fetch('excluir_loja_action.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'id_usuario=' + idUsuario
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.mensagem);
+                    if (data.sucesso) location.reload();
+                });
+        }
+    }
 </script>
+
 
 <?php require '../includes/footer.php'; ?>
