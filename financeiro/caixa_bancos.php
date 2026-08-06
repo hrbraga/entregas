@@ -1,4 +1,5 @@
 <?php
+
 require_once '../config.php';
 require '../auth/auth_franqueado_check.php';
 $page_title = "Caixa e Bancos";
