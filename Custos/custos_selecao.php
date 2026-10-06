@@ -29,9 +29,9 @@ require '../includes/header.php';
                     </a>
                 </div>
                 <div class="campanha-3 campanha">
-                    <a href="custos_pascoa_2026.php">
-                        <img src="../static/img/Pascoa2026.JPG" alt="Campanha de Páscoa 2026">
-                        <p>Páscoa 2026</p>
+                    <a href="custo_natal_2026.php">
+                        <img src="../static/img/natal26.png" alt="Campanha de Natal 2026">
+                        <p>Natal 2026</p>
                     </a>
                 </div>
                 <div class="campanha-2 campanha">
