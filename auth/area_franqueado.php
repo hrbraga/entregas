@@ -42,6 +42,12 @@ if (strpos($_SESSION['username'], 'loja-') === 0) {
         </a>
     </div>
     <div class="campanha-2 campanha">
+        <a href="../pdv/gestao_eventos.php"><img src="../static/img/loja-cacau-show.jpg"
+                alt="Loja">
+            <p>Gestão de Eventos</p>
+        </a>
+    </div>
+    <div class="campanha-2 campanha">
         <a href="../auth/minha_equipe.php"><img src="../static/img/colaboradora.png"
                 alt="Loja">
             <p>Minhas lojas</p>

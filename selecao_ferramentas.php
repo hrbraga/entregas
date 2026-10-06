@@ -57,6 +57,12 @@ require 'auth/custos_auth_check.php'; // Protege esta página (Nível 1)
                         <p>Etiqueta Delivery</p>
                     </a>
                 </div>
+                <div class="campanha-2 campanha">
+                    <a href="pdv/pdv.php">
+                        <img src="static/img/loja-cacau-show.jpg" alt="Ponto de Venda">
+                        <p>PDV</p>
+                    </a>
+                </div>
                  <div class="campanha-2 campanha">
                     <a href="contrato/contratoPetit.php">
                         <img src="static/img/petitDeli.jpg" alt="Bombons Petit Deli">
