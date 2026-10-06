@@ -26,9 +26,11 @@ try {
                 mbLiquida, 
                 mbBruta 
             FROM produtos_unificados 
-            WHERE campanha IS NOT NULL AND TRIM(campanha) != '' 
+            WHERE campanha IS NOT NULL 
+              AND TRIM(campanha) != '' 
+              AND UPPER(TRIM(campanha)) NOT IN ('NATAL', 'PÁSCOA', 'PASCOA')
             ORDER BY campanha, nome_produto";
-            
+
     $stmt = $db_produtos->query($sql);
     $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -59,14 +61,15 @@ try {
                 <button id="btn-importar">IMPORTAR</button>
                 <input type="file" id="importXLS" accept=".xlsx, .xls" style="display: none;">
                 <a href="https://docs.google.com/spreadsheets/d/1xpEn91Vu-0s0lmoKg6iQZJbc54TPWSQ_/edit?usp=sharing&ouid=103820571681106693375&rtpof=true&sd=true" target="_blank">
-                <p class="linkModelo">Planilha modelo</p></a>
+                    <p class="linkModelo">Planilha modelo</p>
+                </a>
             </div>
             <div class="btn-exportar botoesImportacaoEExportacao">
                 <p>EXPORTAR</p>
                 <button onclick="exportToPDF()">PDF</button>
                 <button onclick="exportToXLS()">XLS</button>
             </div>
-                <div class="btn-limpar botoesImportacaoEExportacao">
+            <div class="btn-limpar botoesImportacaoEExportacao">
                 <p>LIMPAR TUDO</p>
                 <button id="btn-limpar">LIMPAR</button>
             </div>
